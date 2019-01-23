@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="aDoctorPlugin">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/aDoctorPlugin.jar!/" />
+      <root url="jar://$PROJECT_DIR$/commons-csv-1.5.jar!/" />
+      <root url="jar://$PROJECT_DIR$/commons-io-1.3.2.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
