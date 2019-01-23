@@ -1,8 +1,8 @@
 package adoctorr.application.analysis;
 
 import adoctorr.application.ast.ASTUtilities;
-import adoctorr.application.bean.smell.EarlyResourceBindingSmellMethodBean;
-import adoctorr.application.bean.smell.SmellMethodBean;
+import adoctorr.application.bean.smell.ERBSmell;
+import adoctorr.application.bean.smell.MethodSmell;
 import beans.MethodBean;
 import org.eclipse.jdt.core.dom.*;
 
@@ -10,7 +10,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-public class EarlyResourceBindingAnalyzer {
+public class ERBAnalyzer {
 
     private static final String ONCREATE_NAME = "onCreate";
     private static final String ONCREATE_TYPE = "void";
@@ -20,7 +20,7 @@ public class EarlyResourceBindingAnalyzer {
     private static final String GPS_REQUEST_METHOD_NAME = "requestLocationUpdates";
 
     // Warning: Source code with method-level compile error and accents might give problems in the methodDeclaration fetch
-    public EarlyResourceBindingSmellMethodBean analyzeMethod(MethodBean methodBean, MethodDeclaration methodDeclaration, CompilationUnit compilationUnit, File sourceFile) {
+    public ERBSmell analyzeMethod(MethodBean methodBean, MethodDeclaration methodDeclaration, CompilationUnit compilationUnit, File sourceFile) {
         if (methodBean != null && methodDeclaration != null && compilationUnit != null && sourceFile != null) {
             // Only for public|protected void onCreate(Bundle)
             boolean onCreateFound = false;
@@ -76,11 +76,11 @@ public class EarlyResourceBindingAnalyzer {
                             k++;
                         }
                         if (smellFound) {
-                            EarlyResourceBindingSmellMethodBean smellMethodBean = new EarlyResourceBindingSmellMethodBean();
+                            ERBSmell smellMethodBean = new ERBSmell();
                             smellMethodBean.setMethodBean(methodBean);
                             smellMethodBean.setResolved(false);
                             smellMethodBean.setSourceFile(sourceFile);
-                            smellMethodBean.setSmellType(SmellMethodBean.EARLY_RESOURCE_BINDING);
+                            smellMethodBean.setSmellType(MethodSmell.EARLY_RESOURCE_BINDING);
                             smellMethodBean.setRequestBlock(requestBlock);
                             smellMethodBean.setRequestStatement(requestStatement);
                             return smellMethodBean;

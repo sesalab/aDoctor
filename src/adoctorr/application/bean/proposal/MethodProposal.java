@@ -1,16 +1,16 @@
 package adoctorr.application.bean.proposal;
 
 
-import adoctorr.application.bean.smell.SmellMethodBean;
+import adoctorr.application.bean.smell.MethodSmell;
 
 import java.util.ArrayList;
 
-public class ProposalMethodBean {
-    private SmellMethodBean smellMethodBean;
+public class MethodProposal {
+    private MethodSmell methodSmell;
     private ArrayList<String> actualCodeToHighlightList;
     private ArrayList<String> proposedCodeToHighlightList;
 
-    ProposalMethodBean() {
+    MethodProposal() {
     }
 
     public ArrayList<String> getActualCodeToHighlightList() {
@@ -29,11 +29,11 @@ public class ProposalMethodBean {
         this.proposedCodeToHighlightList = proposedCodeToHighlightList;
     }
 
-    public SmellMethodBean getSmellMethodBean() {
-        return smellMethodBean;
+    public MethodSmell getMethodSmell() {
+        return methodSmell;
     }
 
-    public void setSmellMethodBean(SmellMethodBean smellMethodBean) {
-        this.smellMethodBean = smellMethodBean;
+    public void setMethodSmell(MethodSmell methodSmell) {
+        this.methodSmell = methodSmell;
     }
 }

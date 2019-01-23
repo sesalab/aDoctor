@@ -1,10 +1,10 @@
 package adoctorr.presentation.dialog;
 
-import adoctorr.application.bean.proposal.DurableWakelockProposalMethodBean;
-import adoctorr.application.bean.proposal.EarlyResourceBindingProposalMethodBean;
-import adoctorr.application.bean.proposal.ProposalMethodBean;
-import adoctorr.application.bean.smell.SmellMethodBean;
-import adoctorr.application.proposal.Proposer;
+import adoctorr.application.bean.proposal.DWProposal;
+import adoctorr.application.bean.proposal.ERBProposal;
+import adoctorr.application.bean.proposal.MethodProposal;
+import adoctorr.application.bean.smell.MethodSmell;
+import adoctorr.application.proposal.ProposalDriver;
 import com.intellij.openapi.project.Project;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 
@@ -41,12 +41,12 @@ public class SmellDialog extends JDialog {
     private JButton buttonQuit;
 
     private Project project;
-    private ArrayList<SmellMethodBean> smellMethodList;
-    private ProposalMethodBean proposalMethodBean;
+    private ArrayList<MethodSmell> smellMethodList;
+    private MethodProposal methodProposal;
 
-    private ArrayList<SmellMethodBean> unresolvedSmellMethodList;
+    private ArrayList<MethodSmell> unresolvedSmellMethodList;
 
-    private SmellDialog(Project project, ArrayList<SmellMethodBean> smellMethodList) {
+    private SmellDialog(Project project, ArrayList<MethodSmell> smellMethodList) {
         setContentPane(contentPane);
         setModal(true);
         Toolkit toolkit = Toolkit.getDefaultToolkit();
@@ -62,21 +62,21 @@ public class SmellDialog extends JDialog {
 
         this.project = project;
         this.smellMethodList = smellMethodList;
-        proposalMethodBean = null;
+        methodProposal = null;
 
         unresolvedSmellMethodList = new ArrayList<>();
-        for (SmellMethodBean smellMethodBean : smellMethodList) {
-            if (!smellMethodBean.isResolved()) {
-                unresolvedSmellMethodList.add(smellMethodBean);
+        for (MethodSmell methodSmell : smellMethodList) {
+            if (!methodSmell.isResolved()) {
+                unresolvedSmellMethodList.add(methodSmell);
             }
         }
 
         // The smells' list
         DefaultListModel<String> listSmellModel = (DefaultListModel<String>) listSmell.getModel();
-        for (SmellMethodBean smellMethodBean : unresolvedSmellMethodList) {
-            String methodName = smellMethodBean.getMethodBean().getName();
-            int smellType = smellMethodBean.getSmellType();
-            String smellName = SmellMethodBean.getSmellName(smellType);
+        for (MethodSmell methodSmell : unresolvedSmellMethodList) {
+            String methodName = methodSmell.getMethodBean().getName();
+            int smellType = methodSmell.getSmellType();
+            String smellName = MethodSmell.getSmellName(smellType);
             String htmlContent = "" +
                     "<html>" +
                     "<p style=\"font-size:10px\">" +
@@ -122,7 +122,7 @@ public class SmellDialog extends JDialog {
         listSmell.setSelectedIndex(0);
     }
 
-    public static void show(Project project, ArrayList<SmellMethodBean> smellMethodList) {
+    public static void show(Project project, ArrayList<MethodSmell> smellMethodList) {
         SmellDialog dialog = new SmellDialog(project, smellMethodList);
 
         dialog.pack();
@@ -131,27 +131,27 @@ public class SmellDialog extends JDialog {
 
     private void onUpdateSmellMethodDetails() {
         int selectedIndex = listSmell.getSelectedIndex();
-        SmellMethodBean smellMethodBean = unresolvedSmellMethodList.get(selectedIndex);
+        MethodSmell methodSmell = unresolvedSmellMethodList.get(selectedIndex);
 
         // Compute the proposal of the selected smell
-        Proposer proposer = new Proposer();
+        ProposalDriver proposalDriver = new ProposalDriver();
         try {
-            proposalMethodBean = proposer.computeProposal(smellMethodBean);
+            methodProposal = proposalDriver.computeProposal(methodSmell);
 
-            String className = smellMethodBean.getMethodBean().getBelongingClass().getName();
-            String packageName = smellMethodBean.getMethodBean().getBelongingClass().getBelongingPackage();
+            String className = methodSmell.getMethodBean().getBelongingClass().getName();
+            String packageName = methodSmell.getMethodBean().getBelongingClass().getBelongingPackage();
             String classFullName = packageName + "." + className;
-            labelSmellName.setText(SmellMethodBean.getSmellName(smellMethodBean.getSmellType()));
+            labelSmellName.setText(MethodSmell.getSmellName(methodSmell.getSmellType()));
             labelClassName.setText(classFullName);
 
             // Smell Description
-            int smellType = smellMethodBean.getSmellType();
+            int smellType = methodSmell.getSmellType();
             switch (smellType) {
-                case SmellMethodBean.DURABLE_WAKELOCK: {
+                case MethodSmell.DURABLE_WAKELOCK: {
                     labelIcon.setToolTipText(DURABLE_WAKELOCK_DESCRIPTION);
                     break;
                 }
-                case SmellMethodBean.EARLY_RESOURCE_BINDING: {
+                case MethodSmell.EARLY_RESOURCE_BINDING: {
                     labelIcon.setToolTipText(EARLY_RESOURCE_BINDING_DESCRIPTION);
                     break;
                 }
@@ -160,12 +160,12 @@ public class SmellDialog extends JDialog {
             }
 
             // Actual Code area
-            String actualCode = smellMethodBean.getMethodBean().getTextContent();
+            String actualCode = methodSmell.getMethodBean().getTextContent();
             areaActualCode.setText(actualCode);
             areaActualCode.setCaretPosition(0);
             Highlighter actualHighlighter = areaActualCode.getHighlighter();
             actualHighlighter.removeAllHighlights();
-            ArrayList<String> actualCodeToHighlightList = proposalMethodBean.getActualCodeToHighlightList();
+            ArrayList<String> actualCodeToHighlightList = methodProposal.getActualCodeToHighlightList();
             if (actualCodeToHighlightList != null && actualCodeToHighlightList.size() > 0) {
                 for (String actualCodeToHighlight : actualCodeToHighlightList) {
                     int highlightIndex = actualCode.indexOf(actualCodeToHighlight);
@@ -176,16 +176,16 @@ public class SmellDialog extends JDialog {
             // Proposed Code Area
             String proposedCode = "";
             switch (smellType) {
-                case SmellMethodBean.DURABLE_WAKELOCK: {
-                    DurableWakelockProposalMethodBean durableWakelockProposalMethodBean = (DurableWakelockProposalMethodBean) proposalMethodBean;
-                    MethodDeclaration proposedMethodDeclaration = durableWakelockProposalMethodBean.getProposedMethodDeclaration();
+                case MethodSmell.DURABLE_WAKELOCK: {
+                    DWProposal DWProposal = (DWProposal) methodProposal;
+                    MethodDeclaration proposedMethodDeclaration = DWProposal.getProposedMethodDeclaration();
                     proposedCode = proposedMethodDeclaration.toString();
                     break;
                 }
-                case SmellMethodBean.EARLY_RESOURCE_BINDING: {
-                    EarlyResourceBindingProposalMethodBean earlyResourceBindingProposalMethodBean = (EarlyResourceBindingProposalMethodBean) proposalMethodBean;
-                    MethodDeclaration proposedOnCreate = earlyResourceBindingProposalMethodBean.getProposedOnCreate();
-                    MethodDeclaration proposedOnResume = earlyResourceBindingProposalMethodBean.getProposedOnResume();
+                case MethodSmell.EARLY_RESOURCE_BINDING: {
+                    ERBProposal ERBProposal = (ERBProposal) methodProposal;
+                    MethodDeclaration proposedOnCreate = ERBProposal.getProposedOnCreate();
+                    MethodDeclaration proposedOnResume = ERBProposal.getProposedOnResume();
                     proposedCode = proposedOnCreate.toString() + "\n" + proposedOnResume.toString();
                     break;
                 }
@@ -196,7 +196,7 @@ public class SmellDialog extends JDialog {
             areaProposedCode.setCaretPosition(0);
             Highlighter proposedHighlighter = areaProposedCode.getHighlighter();
             proposedHighlighter.removeAllHighlights();
-            ArrayList<String> proposedCodeToHighlightList = proposalMethodBean.getProposedCodeToHighlightList();
+            ArrayList<String> proposedCodeToHighlightList = methodProposal.getProposedCodeToHighlightList();
             if (proposedCodeToHighlightList != null && proposedCodeToHighlightList.size() > 0) {
                 for (String proposedCodeToHighlight : proposedCodeToHighlightList) {
                     int highlightIndex = proposedCode.indexOf(proposedCodeToHighlight);
@@ -214,7 +214,7 @@ public class SmellDialog extends JDialog {
 
     private void onApplyRefactoring() {
         dispose();
-        RefactoringDialog.show(proposalMethodBean, project, smellMethodList);
+        RefactoringDialog.show(methodProposal, project, smellMethodList);
     }
 
     private void onQuit() {

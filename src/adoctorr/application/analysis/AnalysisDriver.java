@@ -1,9 +1,9 @@
 package adoctorr.application.analysis;
 
 import adoctorr.application.ast.ASTUtilities;
-import adoctorr.application.bean.smell.DurableWakelockSmellMethodBean;
-import adoctorr.application.bean.smell.EarlyResourceBindingSmellMethodBean;
-import adoctorr.application.bean.smell.SmellMethodBean;
+import adoctorr.application.bean.smell.DWSmell;
+import adoctorr.application.bean.smell.ERBSmell;
+import adoctorr.application.bean.smell.MethodSmell;
 import beans.ClassBean;
 import beans.MethodBean;
 import beans.PackageBean;
@@ -20,9 +20,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-public class Analyzer {
+public class AnalysisDriver {
 
-    public Analyzer() {
+    public AnalysisDriver() {
 
     }
 
@@ -112,14 +112,14 @@ public class Analyzer {
      * @param sourceFileMap
      * @return
      */
-    public ArrayList<SmellMethodBean> analyze(ArrayList<PackageBean> packageList, HashMap<String, File> sourceFileMap) throws IOException {
-        ArrayList<SmellMethodBean> smellMethodList = null;
+    public ArrayList<MethodSmell> analyze(ArrayList<PackageBean> packageList, HashMap<String, File> sourceFileMap) throws IOException {
+        ArrayList<MethodSmell> smellMethodList = null;
         if (packageList != null && sourceFileMap != null) {
-            ArrayList<DurableWakelockSmellMethodBean> durableWakelockList = new ArrayList<>();
-            ArrayList<EarlyResourceBindingSmellMethodBean> earlyResourceBindingList = new ArrayList<>();
+            ArrayList<DWSmell> durableWakelockList = new ArrayList<>();
+            ArrayList<ERBSmell> earlyResourceBindingList = new ArrayList<>();
 
-            DurableWakelockAnalyzer durableWakelockAnalyzer = new DurableWakelockAnalyzer();
-            EarlyResourceBindingAnalyzer earlyResourceBindingAnalyzer = new EarlyResourceBindingAnalyzer();
+            DWAnalyzer DWAnalyzer = new DWAnalyzer();
+            ERBAnalyzer ERBAnalyzer = new ERBAnalyzer();
 
             for (PackageBean packageBean : packageList) {
                 for (ClassBean classBean : packageBean.getClasses()) {
@@ -132,13 +132,13 @@ public class Analyzer {
                     for (MethodBean methodBean : classBean.getMethods()) {
                         MethodDeclaration methodDeclaration = ASTUtilities.getMethodDeclarationFromContent(methodBean.getTextContent(), compilationUnit);
 
-                        DurableWakelockSmellMethodBean durableWakelockSmellMethodBean = durableWakelockAnalyzer.analyzeMethod(methodBean, methodDeclaration, compilationUnit, sourceFile);
-                        if (durableWakelockSmellMethodBean != null) {
-                            durableWakelockList.add(durableWakelockSmellMethodBean);
+                        DWSmell DWSmell = DWAnalyzer.analyzeMethod(methodBean, methodDeclaration, compilationUnit, sourceFile);
+                        if (DWSmell != null) {
+                            durableWakelockList.add(DWSmell);
                         }
-                        EarlyResourceBindingSmellMethodBean earlyResourceBindingSmellMethodBean = earlyResourceBindingAnalyzer.analyzeMethod(methodBean, methodDeclaration, compilationUnit, sourceFile);
-                        if (earlyResourceBindingSmellMethodBean != null) {
-                            earlyResourceBindingList.add(earlyResourceBindingSmellMethodBean);
+                        ERBSmell ERBSmell = ERBAnalyzer.analyzeMethod(methodBean, methodDeclaration, compilationUnit, sourceFile);
+                        if (ERBSmell != null) {
+                            earlyResourceBindingList.add(ERBSmell);
                         }
                     }
                 }

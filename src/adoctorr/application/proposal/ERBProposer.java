@@ -1,8 +1,8 @@
 package adoctorr.application.proposal;
 
 import adoctorr.application.ast.ASTUtilities;
-import adoctorr.application.bean.proposal.EarlyResourceBindingProposalMethodBean;
-import adoctorr.application.bean.smell.EarlyResourceBindingSmellMethodBean;
+import adoctorr.application.bean.proposal.ERBProposal;
+import adoctorr.application.bean.smell.ERBSmell;
 import beans.MethodBean;
 import org.eclipse.jdt.core.dom.*;
 
@@ -11,13 +11,13 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class EarlyResourceBindingProposer {
+public class ERBProposer {
 
-    EarlyResourceBindingProposer() {
+    ERBProposer() {
 
     }
 
-    public EarlyResourceBindingProposalMethodBean computeProposal(EarlyResourceBindingSmellMethodBean smellMethodBean) throws IOException {
+    public ERBProposal computeProposal(ERBSmell smellMethodBean) throws IOException {
         if (smellMethodBean != null) {
             File sourceFile = smellMethodBean.getSourceFile();
             MethodBean methodBean = smellMethodBean.getMethodBean();
@@ -95,8 +95,8 @@ public class EarlyResourceBindingProposer {
                             proposedCodeToHighlightList.add(newRequestStatement.toString());
                         }
 
-                        EarlyResourceBindingProposalMethodBean proposalMethodBean = new EarlyResourceBindingProposalMethodBean();
-                        proposalMethodBean.setSmellMethodBean(smellMethodBean);
+                        ERBProposal proposalMethodBean = new ERBProposal();
+                        proposalMethodBean.setMethodSmell(smellMethodBean);
                         proposalMethodBean.setProposedOnCreate(onCreateMethodDeclaration);
                         proposalMethodBean.setActualOnResume(actualOnResumeMethodDeclaration);
                         proposalMethodBean.setProposedOnResume(proposedOnResumeMethodDeclaration);

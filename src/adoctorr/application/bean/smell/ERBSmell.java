@@ -3,12 +3,12 @@ package adoctorr.application.bean.smell;
 import org.eclipse.jdt.core.dom.Block;
 import org.eclipse.jdt.core.dom.Statement;
 
-public class EarlyResourceBindingSmellMethodBean extends SmellMethodBean {
+public class ERBSmell extends MethodSmell {
 
     private Block requestBlock;
     private Statement requestStatement;
 
-    public EarlyResourceBindingSmellMethodBean() {
+    public ERBSmell() {
         super();
     }
 

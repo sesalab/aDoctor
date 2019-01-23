@@ -2,11 +2,11 @@ package adoctorr.application.bean.proposal;
 
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 
-public class DurableWakelockProposalMethodBean extends ProposalMethodBean {
+public class DWProposal extends MethodProposal {
 
     private MethodDeclaration proposedMethodDeclaration;
 
-    public DurableWakelockProposalMethodBean() {
+    public DWProposal() {
     }
 
     public MethodDeclaration getProposedMethodDeclaration() {

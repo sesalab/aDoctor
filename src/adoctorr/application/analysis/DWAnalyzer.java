@@ -1,8 +1,8 @@
 package adoctorr.application.analysis;
 
 import adoctorr.application.ast.ASTUtilities;
-import adoctorr.application.bean.smell.DurableWakelockSmellMethodBean;
-import adoctorr.application.bean.smell.SmellMethodBean;
+import adoctorr.application.bean.smell.DWSmell;
+import adoctorr.application.bean.smell.MethodSmell;
 import beans.MethodBean;
 import org.eclipse.jdt.core.dom.*;
 
@@ -10,14 +10,14 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DurableWakelockAnalyzer {
+public class DWAnalyzer {
 
     private static final String ACQUIRE_NAME = "acquire";
     private static final String RELEASE_NAME = "release";
     private static final String WAKELOCK_CLASS = "PowerManager.WakeLock";
 
     // Warning: Source code with method-level compile error and accents might give problems in the methodDeclaration fetch
-    public DurableWakelockSmellMethodBean analyzeMethod(MethodBean methodBean, MethodDeclaration methodDeclaration, CompilationUnit compilationUnit, File sourceFile) {
+    public DWSmell analyzeMethod(MethodBean methodBean, MethodDeclaration methodDeclaration, CompilationUnit compilationUnit, File sourceFile) {
         if (methodBean != null && methodDeclaration != null && compilationUnit != null && sourceFile != null) {
             boolean smellFound = false;
 
@@ -70,11 +70,11 @@ public class DurableWakelockAnalyzer {
                 }
             }
             if (smellFound) {
-                DurableWakelockSmellMethodBean smellMethodBean = new DurableWakelockSmellMethodBean();
+                DWSmell smellMethodBean = new DWSmell();
                 smellMethodBean.setMethodBean(methodBean);
                 smellMethodBean.setResolved(false);
                 smellMethodBean.setSourceFile(sourceFile);
-                smellMethodBean.setSmellType(SmellMethodBean.DURABLE_WAKELOCK);
+                smellMethodBean.setSmellType(MethodSmell.DURABLE_WAKELOCK);
                 smellMethodBean.setAcquireBlock(acquireBlock);
                 smellMethodBean.setAcquireStatement(acquireStatement);
                 return smellMethodBean;

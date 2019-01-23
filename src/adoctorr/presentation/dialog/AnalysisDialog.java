@@ -1,7 +1,7 @@
 package adoctorr.presentation.dialog;
 
-import adoctorr.application.analysis.Analyzer;
-import adoctorr.application.bean.smell.SmellMethodBean;
+import adoctorr.application.analysis.AnalysisDriver;
+import adoctorr.application.bean.smell.MethodSmell;
 import beans.PackageBean;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
@@ -24,7 +24,7 @@ public class AnalysisDialog extends JDialog {
     private AnalysisThread analysisThread;
 
     private Project project;
-    private ArrayList<SmellMethodBean> smellMethodList;
+    private ArrayList<MethodSmell> smellMethodList;
 
     private volatile boolean analysisAborted;
     private volatile boolean smellFound;
@@ -127,25 +127,25 @@ public class AnalysisDialog extends JDialog {
         }
 
         void startAnalysis() {
-            Analyzer analyzer = new Analyzer();
+            AnalysisDriver analysisDriver = new AnalysisDriver();
             // The final results
-            ArrayList<SmellMethodBean> smellMethodList = null;
+            ArrayList<MethodSmell> smellMethodList = null;
             ArrayList<PackageBean> projectPackageList;
             try {
                 // runThread flag is periodically checked to see if the analysis can go on
                 if (!analysisDialog.analysisAborted) {
-                    projectPackageList = analyzer.buildPackageList(project);     // Very very slow!
+                    projectPackageList = analysisDriver.buildPackageList(project);     // Very very slow!
                     if (projectPackageList != null && !analysisDialog.analysisAborted) {
                         System.out.println("\tprojectPackageList costruita");
-                        ArrayList<File> javaFilesList = analyzer.getAllJavaFiles(project);
+                        ArrayList<File> javaFilesList = analysisDriver.getAllJavaFiles(project);
                         if (javaFilesList != null && !analysisDialog.analysisAborted) {
                             try {
                                 System.out.println("\tjavaFilesList costruita");
-                                HashMap<String, File> sourceFileMap = analyzer.buildSourceFileMap(javaFilesList);
+                                HashMap<String, File> sourceFileMap = analysisDriver.buildSourceFileMap(javaFilesList);
                                 if (sourceFileMap != null && !analysisDialog.analysisAborted) {
                                     try {
                                         System.out.println("\tsourceFileMap costruita");
-                                        smellMethodList = analyzer.analyze(projectPackageList, sourceFileMap);
+                                        smellMethodList = analysisDriver.analyze(projectPackageList, sourceFileMap);
                                         if (smellMethodList != null && smellMethodList.size() > 0 && !analysisDialog.analysisAborted) {
                                             analysisDialog.smellFound = true;
                                             System.out.println("Analisi terminata con successo");

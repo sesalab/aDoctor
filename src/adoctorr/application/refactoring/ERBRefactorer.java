@@ -1,8 +1,8 @@
 package adoctorr.application.refactoring;
 
 import adoctorr.application.ast.ASTUtilities;
-import adoctorr.application.bean.proposal.EarlyResourceBindingProposalMethodBean;
-import adoctorr.application.bean.smell.SmellMethodBean;
+import adoctorr.application.bean.proposal.ERBProposal;
+import adoctorr.application.bean.smell.MethodSmell;
 import beans.MethodBean;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.dom.AST;
@@ -22,21 +22,21 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-public class EarlyResourceBindingRefactorer {
+public class ERBRefactorer {
 
-    EarlyResourceBindingRefactorer() {
+    ERBRefactorer() {
 
     }
 
-    public boolean applyRefactor(EarlyResourceBindingProposalMethodBean proposalMethodBean) throws BadLocationException, IOException {
+    public boolean applyRefactor(ERBProposal proposalMethodBean) throws BadLocationException, IOException {
         boolean result = false;
         if (proposalMethodBean != null) {
             MethodDeclaration proposedOnCreate = proposalMethodBean.getProposedOnCreate();
             MethodDeclaration actualOnResume = proposalMethodBean.getActualOnResume();
             MethodDeclaration proposedOnResume = proposalMethodBean.getProposedOnResume();
-            SmellMethodBean smellMethodBean = proposalMethodBean.getSmellMethodBean();
-            File sourceFile = smellMethodBean.getSourceFile();
-            MethodBean methodBean = smellMethodBean.getMethodBean();
+            MethodSmell methodSmell = proposalMethodBean.getMethodSmell();
+            File sourceFile = methodSmell.getSourceFile();
+            MethodBean methodBean = methodSmell.getMethodBean();
 
             CompilationUnit compilationUnit = ASTUtilities.getCompilationUnit(sourceFile);
 

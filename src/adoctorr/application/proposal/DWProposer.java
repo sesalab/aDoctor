@@ -1,8 +1,8 @@
 package adoctorr.application.proposal;
 
 import adoctorr.application.ast.ASTUtilities;
-import adoctorr.application.bean.proposal.DurableWakelockProposalMethodBean;
-import adoctorr.application.bean.smell.DurableWakelockSmellMethodBean;
+import adoctorr.application.bean.proposal.DWProposal;
+import adoctorr.application.bean.smell.DWSmell;
 import beans.MethodBean;
 import org.eclipse.jdt.core.dom.*;
 
@@ -11,13 +11,13 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DurableWakelockProposer {
+public class DWProposer {
 
-    DurableWakelockProposer() {
+    DWProposer() {
 
     }
 
-    public DurableWakelockProposalMethodBean computeProposal(DurableWakelockSmellMethodBean smellMethodBean) throws IOException {
+    public DWProposal computeProposal(DWSmell smellMethodBean) throws IOException {
         if (smellMethodBean != null) {
             File sourceFile = smellMethodBean.getSourceFile();
             MethodBean methodBean = smellMethodBean.getMethodBean();
@@ -50,8 +50,8 @@ public class DurableWakelockProposer {
                     ArrayList<String> proposedCodeToHighlightList = new ArrayList<>();
                     proposedCodeToHighlightList.add(releaseExpressionStatement.toString());
 
-                    DurableWakelockProposalMethodBean proposalMethodBean = new DurableWakelockProposalMethodBean();
-                    proposalMethodBean.setSmellMethodBean(smellMethodBean);
+                    DWProposal proposalMethodBean = new DWProposal();
+                    proposalMethodBean.setMethodSmell(smellMethodBean);
                     proposalMethodBean.setProposedMethodDeclaration(methodDeclaration);
                     proposalMethodBean.setProposedCodeToHighlightList(proposedCodeToHighlightList);
                     return proposalMethodBean;

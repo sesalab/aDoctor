@@ -4,7 +4,7 @@ import beans.MethodBean;
 
 import java.io.File;
 
-public class SmellMethodBean {
+public class MethodSmell {
     public static final int DURABLE_WAKELOCK = 1;
     public static final int EARLY_RESOURCE_BINDING = 4;
 
@@ -13,7 +13,7 @@ public class SmellMethodBean {
     private boolean resolved;
     private File sourceFile;
 
-    public SmellMethodBean() {
+    public MethodSmell() {
     }
 
     public static String getSmellName(int smellType) {

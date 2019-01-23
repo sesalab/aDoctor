@@ -3,13 +3,13 @@ package adoctorr.application.bean.proposal;
 
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 
-public class EarlyResourceBindingProposalMethodBean extends ProposalMethodBean {
+public class ERBProposal extends MethodProposal {
 
     private MethodDeclaration proposedOnCreate;
     private MethodDeclaration actualOnResume;
     private MethodDeclaration proposedOnResume;
 
-    public EarlyResourceBindingProposalMethodBean() {
+    public ERBProposal() {
     }
 
     public MethodDeclaration getActualOnResume() {

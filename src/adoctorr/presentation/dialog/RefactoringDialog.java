@@ -1,8 +1,8 @@
 package adoctorr.presentation.dialog;
 
-import adoctorr.application.bean.proposal.ProposalMethodBean;
-import adoctorr.application.bean.smell.SmellMethodBean;
-import adoctorr.application.refactoring.Refactorer;
+import adoctorr.application.bean.proposal.MethodProposal;
+import adoctorr.application.bean.smell.MethodSmell;
+import adoctorr.application.refactoring.RefactoringDriver;
 import com.intellij.ide.SaveAndSyncHandlerImpl;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
@@ -20,14 +20,14 @@ public class RefactoringDialog extends JDialog {
     private JPanel contentPane;
     private JLabel labelMethodFileName;
 
-    private ProposalMethodBean proposalMethodBean;
+    private MethodProposal methodProposal;
     private Project project;
-    private ArrayList<SmellMethodBean> smellMethodList;
+    private ArrayList<MethodSmell> smellMethodList;
 
     private RefactoringThread refactoringThread;
     private boolean result;
 
-    private RefactoringDialog(ProposalMethodBean proposalMethodBean, Project project, ArrayList<SmellMethodBean> smellMethodList) {
+    private RefactoringDialog(MethodProposal methodProposal, Project project, ArrayList<MethodSmell> smellMethodList) {
         setContentPane(contentPane);
         setModal(true);
         Toolkit toolkit = Toolkit.getDefaultToolkit();
@@ -37,12 +37,12 @@ public class RefactoringDialog extends JDialog {
         setLocation(x, y);
         setTitle("aDoctor - Refactoring");
 
-        this.proposalMethodBean = proposalMethodBean;
+        this.methodProposal = methodProposal;
         this.project = project;
         this.smellMethodList = smellMethodList;
 
-        String fileName = proposalMethodBean.getSmellMethodBean().getSourceFile().getName();
-        String methodName = proposalMethodBean.getSmellMethodBean().getMethodBean().getName();
+        String fileName = methodProposal.getMethodSmell().getSourceFile().getName();
+        String methodName = methodProposal.getMethodSmell().getMethodBean().getName();
 
         labelMethodFileName.setText("to the method " + methodName + " in file " + fileName);
 
@@ -55,11 +55,11 @@ public class RefactoringDialog extends JDialog {
         });
     }
 
-    public static void show(ProposalMethodBean proposalMethodBean, Project project, ArrayList<SmellMethodBean> smellMethodList) {
-        RefactoringDialog refactoringDialog = new RefactoringDialog(proposalMethodBean, project, smellMethodList);
+    public static void show(MethodProposal methodProposal, Project project, ArrayList<MethodSmell> smellMethodList) {
+        RefactoringDialog refactoringDialog = new RefactoringDialog(methodProposal, project, smellMethodList);
 
         // Thread that manage the real refactoring
-        refactoringDialog.refactoringThread = new RefactoringThread(refactoringDialog, proposalMethodBean);
+        refactoringDialog.refactoringThread = new RefactoringThread(refactoringDialog, methodProposal);
         refactoringDialog.refactoringThread.start();
 
         refactoringDialog.pack();
@@ -82,7 +82,7 @@ public class RefactoringDialog extends JDialog {
         if (!result) {
             FailureDialog.show(project, smellMethodList);
         } else {
-            proposalMethodBean.getSmellMethodBean().setResolved(true);
+            methodProposal.getMethodSmell().setResolved(true);
 
             // Updates the editor with the changes made to the files
             com.intellij.openapi.editor.Document[] documents = FileDocumentManager.getInstance().getUnsavedDocuments();
@@ -96,11 +96,11 @@ public class RefactoringDialog extends JDialog {
 
     private static class RefactoringThread extends Thread {
         private RefactoringDialog refactoringDialog;
-        private ProposalMethodBean proposalMethodBean;
+        private MethodProposal methodProposal;
 
-        RefactoringThread(RefactoringDialog refactoringDialog, ProposalMethodBean proposalMethodBean) {
+        RefactoringThread(RefactoringDialog refactoringDialog, MethodProposal methodProposal) {
             this.refactoringDialog = refactoringDialog;
-            this.proposalMethodBean = proposalMethodBean;
+            this.methodProposal = methodProposal;
         }
 
         public void run() {
@@ -115,10 +115,10 @@ public class RefactoringDialog extends JDialog {
         }
 
         void startRefactoring() {
-            Refactorer refactorer = new Refactorer();
+            RefactoringDriver refactoringDriver = new RefactoringDriver();
             boolean result;
             try {
-                result = refactorer.applyRefactoring(proposalMethodBean);
+                result = refactoringDriver.applyRefactoring(methodProposal);
             } catch (BadLocationException e1) {
                 result = false;
                 e1.printStackTrace();

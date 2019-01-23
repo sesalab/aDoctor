@@ -1,6 +1,6 @@
 package adoctorr.presentation.dialog;
 
-import adoctorr.application.bean.smell.SmellMethodBean;
+import adoctorr.application.bean.smell.MethodSmell;
 import com.intellij.openapi.project.Project;
 
 import javax.swing.*;
@@ -14,9 +14,9 @@ public class FailureDialog extends JDialog {
     private JButton buttonQuit;
 
     private Project project;
-    private ArrayList<SmellMethodBean> smellMethodList;
+    private ArrayList<MethodSmell> smellMethodList;
 
-    private FailureDialog(Project project, ArrayList<SmellMethodBean> smellMethodList) {
+    private FailureDialog(Project project, ArrayList<MethodSmell> smellMethodList) {
         setContentPane(contentPane);
         setModal(true);
         Toolkit toolkit = Toolkit.getDefaultToolkit();
@@ -51,7 +51,7 @@ public class FailureDialog extends JDialog {
         });
     }
 
-    public static void show(Project project, ArrayList<SmellMethodBean> smellMethodList) {
+    public static void show(Project project, ArrayList<MethodSmell> smellMethodList) {
         FailureDialog failureDialog = new FailureDialog(project, smellMethodList);
 
         failureDialog.pack();
