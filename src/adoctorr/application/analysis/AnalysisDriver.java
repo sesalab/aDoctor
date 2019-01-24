@@ -20,10 +20,105 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+@SuppressWarnings("SynchronizeOnNonFinalField")
 public class AnalysisDriver {
 
-    public AnalysisDriver() {
+    private Project project;
+    private AnalysisThread analysisThread;
 
+    public AnalysisDriver(Project project) {
+        this.project = project;
+    }
+
+    public Project getProject() {
+        return project;
+    }
+
+    public void setProject(Project project) {
+        this.project = project;
+    }
+
+    public ArrayList<MethodSmell> startAnalysis() throws InterruptedException {
+        analysisThread = new AnalysisThread(project, this);
+        analysisThread.start();
+        synchronized (analysisThread) {
+            analysisThread.wait();
+        }
+        return analysisThread.result;
+    }
+
+    public void abortAnalysis() {
+        analysisThread.stop = true;
+    }
+
+    private static class AnalysisThread extends Thread {
+        private Project project;
+        private AnalysisDriver analysisDriver;
+        private volatile ArrayList<MethodSmell> result;
+        private volatile boolean stop;
+
+        private AnalysisThread(Project project, AnalysisDriver analysisDriver) {
+            this.project = project;
+            this.analysisDriver = analysisDriver;
+            result = null;
+            stop = false;
+        }
+
+        public void run() {
+            synchronized (this) {
+                System.out.println("Analisi avviata");
+                result = runAnalysis();
+                System.out.println("Analisi terminata");
+                notify();
+            }
+        }
+
+        private ArrayList<MethodSmell> runAnalysis() {
+            try {
+                if (stop) {
+                    return null;
+                }
+                // Very very slow!
+                ArrayList<PackageBean> projectPackageList = analysisDriver.buildPackageList(project);
+                if (projectPackageList == null) {
+                    return null;
+                }
+                System.out.println("\tprojectPackageList costruita");
+                if (stop) {
+                    return null;
+                }
+                ArrayList<File> javaFilesList = analysisDriver.getAllJavaFiles(project);
+                if (javaFilesList == null) {
+                    return null;
+                }
+                System.out.println("\tjavaFilesList costruita");
+                if (stop) {
+                    return null;
+                }
+                try {
+                    HashMap<String, File> sourceFileMap = analysisDriver.buildSourceFileMap(javaFilesList);
+                    if (sourceFileMap == null) {
+                        return null;
+                    }
+                    System.out.println("\tsourceFileMap costruita");
+                    if (stop) {
+                        return null;
+                    }
+                    try {
+                        return analysisDriver.analyze(projectPackageList, sourceFileMap);
+                    } catch (IOException e3) {
+                        e3.printStackTrace();
+                        return null;
+                    }
+                } catch (IOException e2) {
+                    e2.printStackTrace();
+                    return null;
+                }
+            } catch (IOException e1) {
+                e1.printStackTrace();
+                return null;
+            }
+        }
     }
 
     /**
@@ -33,7 +128,7 @@ public class AnalysisDriver {
      * @param project
      * @return
      */
-    public ArrayList<PackageBean> buildPackageList(Project project) throws IOException {
+    private ArrayList<PackageBean> buildPackageList(Project project) throws IOException {
         ArrayList<PackageBean> packageList = null;
         if (project != null) {
             String projectBasePath = project.getBasePath();
@@ -62,7 +157,7 @@ public class AnalysisDriver {
      * @param project
      * @return
      */
-    public ArrayList<File> getAllJavaFiles(Project project) {
+    private ArrayList<File> getAllJavaFiles(Project project) {
         ArrayList<File> javaFilesList = null;
         if (project != null) {
             String projectBasePath = project.getBasePath();
@@ -82,7 +177,7 @@ public class AnalysisDriver {
      * @param javaFilesList
      * @return
      */
-    public HashMap<String, File> buildSourceFileMap(ArrayList<File> javaFilesList) throws IOException {
+    private HashMap<String, File> buildSourceFileMap(ArrayList<File> javaFilesList) throws IOException {
         HashMap<String, File> sourceFileMap = null;
         if (javaFilesList != null && javaFilesList.size() > 0) {
             sourceFileMap = new HashMap<>();
@@ -112,7 +207,7 @@ public class AnalysisDriver {
      * @param sourceFileMap
      * @return
      */
-    public ArrayList<MethodSmell> analyze(ArrayList<PackageBean> packageList, HashMap<String, File> sourceFileMap) throws IOException {
+    private ArrayList<MethodSmell> analyze(ArrayList<PackageBean> packageList, HashMap<String, File> sourceFileMap) throws IOException {
         ArrayList<MethodSmell> smellMethodList = null;
         if (packageList != null && sourceFileMap != null) {
             ArrayList<DWSmell> durableWakelockList = new ArrayList<>();
@@ -176,4 +271,5 @@ public class AnalysisDriver {
         }
         return javaFilesList;
     }
+
 }

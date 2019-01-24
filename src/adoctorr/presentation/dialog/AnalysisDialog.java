@@ -2,7 +2,6 @@ package adoctorr.presentation.dialog;
 
 import adoctorr.application.analysis.AnalysisDriver;
 import adoctorr.application.bean.smell.MethodSmell;
-import beans.PackageBean;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
 
@@ -12,22 +11,15 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.concurrent.ExecutionException;
 
 public class AnalysisDialog extends JDialog {
     private JPanel contentPane;
     private JButton buttonAbort;
 
-    private AnalysisThread analysisThread;
-
     private Project project;
-    private ArrayList<MethodSmell> smellMethodList;
-
-    private volatile boolean analysisAborted;
-    private volatile boolean smellFound;
+    private AnalysisDriver analysisDriver;
 
     /**
      * Default constructor and initializator of the dialog
@@ -44,11 +36,10 @@ public class AnalysisDialog extends JDialog {
         int y = (screenSize.height - getHeight()) / 5;
         setLocation(x, y);
         setTitle("aDoctor - Analysis");
+        //setModalityType(ModalityType.MODELESS);
 
         this.project = project;
-        smellMethodList = null;
-        analysisAborted = false;
-        smellFound = false;
+        this.analysisDriver = new AnalysisDriver(project);
 
         buttonAbort.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -71,103 +62,52 @@ public class AnalysisDialog extends JDialog {
      * @param project
      */
     public static void show(Project project) {
-        AnalysisDialog analysisDialog = new AnalysisDialog(project);
-
         // Save all files in the current project before starting the analysis
         FileDocumentManager.getInstance().saveAllDocuments();
         project.save();
 
-        // Thread that manage the real analysis
-        analysisDialog.analysisThread = new AnalysisThread(project, analysisDialog);
-        analysisDialog.analysisThread.start();
+        AnalysisDialog analysisDialog = new AnalysisDialog(project);
+        analysisDialog.startAnalysis();
 
         analysisDialog.pack();
-        // setVisible(true) is blocking, that's why we use a Thread to start the real analysis
         analysisDialog.setVisible(true);
+    }
 
-        // Invoked at the end of the analysis thread or when the dialog is closed because a dispose() is executed
-        analysisDialog.checkResults();
+    // Control logic managed by a worker thread
+    private void startAnalysis() {
+        SwingWorker<ArrayList<MethodSmell>, Void> swingWorker = new SwingWorker<ArrayList<MethodSmell>, Void>() {
+            @Override
+            protected ArrayList<MethodSmell> doInBackground() {
+                try {
+                    return analysisDriver.startAnalysis();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                    return null;
+                }
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    ArrayList<MethodSmell> methodSmells = get();
+                    dispose();
+                    if (methodSmells == null) {
+                        AbortDialog.show(project);
+                    } else if (methodSmells.size() == 0) {
+                        NoSmellDialog.show(project);
+                    } else {
+                        SmellDialog.show(project, methodSmells);
+                    }
+                } catch (InterruptedException | ExecutionException e) {
+                    e.printStackTrace();
+                }
+            }
+        };
+        swingWorker.execute();
     }
 
     private void onAbort() {
-        // sets this flag to false, in order to stop the analysis thread, as soon as it can
-        analysisAborted = true;
+        analysisDriver.abortAnalysis();
         System.out.println("Analisi abortita");
-
-        // Disposing the analysis window unlocks UI thread blocked at the preceding setVisible(true)
-        dispose();
-    }
-
-    private void checkResults() {
-        if (analysisAborted) {
-            AbortDialog.show(project); // It was aborted
-        } else if (smellFound) {
-            SmellDialog.show(project, smellMethodList); // If there is at least one smell, show the SmellDialog
-        } else {
-            NoSmellDialog.show(project); // There are no smell
-        }
-    }
-
-    private static class AnalysisThread extends Thread {
-        private Project project;
-        private AnalysisDialog analysisDialog;
-
-        AnalysisThread(Project project, AnalysisDialog analysisDialog) {
-            this.project = project;
-            this.analysisDialog = analysisDialog;
-        }
-
-        public void run() {
-            System.out.println("Analisi avviata");
-
-            startAnalysis();
-
-            // Disposing the analysis window unlocks UI thread blocked at the preceding setVisible(true)
-            analysisDialog.dispose();
-        }
-
-        void startAnalysis() {
-            AnalysisDriver analysisDriver = new AnalysisDriver();
-            // The final results
-            ArrayList<MethodSmell> smellMethodList = null;
-            ArrayList<PackageBean> projectPackageList;
-            try {
-                // runThread flag is periodically checked to see if the analysis can go on
-                if (!analysisDialog.analysisAborted) {
-                    projectPackageList = analysisDriver.buildPackageList(project);     // Very very slow!
-                    if (projectPackageList != null && !analysisDialog.analysisAborted) {
-                        System.out.println("\tprojectPackageList costruita");
-                        ArrayList<File> javaFilesList = analysisDriver.getAllJavaFiles(project);
-                        if (javaFilesList != null && !analysisDialog.analysisAborted) {
-                            try {
-                                System.out.println("\tjavaFilesList costruita");
-                                HashMap<String, File> sourceFileMap = analysisDriver.buildSourceFileMap(javaFilesList);
-                                if (sourceFileMap != null && !analysisDialog.analysisAborted) {
-                                    try {
-                                        System.out.println("\tsourceFileMap costruita");
-                                        smellMethodList = analysisDriver.analyze(projectPackageList, sourceFileMap);
-                                        if (smellMethodList != null && smellMethodList.size() > 0 && !analysisDialog.analysisAborted) {
-                                            analysisDialog.smellFound = true;
-                                            System.out.println("Analisi terminata con successo");
-                                        }
-                                    } catch (IOException e3) {
-                                        smellMethodList = null;
-                                        e3.printStackTrace();
-                                    }
-                                }
-                            } catch (IOException e2) {
-                                smellMethodList = null;
-                                e2.printStackTrace();
-                            }
-                        }
-                    }
-                }
-            } catch (IOException e1) {
-                smellMethodList = null;
-                e1.printStackTrace();
-            }
-            // Set the results to the analysisDialog in a callback-like style
-            analysisDialog.smellMethodList = smellMethodList;
-        }
     }
 }
