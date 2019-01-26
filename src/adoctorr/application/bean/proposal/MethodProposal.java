@@ -5,7 +5,7 @@ import adoctorr.application.bean.smell.MethodSmell;
 
 import java.util.ArrayList;
 
-public class MethodProposal {
+public abstract class MethodProposal {
     private MethodSmell methodSmell;
     private ArrayList<String> actualCodeToHighlightList;
     private ArrayList<String> proposedCodeToHighlightList;
@@ -36,4 +36,6 @@ public class MethodProposal {
     public void setMethodSmell(MethodSmell methodSmell) {
         this.methodSmell = methodSmell;
     }
+
+    public abstract String proposalToString();
 }

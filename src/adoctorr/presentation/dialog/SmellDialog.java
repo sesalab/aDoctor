@@ -1,12 +1,9 @@
 package adoctorr.presentation.dialog;
 
-import adoctorr.application.bean.proposal.DWProposal;
-import adoctorr.application.bean.proposal.ERBProposal;
 import adoctorr.application.bean.proposal.MethodProposal;
 import adoctorr.application.bean.smell.MethodSmell;
 import adoctorr.application.proposal.ProposalDriver;
 import com.intellij.openapi.project.Project;
-import org.eclipse.jdt.core.dom.MethodDeclaration;
 
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
@@ -15,7 +12,10 @@ import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultHighlighter;
 import javax.swing.text.Highlighter;
 import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.IOException;
 import java.util.ArrayList;
 
@@ -41,10 +41,10 @@ public class SmellDialog extends JDialog {
     private JButton buttonQuit;
 
     private Project project;
+    private ProposalDriver proposalDriver;
     private ArrayList<MethodSmell> smellMethodList;
-    private MethodProposal methodProposal;
-
     private ArrayList<MethodSmell> unresolvedSmellMethodList;
+    private MethodProposal methodProposal;
 
     private SmellDialog(Project project, ArrayList<MethodSmell> smellMethodList) {
         setContentPane(contentPane);
@@ -57,46 +57,38 @@ public class SmellDialog extends JDialog {
         getRootPane().setDefaultButton(buttonApply);
         setTitle("aDoctor - Smells' list");
 
-        areaActualCode.setPreferredSize(null);
-        areaProposedCode.setPreferredSize(null);
-
         this.project = project;
+        this.proposalDriver = new ProposalDriver();
         this.smellMethodList = smellMethodList;
-        methodProposal = null;
-
-        unresolvedSmellMethodList = new ArrayList<>();
+        this.unresolvedSmellMethodList = new ArrayList<>();
         for (MethodSmell methodSmell : smellMethodList) {
             if (!methodSmell.isResolved()) {
                 unresolvedSmellMethodList.add(methodSmell);
             }
         }
+        this.methodProposal = null;
 
         // The smells' list
         DefaultListModel<String> listSmellModel = (DefaultListModel<String>) listSmell.getModel();
         for (MethodSmell methodSmell : unresolvedSmellMethodList) {
-            String methodName = methodSmell.getMethodBean().getName();
-            int smellType = methodSmell.getSmellType();
-            String smellName = MethodSmell.getSmellName(smellType);
-            String htmlContent = "" +
-                    "<html>" +
-                    "<p style=\"font-size:10px\">" +
-                    "<b>" + smellName + "</b>" +
-                    "</p>" +
-                    "<p style=\"font-size:9px\">" +
-                    "" + methodName + "" +
-                    "</p>" +
-                    "</html>";
-            listSmellModel.addElement(htmlContent);
+            listSmellModel.addElement(buildElement(methodSmell));
         }
 
         listSmell.addListSelectionListener(new ListSelectionListener() {
+            @Override
             public void valueChanged(ListSelectionEvent e) {
                 //This if statement prevents multiple fires
                 if (!e.getValueIsAdjusting()) {
-                    onUpdateSmellMethodDetails();
+                    onSelectItem();
                 }
             }
         });
+
+        // Select the first smell of the list
+        listSmell.setSelectedIndex(0);
+
+        areaActualCode.setPreferredSize(null);
+        areaProposedCode.setPreferredSize(null);
 
         buttonApply.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -117,99 +109,85 @@ public class SmellDialog extends JDialog {
                 onQuit();
             }
         });
-
-        // Select the first smell of the list
-        listSmell.setSelectedIndex(0);
     }
 
     public static void show(Project project, ArrayList<MethodSmell> smellMethodList) {
-        SmellDialog dialog = new SmellDialog(project, smellMethodList);
+        SmellDialog smellDialog = new SmellDialog(project, smellMethodList);
 
-        dialog.pack();
-        dialog.setVisible(true);
+        smellDialog.pack();
+        smellDialog.setVisible(true);
     }
 
-    private void onUpdateSmellMethodDetails() {
-        int selectedIndex = listSmell.getSelectedIndex();
-        MethodSmell methodSmell = unresolvedSmellMethodList.get(selectedIndex);
+    private void updateDetails() {
+        MethodSmell selectedSmell = unresolvedSmellMethodList.get(listSmell.getSelectedIndex());
+
+        // Selected Smell Description
+        String className = selectedSmell.getMethodBean().getBelongingClass().getName();
+        String packageName = selectedSmell.getMethodBean().getBelongingClass().getBelongingPackage();
+        String classFullName = packageName + "." + className;
+        labelSmellName.setText(MethodSmell.getSmellName(selectedSmell.getSmellType()));
+        labelClassName.setText(classFullName);
+        int smellType = selectedSmell.getSmellType();
+        switch (smellType) {
+            case MethodSmell.DURABLE_WAKELOCK: {
+                labelIcon.setToolTipText(DURABLE_WAKELOCK_DESCRIPTION);
+                break;
+            }
+            case MethodSmell.EARLY_RESOURCE_BINDING: {
+                labelIcon.setToolTipText(EARLY_RESOURCE_BINDING_DESCRIPTION);
+                break;
+            }
+        }
 
         // Compute the proposal of the selected smell
-        ProposalDriver proposalDriver = new ProposalDriver();
         try {
-            methodProposal = proposalDriver.computeProposal(methodSmell);
+            methodProposal = proposalDriver.computeProposal(selectedSmell);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
-            String className = methodSmell.getMethodBean().getBelongingClass().getName();
-            String packageName = methodSmell.getMethodBean().getBelongingClass().getBelongingPackage();
-            String classFullName = packageName + "." + className;
-            labelSmellName.setText(MethodSmell.getSmellName(methodSmell.getSmellType()));
-            labelClassName.setText(classFullName);
+        String actualCode = selectedSmell.getMethodBean().getTextContent();
+        prepareArea(areaActualCode, actualCode, methodProposal.getActualCodeToHighlightList());
+        if (methodProposal != null) {
+            String proposalCode = methodProposal.proposalToString();
+            prepareArea(areaProposedCode, proposalCode, methodProposal.getProposedCodeToHighlightList());
+        }
+    }
 
-            // Smell Description
-            int smellType = methodSmell.getSmellType();
-            switch (smellType) {
-                case MethodSmell.DURABLE_WAKELOCK: {
-                    labelIcon.setToolTipText(DURABLE_WAKELOCK_DESCRIPTION);
-                    break;
-                }
-                case MethodSmell.EARLY_RESOURCE_BINDING: {
-                    labelIcon.setToolTipText(EARLY_RESOURCE_BINDING_DESCRIPTION);
-                    break;
-                }
-                default:
-                    break;
-            }
-
-            // Actual Code area
-            String actualCode = methodSmell.getMethodBean().getTextContent();
-            areaActualCode.setText(actualCode);
-            areaActualCode.setCaretPosition(0);
-            Highlighter actualHighlighter = areaActualCode.getHighlighter();
+    private void prepareArea(JTextArea area, String code, ArrayList<String> highlightList) {
+        try {
+            area.setText(code);
+            area.setCaretPosition(0);
+            Highlighter actualHighlighter = area.getHighlighter();
             actualHighlighter.removeAllHighlights();
-            ArrayList<String> actualCodeToHighlightList = methodProposal.getActualCodeToHighlightList();
-            if (actualCodeToHighlightList != null && actualCodeToHighlightList.size() > 0) {
-                for (String actualCodeToHighlight : actualCodeToHighlightList) {
-                    int highlightIndex = actualCode.indexOf(actualCodeToHighlight);
+            if (highlightList != null && highlightList.size() > 0) {
+                for (String actualCodeToHighlight : highlightList) {
+                    int highlightIndex = code.indexOf(actualCodeToHighlight);
                     actualHighlighter.addHighlight(highlightIndex, highlightIndex + actualCodeToHighlight.length(), DefaultHighlighter.DefaultPainter);
                 }
             }
-
-            // Proposed Code Area
-            String proposedCode = "";
-            switch (smellType) {
-                case MethodSmell.DURABLE_WAKELOCK: {
-                    DWProposal DWProposal = (DWProposal) methodProposal;
-                    MethodDeclaration proposedMethodDeclaration = DWProposal.getProposedMethodDeclaration();
-                    proposedCode = proposedMethodDeclaration.toString();
-                    break;
-                }
-                case MethodSmell.EARLY_RESOURCE_BINDING: {
-                    ERBProposal ERBProposal = (ERBProposal) methodProposal;
-                    MethodDeclaration proposedOnCreate = ERBProposal.getProposedOnCreate();
-                    MethodDeclaration proposedOnResume = ERBProposal.getProposedOnResume();
-                    proposedCode = proposedOnCreate.toString() + "\n" + proposedOnResume.toString();
-                    break;
-                }
-                default:
-                    break;
-            }
-            areaProposedCode.setText(proposedCode);
-            areaProposedCode.setCaretPosition(0);
-            Highlighter proposedHighlighter = areaProposedCode.getHighlighter();
-            proposedHighlighter.removeAllHighlights();
-            ArrayList<String> proposedCodeToHighlightList = methodProposal.getProposedCodeToHighlightList();
-            if (proposedCodeToHighlightList != null && proposedCodeToHighlightList.size() > 0) {
-                for (String proposedCodeToHighlight : proposedCodeToHighlightList) {
-                    int highlightIndex = proposedCode.indexOf(proposedCodeToHighlight);
-                    proposedHighlighter.addHighlight(highlightIndex, highlightIndex + proposedCodeToHighlight.length(), DefaultHighlighter.DefaultPainter);
-                }
-            }
-
-        } catch (IOException e1) {
-            e1.printStackTrace();
-        } catch (BadLocationException e2) {
+        } catch (BadLocationException e) {
             // When the index of the string to highlight is wrong
-            e2.printStackTrace();
+            e.printStackTrace();
         }
+    }
+
+    private String buildElement(MethodSmell methodSmell) {
+        String methodName = methodSmell.getMethodBean().getName();
+        String smellName = MethodSmell.getSmellName(methodSmell.getSmellType());
+        return "" +
+                "<html>" +
+                "<p style=\"font-size:10px\">" +
+                "<b>" + smellName + "</b>" +
+                "</p>" +
+                "<p style=\"font-size:9px\">" +
+                "" + methodName + "" +
+                "</p>" +
+                "</html>";
+    }
+
+    private void onSelectItem() {
+        updateDetails();
     }
 
     private void onApplyRefactoring() {
