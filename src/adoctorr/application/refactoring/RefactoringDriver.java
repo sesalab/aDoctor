@@ -10,12 +10,14 @@ import java.io.IOException;
 
 public class RefactoringDriver {
 
-    public RefactoringDriver() {
+    private MethodProposal methodProposal;
 
+    public RefactoringDriver(MethodProposal methodProposal) {
+        this.methodProposal = methodProposal;
     }
 
     // Refactoring and overwrite the file
-    public boolean applyRefactoring(MethodProposal methodProposal) throws IOException, BadLocationException {
+    public boolean startRefactoring() throws IOException, BadLocationException {
         boolean result = false;
         if (methodProposal != null) {
             int smellType = methodProposal.getMethodSmell().getSmellType();

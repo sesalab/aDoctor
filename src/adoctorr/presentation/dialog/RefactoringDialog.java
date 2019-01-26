@@ -4,6 +4,7 @@ import adoctorr.application.bean.proposal.MethodProposal;
 import adoctorr.application.bean.smell.MethodSmell;
 import adoctorr.application.refactoring.RefactoringDriver;
 import com.intellij.ide.SaveAndSyncHandlerImpl;
+import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFileManager;
@@ -15,6 +16,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.concurrent.ExecutionException;
 
 public class RefactoringDialog extends JDialog {
     private JPanel contentPane;
@@ -23,9 +25,7 @@ public class RefactoringDialog extends JDialog {
     private MethodProposal methodProposal;
     private Project project;
     private ArrayList<MethodSmell> smellMethodList;
-
-    private RefactoringThread refactoringThread;
-    private boolean result;
+    private RefactoringDriver refactoringDriver;
 
     private RefactoringDialog(MethodProposal methodProposal, Project project, ArrayList<MethodSmell> smellMethodList) {
         setContentPane(contentPane);
@@ -40,6 +40,7 @@ public class RefactoringDialog extends JDialog {
         this.methodProposal = methodProposal;
         this.project = project;
         this.smellMethodList = smellMethodList;
+        this.refactoringDriver = new RefactoringDriver(methodProposal);
 
         String fileName = methodProposal.getMethodSmell().getSourceFile().getName();
         String methodName = methodProposal.getMethodSmell().getMethodBean().getName();
@@ -58,23 +59,45 @@ public class RefactoringDialog extends JDialog {
     public static void show(MethodProposal methodProposal, Project project, ArrayList<MethodSmell> smellMethodList) {
         RefactoringDialog refactoringDialog = new RefactoringDialog(methodProposal, project, smellMethodList);
 
-        // Thread that manage the real refactoring
-        refactoringDialog.refactoringThread = new RefactoringThread(refactoringDialog, methodProposal);
-        refactoringDialog.refactoringThread.start();
+        refactoringDialog.startRefactoring();
 
         refactoringDialog.pack();
-        // setVisibile(true) is blocking, that's why we use a Thread to start the real refatoring
         refactoringDialog.setVisible(true);
-
-        refactoringDialog.showResults();
     }
 
+    private void startRefactoring() {
+        SwingWorker<Boolean, Void> swingWorker = new SwingWorker<Boolean, Void>() {
+            @Override
+            protected Boolean doInBackground() {
+                try {
+                    return refactoringDriver.startRefactoring();
+                } catch (IOException | BadLocationException e) {
+                    e.printStackTrace();
+                    return null;
+                }
+            }
+
+            @Override
+            protected void done() {
+                boolean result;
+                try {
+                    result = get();
+                } catch (InterruptedException | ExecutionException e) {
+                    e.printStackTrace();
+                    result = false;
+                }
+                showResults(result);
+            }
+        };
+        swingWorker.execute();
+    }
 
     private void onExit() {
         dispose();
     }
 
-    private void showResults() {
+    private void showResults(boolean result) {
+        dispose();
         // Refreshes the Editor in order to reflect the changes to the files
         SaveAndSyncHandlerImpl.getInstance().refreshOpenFiles();
         VirtualFileManager.getInstance().refreshWithoutFileWatcher(false);
@@ -85,48 +108,11 @@ public class RefactoringDialog extends JDialog {
             methodProposal.getMethodSmell().setResolved(true);
 
             // Updates the editor with the changes made to the files
-            com.intellij.openapi.editor.Document[] documents = FileDocumentManager.getInstance().getUnsavedDocuments();
-            for (com.intellij.openapi.editor.Document document1 : documents) {
+            Document[] documents = FileDocumentManager.getInstance().getUnsavedDocuments();
+            for (Document document1 : documents) {
                 FileDocumentManager.getInstance().reloadFromDisk(document1);
             }
-
             SuccessDialog.show(project);
-        }
-    }
-
-    private static class RefactoringThread extends Thread {
-        private RefactoringDialog refactoringDialog;
-        private MethodProposal methodProposal;
-
-        RefactoringThread(RefactoringDialog refactoringDialog, MethodProposal methodProposal) {
-            this.refactoringDialog = refactoringDialog;
-            this.methodProposal = methodProposal;
-        }
-
-        public void run() {
-            System.out.println("Refactoring avviato");
-
-            startRefactoring();
-
-            System.out.println("Refactoring terminato con successo");
-
-            // Disposing the analysis window unlocks UI thread blocked at the preceding setVisible(true)
-            refactoringDialog.dispose();
-        }
-
-        void startRefactoring() {
-            RefactoringDriver refactoringDriver = new RefactoringDriver();
-            boolean result;
-            try {
-                result = refactoringDriver.applyRefactoring(methodProposal);
-            } catch (BadLocationException e1) {
-                result = false;
-                e1.printStackTrace();
-            } catch (IOException e2) {
-                result = false;
-                e2.printStackTrace();
-            }
-            refactoringDialog.result = result;
         }
     }
 }
