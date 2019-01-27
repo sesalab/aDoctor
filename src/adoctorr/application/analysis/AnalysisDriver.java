@@ -1,8 +1,6 @@
 package adoctorr.application.analysis;
 
 import adoctorr.application.ast.ASTUtilities;
-import adoctorr.application.bean.smell.DWSmell;
-import adoctorr.application.bean.smell.ERBSmell;
 import adoctorr.application.bean.smell.MethodSmell;
 import beans.ClassBean;
 import beans.MethodBean;
@@ -126,41 +124,34 @@ public class AnalysisDriver {
      * @return
      */
     private ArrayList<MethodSmell> analyze(ArrayList<PackageBean> packageList, HashMap<String, File> sourceFileMap) throws IOException {
-        ArrayList<MethodSmell> smellMethodList = null;
-        if (packageList != null && sourceFileMap != null) {
-            ArrayList<DWSmell> durableWakelockList = new ArrayList<>();
-            ArrayList<ERBSmell> earlyResourceBindingList = new ArrayList<>();
+        if (packageList == null || sourceFileMap == null) {
+            return null;
+        }
+        ArrayList<MethodSmell> methodSmells = new ArrayList<>();
 
-            DWAnalyzer DWAnalyzer = new DWAnalyzer();
-            ERBAnalyzer ERBAnalyzer = new ERBAnalyzer();
+        //TODO Questo poi cambierà nella CR_RS_1. La lista già corretta sarà ricevuta da AnalysisDialog
+        ArrayList<MethodSmellAnalyzer> methodSmellAnalyzers = new ArrayList<>();
+        methodSmellAnalyzers.add(new DWAnalyzer());
+        methodSmellAnalyzers.add(new ERBAnalyzer());
 
-            for (PackageBean packageBean : packageList) {
-                for (ClassBean classBean : packageBean.getClasses()) {
-                    String className = classBean.getName();
-                    String packageName = packageBean.getName();
-                    String classFullName = packageName + "." + className;
-                    File sourceFile = sourceFileMap.get(classFullName);
+        for (PackageBean packageBean : packageList) {
+            for (ClassBean classBean : packageBean.getClasses()) {
+                String classFullName = packageBean.getName() + "." + classBean.getName();
+                File sourceFile = sourceFileMap.get(classFullName);
+                CompilationUnit compilationUnit = ASTUtilities.getCompilationUnit(sourceFile);
+                for (MethodBean methodBean : classBean.getMethods()) {
+                    MethodDeclaration methodDeclaration = ASTUtilities.getMethodDeclarationFromContent(methodBean.getTextContent(), compilationUnit);
 
-                    CompilationUnit compilationUnit = ASTUtilities.getCompilationUnit(sourceFile);
-                    for (MethodBean methodBean : classBean.getMethods()) {
-                        MethodDeclaration methodDeclaration = ASTUtilities.getMethodDeclarationFromContent(methodBean.getTextContent(), compilationUnit);
-
-                        DWSmell DWSmell = DWAnalyzer.analyzeMethod(methodBean, methodDeclaration, compilationUnit, sourceFile);
-                        if (DWSmell != null) {
-                            durableWakelockList.add(DWSmell);
-                        }
-                        ERBSmell ERBSmell = ERBAnalyzer.analyzeMethod(methodBean, methodDeclaration, compilationUnit, sourceFile);
-                        if (ERBSmell != null) {
-                            earlyResourceBindingList.add(ERBSmell);
+                    for (MethodSmellAnalyzer analyzer : methodSmellAnalyzers) {
+                        MethodSmell methodSmell = analyzer.analyzeMethod(methodBean, methodDeclaration, compilationUnit, sourceFile);
+                        if (methodSmell != null) {
+                            methodSmells.add(methodSmell);
                         }
                     }
                 }
             }
-            smellMethodList = new ArrayList<>();
-            smellMethodList.addAll(durableWakelockList);
-            smellMethodList.addAll(earlyResourceBindingList);
         }
-        return smellMethodList;
+        return methodSmells;
     }
 
     private ArrayList<PackageBean> buildPackageList() throws IOException {
