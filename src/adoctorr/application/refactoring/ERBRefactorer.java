@@ -2,6 +2,7 @@ package adoctorr.application.refactoring;
 
 import adoctorr.application.ast.ASTUtilities;
 import adoctorr.application.bean.proposal.ERBProposal;
+import adoctorr.application.bean.proposal.MethodProposal;
 import adoctorr.application.bean.smell.MethodSmell;
 import beans.MethodBean;
 import org.eclipse.jdt.core.JavaCore;
@@ -22,65 +23,67 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-public class ERBRefactorer {
+public class ERBRefactorer extends MethodSmellRefactorer {
 
-    ERBRefactorer() {
+    public ERBRefactorer() {
 
     }
 
-    public boolean applyRefactor(ERBProposal proposalMethodBean) throws BadLocationException, IOException {
-        boolean result = false;
-        if (proposalMethodBean != null) {
-            MethodDeclaration proposedOnCreate = proposalMethodBean.getProposedOnCreate();
-            MethodDeclaration actualOnResume = proposalMethodBean.getActualOnResume();
-            MethodDeclaration proposedOnResume = proposalMethodBean.getProposedOnResume();
-            MethodSmell methodSmell = proposalMethodBean.getMethodSmell();
-            File sourceFile = methodSmell.getSourceFile();
-            MethodBean methodBean = methodSmell.getMethodBean();
+    @Override
+    public boolean applyRefactoring(MethodProposal methodProposal) throws BadLocationException, IOException {
+        if (!(methodProposal instanceof ERBProposal)) {
+            return false;
+        }
+        ERBProposal erbProposal = (ERBProposal) methodProposal;
+        MethodDeclaration proposedOnCreate = erbProposal.getProposedOnCreate();
+        MethodDeclaration actualOnResume = erbProposal.getActualOnResume();
+        MethodDeclaration proposedOnResume = erbProposal.getProposedOnResume();
 
-            CompilationUnit compilationUnit = ASTUtilities.getCompilationUnit(sourceFile);
+        MethodSmell methodSmell = erbProposal.getMethodSmell();
+        File sourceFile = methodSmell.getSourceFile();
+        MethodBean methodBean = methodSmell.getMethodBean();
+        CompilationUnit compilationUnit = ASTUtilities.getCompilationUnit(sourceFile);
+        // MethodDeclaration to be replaced
+        MethodDeclaration targetOnCreate = ASTUtilities.getMethodDeclarationFromContent(methodBean.getTextContent(), compilationUnit);
+        if (targetOnCreate == null) {
+            return false;
+        }
 
-            // MethodDeclaration to be replaced
-            MethodDeclaration targetOnCreate = ASTUtilities.getMethodDeclarationFromContent(methodBean.getTextContent(), compilationUnit);
-            if (targetOnCreate != null) {
-                // Builds the Document object
-                String targetSource = FileUtilities.readFile(sourceFile.getAbsolutePath());
-                Document document = new Document(targetSource);
+        // Builds the Document object
+        String targetSource = FileUtilities.readFile(sourceFile.getAbsolutePath());
+        Document document = new Document(targetSource);
 
-                // Refactoring phase
-                AST targetAST = compilationUnit.getAST();
-                ASTRewrite rewriter = ASTRewrite.create(targetAST);
-                rewriter.replace(targetOnCreate, proposedOnCreate, null); // Replaces the onCreate(Bundle)
+        // Refactoring phase
+        AST targetAST = compilationUnit.getAST();
+        ASTRewrite rewriter = ASTRewrite.create(targetAST);
+        rewriter.replace(targetOnCreate, proposedOnCreate, null); // Replaces the onCreate(Bundle)
 
-                if (actualOnResume == null) {
-                    // Insert the onResume() after the onCreate(Bundle)
-                    TypeDeclaration typeDeclaration = (TypeDeclaration) compilationUnit.types().get(0);
-                    ListRewrite listRewrite = rewriter.getListRewrite(typeDeclaration, TypeDeclaration.BODY_DECLARATIONS_PROPERTY);
-                    listRewrite.insertAfter(proposedOnResume, proposedOnCreate, null);
-                } else {
-                    // Replaces the current onResume() with the new one
-                    MethodDeclaration targetOnResume = ASTUtilities.getMethodDeclarationFromContent(actualOnResume.toString(), compilationUnit);
-                    if (targetOnResume == null) {
-                        return false;
-                    } else {
-                        rewriter.replace(targetOnResume, proposedOnResume, null);
-                    }
-                }
-                TextEdit edits = rewriter.rewriteAST(document, JavaCore.getDefaultOptions()); // With JavaCore Options we keep the code format settings, so the \n
-
-                //TODO: Implementare uno stack di Undo
-                // The UndoEdit could be used on the same document to reverse the changes
-                UndoEdit undoEdit = edits.apply(document, TextEdit.CREATE_UNDO | TextEdit.UPDATE_REGIONS);
-                String documentContent = document.get();
-
-                // Overwrite directly the file
-                PrintWriter pw = new PrintWriter(new FileOutputStream(sourceFile, false));
-                pw.print(documentContent);
-                pw.flush(); // Important
-
-                result = true;
+        if (actualOnResume == null) {
+            // Insert the onResume() after the onCreate(Bundle)
+            TypeDeclaration typeDeclaration = (TypeDeclaration) compilationUnit.types().get(0);
+            ListRewrite listRewrite = rewriter.getListRewrite(typeDeclaration, TypeDeclaration.BODY_DECLARATIONS_PROPERTY);
+            listRewrite.insertAfter(proposedOnResume, proposedOnCreate, null);
+        } else {
+            // Replaces the current onResume() with the new one
+            MethodDeclaration targetOnResume = ASTUtilities.getMethodDeclarationFromContent(actualOnResume.toString(), compilationUnit);
+            if (targetOnResume == null) {
+                return false;
+            } else {
+                rewriter.replace(targetOnResume, proposedOnResume, null);
             }
         }
-        return result;
+
+        TextEdit edits = rewriter.rewriteAST(document, JavaCore.getDefaultOptions()); // With JavaCore Options we keep the code format settings, so the \n
+
+        // TODO: Implementare uno stack di Undo
+        // The UndoEdit could be used on the same document to reverse the changes
+        UndoEdit undoEdit = edits.apply(document, TextEdit.CREATE_UNDO | TextEdit.UPDATE_REGIONS);
+        String documentContent = document.get();
+
+        // Overwrite directly the file
+        PrintWriter pw = new PrintWriter(new FileOutputStream(sourceFile, false));
+        pw.print(documentContent);
+        pw.flush(); // Important
+        return true;
     }
 }

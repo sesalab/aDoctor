@@ -1,12 +1,10 @@
 package adoctorr.application.refactoring;
 
-import adoctorr.application.bean.proposal.DWProposal;
-import adoctorr.application.bean.proposal.ERBProposal;
 import adoctorr.application.bean.proposal.MethodProposal;
-import adoctorr.application.bean.smell.MethodSmell;
 import org.eclipse.jface.text.BadLocationException;
 
 import java.io.IOException;
+import java.util.ArrayList;
 
 public class RefactoringDriver {
 
@@ -16,28 +14,17 @@ public class RefactoringDriver {
         this.methodProposal = methodProposal;
     }
 
-    // Refactoring and overwrite the file
     public boolean startRefactoring() throws IOException, BadLocationException {
-        boolean result = false;
-        if (methodProposal != null) {
-            int smellType = methodProposal.getMethodSmell().getSmellType();
-            switch (smellType) {
-                case MethodSmell.DURABLE_WAKELOCK: {
-                    DWProposal DWProposal = (DWProposal) methodProposal;
-                    DWRefactorer DWRefactorer = new DWRefactorer();
-                    result = DWRefactorer.applyRefactor(DWProposal);
-                    break;
-                }
-                case MethodSmell.EARLY_RESOURCE_BINDING: {
-                    ERBProposal ERBProposal = (ERBProposal) methodProposal;
-                    ERBRefactorer ERBRefactorer = new ERBRefactorer();
-                    result = ERBRefactorer.applyRefactor(ERBProposal);
-                    break;
-                }
-                default:
-                    break;
+        //TODO Questo poi cambierà nella CR_RS_1. Sarà preparata La lista completa RefactoringDialog o si già manda il refactorer giusto?
+        ArrayList<MethodSmellRefactorer> methodSmellRefactorers = new ArrayList<>();
+        methodSmellRefactorers.add(new DWRefactorer());
+        methodSmellRefactorers.add(new ERBRefactorer());
+
+        for (MethodSmellRefactorer refactorer : methodSmellRefactorers) {
+            if (refactorer.applyRefactoring(methodProposal)) {
+                return true;
             }
         }
-        return result;
+        return false;
     }
 }
