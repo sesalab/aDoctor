@@ -4,7 +4,7 @@ import beans.MethodBean;
 
 import java.io.File;
 
-public class MethodSmell {
+public abstract class MethodSmell extends Smell {
     public static final int DURABLE_WAKELOCK = 1;
     public static final int EARLY_RESOURCE_BINDING = 4;
 
