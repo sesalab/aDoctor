@@ -1,11 +1,10 @@
 package adoctorr.application.proposal;
 
 import adoctorr.application.bean.proposal.MethodProposal;
-import adoctorr.application.bean.smell.DWSmell;
-import adoctorr.application.bean.smell.ERBSmell;
 import adoctorr.application.bean.smell.MethodSmell;
 
 import java.io.IOException;
+import java.util.ArrayList;
 
 public class ProposalDriver {
 
@@ -14,26 +13,16 @@ public class ProposalDriver {
     }
 
     public MethodProposal computeProposal(MethodSmell methodSmell) throws IOException {
-        if (methodSmell != null) {
-            int smellType = methodSmell.getSmellType();
-            MethodProposal proposedMethodBean;
-            switch (smellType) {
-                case MethodSmell.DURABLE_WAKELOCK: {
-                    DWProposer DWProposer = new DWProposer();
-                    DWSmell DWSmell = (DWSmell) methodSmell;
-                    proposedMethodBean = DWProposer.computeProposal(DWSmell);
-                    break;
-                }
-                case MethodSmell.EARLY_RESOURCE_BINDING: {
-                    ERBProposer ERBProposer = new ERBProposer();
-                    ERBSmell ERBSmell = (ERBSmell) methodSmell;
-                    proposedMethodBean = ERBProposer.computeProposal(ERBSmell);
-                    break;
-                }
-                default:
-                    return null;
+        //TODO Questo poi cambierà nella CR_RS_1. Sarà preparata La lista completa SmellDialog o si già manda il proposer giusto?
+        ArrayList<MethodSmellProposer> methodSmellProposers = new ArrayList<>();
+        methodSmellProposers.add(new DWProposer());
+        methodSmellProposers.add(new ERBProposer());
+
+        for (MethodSmellProposer proposer : methodSmellProposers) {
+            MethodProposal methodProposal = proposer.computeProposal(methodSmell);
+            if (methodProposal != null) {
+                return methodProposal;
             }
-            return proposedMethodBean;
         }
         return null;
     }
