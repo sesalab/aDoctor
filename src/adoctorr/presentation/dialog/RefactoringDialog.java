@@ -1,13 +1,7 @@
 package adoctorr.presentation.dialog;
 
 import adoctorr.application.bean.proposal.MethodProposal;
-import adoctorr.application.bean.smell.MethodSmell;
 import adoctorr.application.refactoring.RefactoringDriver;
-import com.intellij.ide.SaveAndSyncHandlerImpl;
-import com.intellij.openapi.editor.Document;
-import com.intellij.openapi.fileEditor.FileDocumentManager;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.VirtualFileManager;
 import org.eclipse.jface.text.BadLocationException;
 
 import javax.swing.*;
@@ -15,19 +9,30 @@ import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.concurrent.ExecutionException;
 
 public class RefactoringDialog extends JDialog {
+    public static final String TITLE = "aDoctor - Refactoring";
+
+    private RefactoringCallback refactoringCallback;
+    private RefactoringDriver refactoringDriver;
+
     private JPanel contentPane;
     private JLabel labelMethodFileName;
 
-    private MethodProposal methodProposal;
-    private Project project;
-    private ArrayList<MethodSmell> smellMethodList;
-    private RefactoringDriver refactoringDriver;
+    public static void show(RefactoringCallback refactoringCallback, MethodProposal methodProposal) {
+        RefactoringDialog refactoringDialog = new RefactoringDialog(refactoringCallback, methodProposal);
 
-    private RefactoringDialog(MethodProposal methodProposal, Project project, ArrayList<MethodSmell> smellMethodList) {
+        refactoringDialog.startRefactoring();
+
+        refactoringDialog.pack();
+        refactoringDialog.setVisible(true);
+    }
+
+    private RefactoringDialog(RefactoringCallback refactoringCallback, MethodProposal methodProposal) {
+        this.refactoringCallback = refactoringCallback;
+        this.refactoringDriver = new RefactoringDriver(methodProposal);
+
         setContentPane(contentPane);
         setModal(true);
         Toolkit toolkit = Toolkit.getDefaultToolkit();
@@ -35,34 +40,18 @@ public class RefactoringDialog extends JDialog {
         int x = (screenSize.width - getWidth()) / 3;
         int y = (screenSize.height - getHeight()) / 5;
         setLocation(x, y);
-        setTitle("aDoctor - Refactoring");
-
-        this.methodProposal = methodProposal;
-        this.project = project;
-        this.smellMethodList = smellMethodList;
-        this.refactoringDriver = new RefactoringDriver(methodProposal);
+        setTitle(TITLE);
 
         String fileName = methodProposal.getMethodSmell().getSourceFile().getName();
         String methodName = methodProposal.getMethodSmell().getMethodBean().getName();
-
         labelMethodFileName.setText("to the method " + methodName + " in file " + fileName);
 
-        // call onCancel() when cross is clicked
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
         addWindowListener(new WindowAdapter() {
             public void windowClosing(WindowEvent e) {
-                onExit();
+                onQuit();
             }
         });
-    }
-
-    public static void show(MethodProposal methodProposal, Project project, ArrayList<MethodSmell> smellMethodList) {
-        RefactoringDialog refactoringDialog = new RefactoringDialog(methodProposal, project, smellMethodList);
-
-        refactoringDialog.startRefactoring();
-
-        refactoringDialog.pack();
-        refactoringDialog.setVisible(true);
     }
 
     private void startRefactoring() {
@@ -86,33 +75,19 @@ public class RefactoringDialog extends JDialog {
                     e.printStackTrace();
                     result = false;
                 }
-                showResults(result);
+                refactoringCallback.refactoringDone(RefactoringDialog.this, result);
             }
         };
         swingWorker.execute();
     }
 
-    private void onExit() {
-        dispose();
+    private void onQuit() {
+        refactoringCallback.refactoringQuit(this);
     }
 
-    private void showResults(boolean result) {
-        dispose();
-        // Refreshes the Editor in order to reflect the changes to the files
-        SaveAndSyncHandlerImpl.getInstance().refreshOpenFiles();
-        VirtualFileManager.getInstance().refreshWithoutFileWatcher(false);
+    interface RefactoringCallback {
+        void refactoringDone(RefactoringDialog refactoringDialog, boolean result);
 
-        if (!result) {
-            FailureDialog.show(project, smellMethodList);
-        } else {
-            methodProposal.getMethodSmell().setResolved(true);
-
-            // Updates the editor with the changes made to the files
-            Document[] documents = FileDocumentManager.getInstance().getUnsavedDocuments();
-            for (Document document1 : documents) {
-                FileDocumentManager.getInstance().reloadFromDisk(document1);
-            }
-            SuccessDialog.show(project);
-        }
+        void refactoringQuit(RefactoringDialog refactoringDialog);
     }
 }

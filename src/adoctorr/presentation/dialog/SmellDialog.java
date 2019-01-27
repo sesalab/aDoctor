@@ -3,7 +3,6 @@ package adoctorr.presentation.dialog;
 import adoctorr.application.bean.proposal.MethodProposal;
 import adoctorr.application.bean.smell.MethodSmell;
 import adoctorr.application.proposal.ProposalDriver;
-import com.intellij.openapi.project.Project;
 
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
@@ -20,33 +19,46 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 public class SmellDialog extends JDialog {
-
-    private static final String DURABLE_WAKELOCK_DESCRIPTION = "Durable Wakelock is present when there is a " +
+    public static final String TITLE = "aDoctor - Smell list";
+    public static final String DURABLE_WAKELOCK_DESCRIPTION = "Durable Wakelock is present when there is a " +
             "PowerManager.WakeLock instance that calls an acquire() without setting a timeout or without calling the " +
             "corresponding release()";
-    private static final String EARLY_RESOURCE_BINDING_DESCRIPTION = "Early Resource Binding is present when an " +
+    public static final String EARLY_RESOURCE_BINDING_DESCRIPTION = "Early Resource Binding is present when an " +
             "Android system service is used in the onCreate(Bundle) method of an Activity subclass.";
 
+    private SmellCallback smellCallback;
+    private ArrayList<MethodSmell> unresolvedMethodSmells;
+    private ProposalDriver proposalDriver;
+    private MethodProposal methodProposal;
+
     private JPanel contentPane;
-
     private JList<String> listSmell;
-
     private JLabel labelSmellName;
     private JLabel labelIcon;
-
+    private JLabel labelClassName;
     private JTextArea areaActualCode;
     private JTextArea areaProposedCode;
-    private JLabel labelClassName;
     private JButton buttonApply;
     private JButton buttonQuit;
 
-    private Project project;
-    private ProposalDriver proposalDriver;
-    private ArrayList<MethodSmell> smellMethodList;
-    private ArrayList<MethodSmell> unresolvedSmellMethodList;
-    private MethodProposal methodProposal;
+    public static void show(SmellCallback smellCallback, ArrayList<MethodSmell> smellMethodList) {
+        SmellDialog smellDialog = new SmellDialog(smellCallback, smellMethodList);
 
-    private SmellDialog(Project project, ArrayList<MethodSmell> smellMethodList) {
+        smellDialog.pack();
+        smellDialog.setVisible(true);
+    }
+
+    private SmellDialog(SmellCallback smellCallback, ArrayList<MethodSmell> methodSmells) {
+        this.smellCallback = smellCallback;
+        this.proposalDriver = new ProposalDriver();
+        this.unresolvedMethodSmells = new ArrayList<>();
+        for (MethodSmell methodSmell : methodSmells) {
+            if (!methodSmell.isResolved()) {
+                unresolvedMethodSmells.add(methodSmell);
+            }
+        }
+        this.methodProposal = null;
+
         setContentPane(contentPane);
         setModal(true);
         Toolkit toolkit = Toolkit.getDefaultToolkit();
@@ -55,44 +67,30 @@ public class SmellDialog extends JDialog {
         int y = (screenSize.height - getHeight()) / 16;
         setLocation(x, y);
         getRootPane().setDefaultButton(buttonApply);
-        setTitle("aDoctor - Smells' list");
+        setTitle(TITLE);
 
-        this.project = project;
-        this.proposalDriver = new ProposalDriver();
-        this.smellMethodList = smellMethodList;
-        this.unresolvedSmellMethodList = new ArrayList<>();
-        for (MethodSmell methodSmell : smellMethodList) {
-            if (!methodSmell.isResolved()) {
-                unresolvedSmellMethodList.add(methodSmell);
-            }
-        }
-        this.methodProposal = null;
-
-        // The smells' list
+        areaActualCode.setPreferredSize(null);
+        areaProposedCode.setPreferredSize(null);
+        // The smell list
         DefaultListModel<String> listSmellModel = (DefaultListModel<String>) listSmell.getModel();
-        for (MethodSmell methodSmell : unresolvedSmellMethodList) {
+        for (MethodSmell methodSmell : unresolvedMethodSmells) {
             listSmellModel.addElement(buildElement(methodSmell));
         }
-
         listSmell.addListSelectionListener(new ListSelectionListener() {
             @Override
             public void valueChanged(ListSelectionEvent e) {
-                //This if statement prevents multiple fires
+                // This if statement prevents multiple fires
                 if (!e.getValueIsAdjusting()) {
                     onSelectItem();
                 }
             }
         });
+        listSmell.setSelectedIndex(0); // Select the first smell of the list
 
-        // Select the first smell of the list
-        listSmell.setSelectedIndex(0);
-
-        areaActualCode.setPreferredSize(null);
-        areaProposedCode.setPreferredSize(null);
 
         buttonApply.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                onApplyRefactoring();
+                onApply();
             }
         });
 
@@ -102,7 +100,6 @@ public class SmellDialog extends JDialog {
             }
         });
 
-        // call onQuit() when cross is clicked
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
         addWindowListener(new WindowAdapter() {
             public void windowClosing(WindowEvent e) {
@@ -111,15 +108,8 @@ public class SmellDialog extends JDialog {
         });
     }
 
-    public static void show(Project project, ArrayList<MethodSmell> smellMethodList) {
-        SmellDialog smellDialog = new SmellDialog(project, smellMethodList);
-
-        smellDialog.pack();
-        smellDialog.setVisible(true);
-    }
-
     private void updateDetails() {
-        MethodSmell selectedSmell = unresolvedSmellMethodList.get(listSmell.getSelectedIndex());
+        MethodSmell selectedSmell = unresolvedMethodSmells.get(listSmell.getSelectedIndex());
 
         // Selected Smell Description
         String className = selectedSmell.getMethodBean().getBelongingClass().getName();
@@ -190,12 +180,17 @@ public class SmellDialog extends JDialog {
         updateDetails();
     }
 
-    private void onApplyRefactoring() {
-        dispose();
-        RefactoringDialog.show(methodProposal, project, smellMethodList);
+    private void onApply() {
+        smellCallback.smellApply(this, methodProposal);
     }
 
     private void onQuit() {
-        dispose();
+        smellCallback.smellQuit(this);
+    }
+
+    interface SmellCallback {
+        void smellApply(SmellDialog smellDialog, MethodProposal methodProposal);
+
+        void smellQuit(SmellDialog analysisDialog);
     }
 }

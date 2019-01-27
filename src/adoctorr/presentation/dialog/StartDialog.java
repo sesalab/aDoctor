@@ -1,7 +1,5 @@
 package adoctorr.presentation.dialog;
 
-import com.intellij.openapi.project.Project;
-
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -10,21 +8,25 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
 public class StartDialog extends JDialog {
-    private JPanel contentPane;
+    public static final String TITLE = "aDoctor";
 
+    private StartCallback startCallback;
+
+    private JPanel contentPane;
     private JButton buttonStart;
     private JButton buttonQuit;
     private JButton buttonAbout;
 
-    private Project project;
+    public static void show(StartCallback startCallback) {
+        StartDialog startDialog = new StartDialog(startCallback);
 
-    /**
-     * Default constructor and initializator of the dialog
-     *
-     * @param project
-     */
-    private StartDialog(Project project) {
-        // Leave them as they are
+        startDialog.pack();
+        startDialog.setVisible(true);
+    }
+
+    private StartDialog(StartCallback startCallback) {
+        this.startCallback = startCallback;
+
         setContentPane(contentPane);
         setModal(true);
         Toolkit toolkit = Toolkit.getDefaultToolkit();
@@ -32,18 +34,12 @@ public class StartDialog extends JDialog {
         int x = (screenSize.width - getWidth()) / 3;
         int y = (screenSize.height - getHeight()) / 5;
         setLocation(x, y);
+        setTitle(TITLE);
+        getRootPane().setDefaultButton(buttonStart); //Pressing Enter means clicking buttonStart
 
-        //Pressing Enter means clicking buttonStart
-        getRootPane().setDefaultButton(buttonStart);
-
-        setTitle("aDoctor");
-
-        this.project = project;
-
-        // Assign all various listeners
         buttonStart.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                onStartAnalysis();
+                onStart();
             }
         });
 
@@ -78,41 +74,24 @@ public class StartDialog extends JDialog {
         */
     }
 
-    /**
-     * First and only method from the outside to be called in order to show this dialog
-     *
-     * @param project
-     */
-    public static void show(Project project) {
-        StartDialog startDialog = new StartDialog(project);
-
-        // Leave them as they are
-        startDialog.pack();
-        startDialog.setVisible(true);
+    private void onStart() {
+        startCallback.startAnalysis(this);
     }
 
-    /**
-     * Start the analysis, after saving all project files
-     * Called when Start Analysis button is clicked
-     */
-    private void onStartAnalysis() {
-        dispose();
-
-        // Starts the analysis by showing the AnalysisDialog
-        AnalysisDialog.show(project);
-    }
-
-    /**
-     * Exit from the plugin
-     * Called when Exit button is clicked
-     */
     private void onQuit() {
-        dispose();
+        startCallback.startQuit(this);
     }
 
 
     private void onAbout() {
-        dispose();
-        AboutDialog.show(project);
+        startCallback.startAbout(this);
+    }
+
+    interface StartCallback {
+        void startAnalysis(StartDialog startDialog);
+
+        void startAbout(StartDialog startDialog);
+
+        void startQuit(StartDialog startDialog);
     }
 }

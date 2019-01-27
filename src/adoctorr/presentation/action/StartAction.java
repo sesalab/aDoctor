@@ -1,6 +1,6 @@
 package adoctorr.presentation.action;
 
-import adoctorr.presentation.dialog.StartDialog;
+import adoctorr.presentation.dialog.CoreDriver;
 import com.intellij.ide.plugins.IdeaPluginDescriptor;
 import com.intellij.ide.plugins.PluginManager;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -16,6 +16,7 @@ public class StartAction extends AnAction {
 
     /**
      * Called when aDoctor is clicked in Refactor menu of the IDE
+     *
      * @param e
      */
     @Override
@@ -36,8 +37,8 @@ public class StartAction extends AnAction {
             Editor editor = FileEditorManager.getInstance(project).getSelectedTextEditor();
             */
 
-            // Show the StartDialog, the first window to be shown
-            StartDialog.show(project);
+            CoreDriver coreDriver = new CoreDriver(project);
+            coreDriver.start();
         }
     }
 }

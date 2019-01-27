@@ -1,22 +1,31 @@
 package adoctorr.presentation.dialog;
 
-import adoctorr.application.bean.smell.MethodSmell;
-import com.intellij.openapi.project.Project;
-
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.*;
-import java.util.ArrayList;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
 public class FailureDialog extends JDialog {
+    public static final String TITLE = "aDoctor - Failure";
+
+    private FailureCallback failureCallback;
+
     private JPanel contentPane;
     private JButton buttonBack;
     private JButton buttonQuit;
 
-    private Project project;
-    private ArrayList<MethodSmell> smellMethodList;
+    public static void show(FailureCallback failureCallback) {
+        FailureDialog failureDialog = new FailureDialog(failureCallback);
 
-    private FailureDialog(Project project, ArrayList<MethodSmell> smellMethodList) {
+        failureDialog.pack();
+        failureDialog.setVisible(true);
+    }
+
+    private FailureDialog(FailureCallback failureCallback) {
+        this.failureCallback = failureCallback;
+
         setContentPane(contentPane);
         setModal(true);
         Toolkit toolkit = Toolkit.getDefaultToolkit();
@@ -25,10 +34,7 @@ public class FailureDialog extends JDialog {
         int y = (screenSize.height - getHeight()) / 5;
         setLocation(x, y);
         getRootPane().setDefaultButton(buttonBack);
-        setTitle("aDoctor - Failure");
-
-        this.project = project;
-        this.smellMethodList = smellMethodList;
+        setTitle(TITLE);
 
         buttonBack.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -42,7 +48,6 @@ public class FailureDialog extends JDialog {
             }
         });
 
-        // call onCancel() when cross is clicked
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
         addWindowListener(new WindowAdapter() {
             public void windowClosing(WindowEvent e) {
@@ -51,19 +56,17 @@ public class FailureDialog extends JDialog {
         });
     }
 
-    public static void show(Project project, ArrayList<MethodSmell> smellMethodList) {
-        FailureDialog failureDialog = new FailureDialog(project, smellMethodList);
-
-        failureDialog.pack();
-        failureDialog.setVisible(true);
-    }
-
     private void onBack() {
-        dispose();
-        SmellDialog.show(project, smellMethodList);
+        failureCallback.failureBack(this);
     }
 
     private void onQuit() {
-        dispose();
+        failureCallback.failureQuit(this);
+    }
+
+    interface FailureCallback {
+        void failureBack(FailureDialog failureDialog);
+
+        void failureQuit(FailureDialog failureDialog);
     }
 }

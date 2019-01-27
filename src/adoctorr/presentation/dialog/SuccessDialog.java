@@ -1,7 +1,5 @@
 package adoctorr.presentation.dialog;
 
-import com.intellij.openapi.project.Project;
-
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -10,13 +8,24 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
 public class SuccessDialog extends JDialog {
+    public static final String TITLE = "aDoctor - Success";
+
+    private SuccessCallback successCallback;
+
     private JPanel contentPane;
     private JButton buttonAnalyze;
     private JButton buttonQuit;
 
-    private Project project;
+    public static void show(SuccessCallback successCallback) {
+        SuccessDialog successDialog = new SuccessDialog(successCallback);
 
-    private SuccessDialog(Project project) {
+        successDialog.pack();
+        successDialog.setVisible(true);
+    }
+
+    private SuccessDialog(SuccessCallback successCallback) {
+        this.successCallback = successCallback;
+
         setContentPane(contentPane);
         setModal(true);
         Toolkit toolkit = Toolkit.getDefaultToolkit();
@@ -25,13 +34,11 @@ public class SuccessDialog extends JDialog {
         int y = (screenSize.height - getHeight()) / 5;
         setLocation(x, y);
         getRootPane().setDefaultButton(buttonAnalyze);
-        setTitle("aDoctor - Success");
-
-        this.project = project;
+        setTitle(TITLE);
 
         buttonAnalyze.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                onStartAnalysis();
+                onStart();
             }
         });
 
@@ -41,7 +48,6 @@ public class SuccessDialog extends JDialog {
             }
         });
 
-        // call onCancel() when cross is clicked
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
         addWindowListener(new WindowAdapter() {
             public void windowClosing(WindowEvent e) {
@@ -50,19 +56,17 @@ public class SuccessDialog extends JDialog {
         });
     }
 
-    public static void show(Project project) {
-        SuccessDialog successDialog = new SuccessDialog(project);
-
-        successDialog.pack();
-        successDialog.setVisible(true);
-    }
-
-    private void onStartAnalysis() {
-        dispose();
-        AnalysisDialog.show(project);
+    private void onStart() {
+        successCallback.successAnalyze(this);
     }
 
     private void onQuit() {
-        dispose();
+        successCallback.successQuit(this);
+    }
+
+    interface SuccessCallback {
+        void successAnalyze(SuccessDialog successDialog);
+
+        void successQuit(SuccessDialog successDialog);
     }
 }

@@ -1,16 +1,30 @@
 package adoctorr.presentation.dialog;
 
-import com.intellij.openapi.project.Project;
-
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
 public class NoSmellDialog extends JDialog {
+    public static final String TITLE = "aDoctor - No Smell";
+
+    private NoSmellCallback noSmellCallback;
+
     private JPanel contentPane;
     private JButton buttonQuit;
 
-    private NoSmellDialog() {
+    public static void show(NoSmellCallback noSmellCallback) {
+        NoSmellDialog noSmellDialog = new NoSmellDialog(noSmellCallback);
+
+        noSmellDialog.pack();
+        noSmellDialog.setVisible(true);
+    }
+
+    private NoSmellDialog(NoSmellCallback noSmellCallback) {
+        this.noSmellCallback = noSmellCallback;
+
         setContentPane(contentPane);
         setModal(true);
         Toolkit toolkit = Toolkit.getDefaultToolkit();
@@ -19,7 +33,7 @@ public class NoSmellDialog extends JDialog {
         int y = (screenSize.height - getHeight()) / 5;
         setLocation(x, y);
         getRootPane().setDefaultButton(buttonQuit);
-        setTitle("aDoctor - No Smell");
+        setTitle(TITLE);
 
         buttonQuit.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -27,7 +41,6 @@ public class NoSmellDialog extends JDialog {
             }
         });
 
-        // call onQuit() when cross is clicked
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
         addWindowListener(new WindowAdapter() {
             public void windowClosing(WindowEvent e) {
@@ -37,13 +50,10 @@ public class NoSmellDialog extends JDialog {
     }
 
     private void onQuit() {
-        dispose();
+        noSmellCallback.noSmellQuit(this);
     }
 
-    public static void show(Project project) {
-        NoSmellDialog noSmellDialog = new NoSmellDialog();
-
-        noSmellDialog.pack();
-        noSmellDialog.setVisible(true);
+    interface NoSmellCallback {
+        void noSmellQuit(NoSmellDialog noSmellDialog);
     }
 }

@@ -15,18 +15,26 @@ import java.util.ArrayList;
 import java.util.concurrent.ExecutionException;
 
 public class AnalysisDialog extends JDialog {
+    public static final String TITLE = "aDoctor - Analysis";
+
+    private AnalysisCallback analysisCallback;
+    private AnalysisDriver analysisDriver;
+
     private JPanel contentPane;
     private JButton buttonAbort;
 
-    private Project project;
-    private AnalysisDriver analysisDriver;
+    public static void show(AnalysisCallback analysisCallback, Project project) {
+        AnalysisDialog analysisDialog = new AnalysisDialog(analysisCallback, project);
+        analysisDialog.startAnalysis();
 
-    /**
-     * Default constructor and initializator of the dialog
-     *
-     * @param project
-     */
-    private AnalysisDialog(Project project) {
+        analysisDialog.pack();
+        analysisDialog.setVisible(true);
+    }
+
+    private AnalysisDialog(AnalysisCallback analysisCallback, Project project) {
+        this.analysisCallback = analysisCallback;
+        this.analysisDriver = new AnalysisDriver(project);
+
         // Leave them as they are
         setContentPane(contentPane);
         setModal(true);
@@ -35,11 +43,8 @@ public class AnalysisDialog extends JDialog {
         int x = (screenSize.width - getWidth()) * 2 / 5;
         int y = (screenSize.height - getHeight()) / 5;
         setLocation(x, y);
-        setTitle("aDoctor - Analysis");
-        //setModalityType(ModalityType.MODELESS);
-
-        this.project = project;
-        this.analysisDriver = new AnalysisDriver(project);
+        setTitle(TITLE);
+        getRootPane().setDefaultButton(buttonAbort);
 
         buttonAbort.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -47,30 +52,12 @@ public class AnalysisDialog extends JDialog {
             }
         });
 
-        // call onAbort() when cross is clicked
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
         addWindowListener(new WindowAdapter() {
             public void windowClosing(WindowEvent e) {
                 onAbort();
             }
         });
-    }
-
-    /**
-     * First and only method from the outside to be called in order to show this dialog
-     *
-     * @param project
-     */
-    public static void show(Project project) {
-        // Save all files in the current project before starting the analysis
-        FileDocumentManager.getInstance().saveAllDocuments();
-        project.save();
-
-        AnalysisDialog analysisDialog = new AnalysisDialog(project);
-        analysisDialog.startAnalysis();
-
-        analysisDialog.pack();
-        analysisDialog.setVisible(true);
     }
 
     // Control logic managed by a worker thread
@@ -90,14 +77,7 @@ public class AnalysisDialog extends JDialog {
             protected void done() {
                 try {
                     ArrayList<MethodSmell> methodSmells = get();
-                    dispose();
-                    if (methodSmells == null) {
-                        AbortDialog.show(project);
-                    } else if (methodSmells.size() == 0) {
-                        NoSmellDialog.show(project);
-                    } else {
-                        SmellDialog.show(project, methodSmells);
-                    }
+                    analysisCallback.analysisDone(AnalysisDialog.this, methodSmells);
                 } catch (InterruptedException | ExecutionException e) {
                     e.printStackTrace();
                 }
@@ -108,6 +88,12 @@ public class AnalysisDialog extends JDialog {
 
     private void onAbort() {
         analysisDriver.abortAnalysis();
-        System.out.println("Analisi abortita");
+        analysisCallback.analysisAbort(this);
+    }
+
+    interface AnalysisCallback {
+        void analysisAbort(AnalysisDialog analysisDialog);
+
+        void analysisDone(AnalysisDialog analysisDialog, ArrayList<MethodSmell> methodSmells);
     }
 }

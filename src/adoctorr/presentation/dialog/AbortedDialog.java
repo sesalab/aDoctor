@@ -1,19 +1,31 @@
 package adoctorr.presentation.dialog;
 
-import com.intellij.openapi.project.Project;
-
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
-public class AbortDialog extends JDialog {
+public class AbortedDialog extends JDialog {
+    public static final String TITLE = "aDoctor - Aborted";
+
+    private AbortedCallback abortedCallback;
+
     private JPanel contentPane;
     private JButton buttonAnalyze;
     private JButton buttonQuit;
 
-    private Project project;
+    public static void show(AbortedCallback abortedCallback) {
+        AbortedDialog abortedDialog = new AbortedDialog(abortedCallback);
 
-    private AbortDialog(Project project) {
+        abortedDialog.pack();
+        abortedDialog.setVisible(true);
+    }
+
+    private AbortedDialog(AbortedCallback abortedCallback) {
+        this.abortedCallback = abortedCallback;
+
         setContentPane(contentPane);
         setModal(true);
         Toolkit toolkit = Toolkit.getDefaultToolkit();
@@ -22,13 +34,11 @@ public class AbortDialog extends JDialog {
         int y = (screenSize.height - getHeight()) / 5;
         setLocation(x, y);
         getRootPane().setDefaultButton(buttonAnalyze);
-        setTitle("aDoctor - Aborted");
-
-        this.project = project;
+        setTitle(TITLE);
 
         buttonAnalyze.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                onStartAnalysis();
+                onRestart();
             }
         });
 
@@ -38,7 +48,6 @@ public class AbortDialog extends JDialog {
             }
         });
 
-        // call onCancel() when cross is clicked
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
         addWindowListener(new WindowAdapter() {
             public void windowClosing(WindowEvent e) {
@@ -47,19 +56,17 @@ public class AbortDialog extends JDialog {
         });
     }
 
-    public static void show(Project project) {
-        AbortDialog abortDialog = new AbortDialog(project);
-
-        abortDialog.pack();
-        abortDialog.setVisible(true);
-    }
-
-    private void onStartAnalysis() {
-        dispose();
-        AnalysisDialog.show(project);
+    private void onRestart() {
+        abortedCallback.abortedRestart(this);
     }
 
     private void onQuit() {
-        dispose();
+        abortedCallback.abortedQuit(this);
+    }
+
+    interface AbortedCallback {
+        void abortedQuit(AbortedDialog abortedDialog);
+
+        void abortedRestart(AbortedDialog abortedDialog);
     }
 }
