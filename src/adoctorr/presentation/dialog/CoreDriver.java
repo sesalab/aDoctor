@@ -21,6 +21,8 @@ public class CoreDriver implements StartDialog.StartCallback,
         FailureDialog.FailureCallback {
 
     private Project project;
+    private boolean[] selections;
+    private String targetPackage;
     private ArrayList<MethodSmell> methodSmells;
 
     public CoreDriver(Project project) {
@@ -29,7 +31,7 @@ public class CoreDriver implements StartDialog.StartCallback,
     }
 
     public void start() {
-        StartDialog.show(this);
+        StartDialog.show(this, project);
     }
 
     private void launchAnalysis() {
@@ -37,13 +39,15 @@ public class CoreDriver implements StartDialog.StartCallback,
         FileDocumentManager.getInstance().saveAllDocuments();
         project.save();
 
-        AnalysisDialog.show(this, project);
+        AnalysisDialog.show(this, project, selections, targetPackage);
     }
 
     ////////////////StartDialog///////////////
     @Override
-    public void startAnalysis(StartDialog startDialog) {
+    public void startAnalysis(StartDialog startDialog, boolean[] selections, String targetPackage) {
         startDialog.dispose();
+        this.selections = selections;
+        this.targetPackage = targetPackage;
         launchAnalysis();
     }
 
@@ -94,7 +98,7 @@ public class CoreDriver implements StartDialog.StartCallback,
     @Override
     public void abortedRestart(AbortedDialog abortedDialog) {
         abortedDialog.dispose();
-        AnalysisDialog.show(this, project);
+        AnalysisDialog.show(this, project, selections, targetPackage);
     }
 
 
@@ -109,6 +113,12 @@ public class CoreDriver implements StartDialog.StartCallback,
     public void smellApply(SmellDialog smellDialog, MethodProposal methodProposal) {
         smellDialog.dispose();
         RefactoringDialog.show(this, methodProposal);
+    }
+
+    @Override
+    public void smellBack(SmellDialog smellDialog) {
+        smellDialog.dispose();
+        start();
     }
 
     @Override

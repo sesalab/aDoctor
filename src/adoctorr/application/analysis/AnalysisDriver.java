@@ -13,16 +13,21 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.regex.Pattern;
 
 @SuppressWarnings("SynchronizeOnNonFinalField")
 public class AnalysisDriver {
 
     private Project project;
+    private ArrayList<MethodSmellAnalyzer> methodSmellAnalyzers;
+    private String targetPackage;
     private AnalysisHelper analysisHelper;
     private AnalysisThread analysisThread;
 
-    public AnalysisDriver(Project project) {
+    public AnalysisDriver(Project project, ArrayList<MethodSmellAnalyzer> methodSmellAnalyzers, String targetPackage) {
         this.project = project;
+        this.methodSmellAnalyzers = methodSmellAnalyzers;
+        this.targetPackage = targetPackage;
         this.analysisHelper = new AnalysisHelper();
     }
 
@@ -32,6 +37,14 @@ public class AnalysisDriver {
 
     public void setProject(Project project) {
         this.project = project;
+    }
+
+    public ArrayList<MethodSmellAnalyzer> getMethodSmellAnalyzers() {
+        return methodSmellAnalyzers;
+    }
+
+    public void setMethodSmellAnalyzers(ArrayList<MethodSmellAnalyzer> methodSmellAnalyzers) {
+        this.methodSmellAnalyzers = methodSmellAnalyzers;
     }
 
     public ArrayList<MethodSmell> startAnalysis() throws InterruptedException {
@@ -119,29 +132,31 @@ public class AnalysisDriver {
      * Builds an ArrayList with all code bean found in the whole project
      * returns null iff there are no smells
      *
-     * @param packageList
+     * @param projectPackages
      * @param sourceFileMap
      * @return
      */
-    private ArrayList<MethodSmell> analyze(ArrayList<PackageBean> packageList, HashMap<String, File> sourceFileMap) throws IOException {
-        if (packageList == null || sourceFileMap == null) {
+    private ArrayList<MethodSmell> analyze(ArrayList<PackageBean> projectPackages, HashMap<String, File> sourceFileMap) throws IOException {
+        if (methodSmellAnalyzers == null || projectPackages == null || sourceFileMap == null) {
             return null;
         }
         ArrayList<MethodSmell> methodSmells = new ArrayList<>();
 
-        //TODO Questo poi cambierà nella CR_RS_1. La lista già corretta sarà ricevuta da AnalysisDialog
-        ArrayList<MethodSmellAnalyzer> methodSmellAnalyzers = new ArrayList<>();
-        methodSmellAnalyzers.add(new DWAnalyzer());
-        methodSmellAnalyzers.add(new ERBAnalyzer());
-
-        for (PackageBean packageBean : packageList) {
+        // Builds the correct list of packages according to the user selection
+        ArrayList<PackageBean> packages = new ArrayList<>();
+        for (PackageBean packageBean : projectPackages) {
+            Pattern pattern = Pattern.compile("^" + targetPackage + "\\..*");
+            if (packageBean.getName().equals(targetPackage) || packageBean.getName().matches(pattern.pattern())) {
+                packages.add(packageBean);
+            }
+        }
+        for (PackageBean packageBean : packages) {
             for (ClassBean classBean : packageBean.getClasses()) {
                 String classFullName = packageBean.getName() + "." + classBean.getName();
                 File sourceFile = sourceFileMap.get(classFullName);
                 CompilationUnit compilationUnit = ASTUtilities.getCompilationUnit(sourceFile);
                 for (MethodBean methodBean : classBean.getMethods()) {
                     MethodDeclaration methodDeclaration = ASTUtilities.getMethodDeclarationFromContent(methodBean.getTextContent(), compilationUnit);
-
                     for (MethodSmellAnalyzer analyzer : methodSmellAnalyzers) {
                         MethodSmell methodSmell = analyzer.analyzeMethod(methodBean, methodDeclaration, compilationUnit, sourceFile);
                         if (methodSmell != null) {

@@ -1,5 +1,8 @@
 package adoctorr.presentation.dialog;
 
+import com.intellij.ide.util.PackageChooserDialog;
+import com.intellij.openapi.project.Project;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -11,21 +14,27 @@ public class StartDialog extends JDialog {
     public static final String TITLE = "aDoctor";
 
     private StartCallback startCallback;
+    private Project project;
 
     private JPanel contentPane;
+    private JCheckBox checkBoxDW;
+    private JCheckBox checkBoxERB;
+    private JButton buttonSelect;
     private JButton buttonStart;
     private JButton buttonQuit;
     private JButton buttonAbout;
+    private JLabel labelPackage;
 
-    public static void show(StartCallback startCallback) {
-        StartDialog startDialog = new StartDialog(startCallback);
+    public static void show(StartCallback startCallback, Project project) {
+        StartDialog startDialog = new StartDialog(startCallback, project);
 
         startDialog.pack();
         startDialog.setVisible(true);
     }
 
-    private StartDialog(StartCallback startCallback) {
+    private StartDialog(StartCallback startCallback, Project project) {
         this.startCallback = startCallback;
+        this.project = project;
 
         setContentPane(contentPane);
         setModal(true);
@@ -36,6 +45,14 @@ public class StartDialog extends JDialog {
         setLocation(x, y);
         setTitle(TITLE);
         getRootPane().setDefaultButton(buttonStart); //Pressing Enter means clicking buttonStart
+
+        labelPackage.setText("");
+
+        buttonSelect.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                onSelectModule();
+            }
+        });
 
         buttonStart.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -74,8 +91,21 @@ public class StartDialog extends JDialog {
         */
     }
 
+    private void onSelectModule() {
+        PackageChooserDialog pcd = new PackageChooserDialog("Select target package", project);
+        pcd.show();
+        labelPackage.setText(pcd.getSelectedPackage().getQualifiedName());
+    }
+
     private void onStart() {
-        startCallback.startAnalysis(this);
+        boolean[] selections = new boolean[2];
+        selections[0] = checkBoxDW.isSelected();
+        selections[1] = checkBoxERB.isSelected();
+        if (!selections[0] && !selections[1]) {
+            JOptionPane.showMessageDialog(this, "Select at least one smell!", "Error", JOptionPane.ERROR_MESSAGE, null);
+        } else {
+            startCallback.startAnalysis(this, selections, labelPackage.getText());
+        }
     }
 
     private void onQuit() {
@@ -88,7 +118,7 @@ public class StartDialog extends JDialog {
     }
 
     interface StartCallback {
-        void startAnalysis(StartDialog startDialog);
+        void startAnalysis(StartDialog startDialog, boolean[] selections, String targetPackage);
 
         void startAbout(StartDialog startDialog);
 

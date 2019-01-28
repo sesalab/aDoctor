@@ -39,7 +39,7 @@ public class SmellDialog extends JDialog {
     private JTextArea areaActualCode;
     private JTextArea areaProposedCode;
     private JButton buttonApply;
-    private JButton buttonQuit;
+    private JButton buttonBack;
 
     public static void show(SmellCallback smellCallback, ArrayList<MethodSmell> smellMethodList) {
         SmellDialog smellDialog = new SmellDialog(smellCallback, smellMethodList);
@@ -94,9 +94,9 @@ public class SmellDialog extends JDialog {
             }
         });
 
-        buttonQuit.addActionListener(new ActionListener() {
+        buttonBack.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                onQuit();
+                onBack();
             }
         });
 
@@ -184,12 +184,18 @@ public class SmellDialog extends JDialog {
         smellCallback.smellApply(this, methodProposal);
     }
 
+    private void onBack() {
+        smellCallback.smellBack(this);
+    }
+
     private void onQuit() {
         smellCallback.smellQuit(this);
     }
 
     interface SmellCallback {
         void smellApply(SmellDialog smellDialog, MethodProposal methodProposal);
+
+        void smellBack(SmellDialog analysisDialog);
 
         void smellQuit(SmellDialog analysisDialog);
     }

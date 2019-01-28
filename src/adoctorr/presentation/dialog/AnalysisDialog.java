@@ -1,8 +1,10 @@
 package adoctorr.presentation.dialog;
 
 import adoctorr.application.analysis.AnalysisDriver;
+import adoctorr.application.analysis.DWAnalyzer;
+import adoctorr.application.analysis.ERBAnalyzer;
+import adoctorr.application.analysis.MethodSmellAnalyzer;
 import adoctorr.application.bean.smell.MethodSmell;
-import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
 
 import javax.swing.*;
@@ -23,17 +25,24 @@ public class AnalysisDialog extends JDialog {
     private JPanel contentPane;
     private JButton buttonAbort;
 
-    public static void show(AnalysisCallback analysisCallback, Project project) {
-        AnalysisDialog analysisDialog = new AnalysisDialog(analysisCallback, project);
+    public static void show(AnalysisCallback analysisCallback, Project project, boolean[] selections, String targetPackage) {
+        AnalysisDialog analysisDialog = new AnalysisDialog(analysisCallback, project, selections, targetPackage);
         analysisDialog.startAnalysis();
 
         analysisDialog.pack();
         analysisDialog.setVisible(true);
     }
 
-    private AnalysisDialog(AnalysisCallback analysisCallback, Project project) {
+    private AnalysisDialog(AnalysisCallback analysisCallback, Project project, boolean[] selections, String targetPackage) {
         this.analysisCallback = analysisCallback;
-        this.analysisDriver = new AnalysisDriver(project);
+        ArrayList<MethodSmellAnalyzer> methodSmellAnalyzers = new ArrayList<>();
+        if (selections[0]) {
+            methodSmellAnalyzers.add(new DWAnalyzer());
+        }
+        if (selections[1]) {
+            methodSmellAnalyzers.add(new ERBAnalyzer());
+        }
+        this.analysisDriver = new AnalysisDriver(project, methodSmellAnalyzers, targetPackage);
 
         // Leave them as they are
         setContentPane(contentPane);
