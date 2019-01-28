@@ -1,6 +1,5 @@
 package adoctorr.application.proposal;
 
-import adoctorr.application.analysis.ERBAnalyzer;
 import adoctorr.application.ast.ASTUtilities;
 import adoctorr.application.bean.proposal.ERBProposal;
 import adoctorr.application.bean.smell.ERBSmell;
@@ -15,7 +14,6 @@ import java.util.List;
 
 @SuppressWarnings("unchecked")
 public class ERBProposer extends MethodSmellProposer {
-    public static final String RELEASE = "release";
 
     public ERBProposer() {
 
@@ -41,17 +39,17 @@ public class ERBProposer extends MethodSmellProposer {
                 ArrayList<String> proposedCodeToHighlightList = new ArrayList<>();
                 // Only for public|protected void onResume()
                 boolean foundOnResume = false;
-                MethodDeclaration proposedOnResumeMethodDeclaration = ASTUtilities.getMethodDeclarationFromName("onResume", compilationUnit);
+                MethodDeclaration proposedOnResumeMethodDeclaration = ASTUtilities.getMethodDeclarationFromName(ERBSmell.ONRESUME_NAME, compilationUnit);
                 if (proposedOnResumeMethodDeclaration != null) {
                     Type returnType = proposedOnResumeMethodDeclaration.getReturnType2();
-                    if (returnType != null && returnType.toString().equals("void")) {
+                    if (returnType != null && returnType.toString().equals(ERBSmell.ONCREATE_TYPE)) {
                         boolean found = false;
                         int i = 0;
                         List modifierList = proposedOnResumeMethodDeclaration.modifiers();
                         int n = modifierList.size();
                         while (!found && i < n) {
                             IExtendedModifier modifier = (IExtendedModifier) modifierList.get(i);
-                            if (modifier.toString().equals("public") || modifier.toString().equals("protected")) {
+                            if (modifier.toString().equals(ERBSmell.ONCREATE_SCOPE1) || modifier.toString().equals(ERBSmell.ONCREATE_SCOPE2)) {
                                 List parameters = proposedOnResumeMethodDeclaration.parameters();
                                 if (parameters == null || parameters.size() == 0) {
                                     found = true;
@@ -80,7 +78,7 @@ public class ERBProposer extends MethodSmellProposer {
 
                     MethodDeclaration actualOnResumeMethodDeclaration = null;
                     if (!foundOnResume) {
-                        SimpleName onResumeIdentifier = targetAST.newSimpleName("onResume");
+                        SimpleName onResumeIdentifier = targetAST.newSimpleName(ERBSmell.ONRESUME_NAME);
                         Modifier onResumePublicModifier = targetAST.newModifier(Modifier.ModifierKeyword.PUBLIC_KEYWORD);
                         Block onResumeBody = targetAST.newBlock();
 

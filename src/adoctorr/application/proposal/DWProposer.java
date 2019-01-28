@@ -41,7 +41,7 @@ public class DWProposer extends MethodSmellProposer {
                 MethodInvocation acquireMethodInvocation = (MethodInvocation) acquireExpression;
                 releaseMethodInvocation.setExpression((Expression) ASTNode.copySubtree(targetAST, acquireMethodInvocation.getExpression()));
 
-                SimpleName releaseSimpleName = targetAST.newSimpleName("release");
+                SimpleName releaseSimpleName = targetAST.newSimpleName(DWSmell.RELEASE_NAME);
                 releaseMethodInvocation.setName(releaseSimpleName);
 
                 // Wrap the MethodInvocation in an ExpressionStatement

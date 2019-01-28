@@ -12,6 +12,7 @@ public class ERBSmell extends MethodSmell {
     public static final String ONCREATE_SCOPE1 = "public";
     public static final String ONCREATE_SCOPE2 = "protected";
     public static final String ONCREATE_ARGUMENT_TYPE = "Bundle";
+    public static final String ONRESUME_NAME = "onResume";
     public static final String GPS_REQUEST_METHOD_NAME = "requestLocationUpdates";
 
     private Block requestBlock;
