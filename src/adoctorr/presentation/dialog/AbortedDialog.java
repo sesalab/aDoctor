@@ -7,7 +7,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
-public class AbortedDialog extends JDialog {
+public class AbortedDialog extends AbstractDialog {
     public static final String TITLE = "aDoctor - Aborted";
 
     private AbortedCallback abortedCallback;
@@ -19,22 +19,17 @@ public class AbortedDialog extends JDialog {
     public static void show(AbortedCallback abortedCallback) {
         AbortedDialog abortedDialog = new AbortedDialog(abortedCallback);
 
-        abortedDialog.pack();
-        abortedDialog.setVisible(true);
+        abortedDialog.showInCenter();
     }
 
     private AbortedDialog(AbortedCallback abortedCallback) {
-        this.abortedCallback = abortedCallback;
+        init(abortedCallback);
+    }
 
-        setContentPane(contentPane);
-        setModal(true);
-        Toolkit toolkit = Toolkit.getDefaultToolkit();
-        Dimension screenSize = toolkit.getScreenSize();
-        int x = (screenSize.width - getWidth()) * 2 / 5;
-        int y = (screenSize.height - getHeight()) / 5;
-        setLocation(x, y);
-        getRootPane().setDefaultButton(buttonAnalyze);
-        setTitle(TITLE);
+    private void init(AbortedCallback abortedCallback) {
+        super.init(contentPane, TITLE, buttonAnalyze);
+
+        this.abortedCallback = abortedCallback;
 
         buttonAnalyze.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {

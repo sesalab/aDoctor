@@ -16,7 +16,7 @@ import java.awt.event.WindowEvent;
 import java.util.ArrayList;
 import java.util.concurrent.ExecutionException;
 
-public class AnalysisDialog extends JDialog {
+public class AnalysisDialog extends AbstractDialog {
     public static final String TITLE = "aDoctor - Analysis";
 
     private AnalysisCallback analysisCallback;
@@ -29,11 +29,16 @@ public class AnalysisDialog extends JDialog {
         AnalysisDialog analysisDialog = new AnalysisDialog(analysisCallback, project, selections, targetPackage);
         analysisDialog.startAnalysis();
 
-        analysisDialog.pack();
-        analysisDialog.setVisible(true);
+        analysisDialog.showInCenter();
     }
 
     private AnalysisDialog(AnalysisCallback analysisCallback, Project project, boolean[] selections, String targetPackage) {
+        init(analysisCallback, project, selections, targetPackage);
+    }
+
+    private void init(AnalysisCallback analysisCallback, Project project, boolean[] selections, String targetPackage) {
+        super.init(contentPane, TITLE, buttonAbort);
+
         this.analysisCallback = analysisCallback;
         ArrayList<MethodSmellAnalyzer> methodSmellAnalyzers = new ArrayList<>();
         if (selections[0]) {
@@ -43,17 +48,6 @@ public class AnalysisDialog extends JDialog {
             methodSmellAnalyzers.add(new ERBAnalyzer());
         }
         this.analysisDriver = new AnalysisDriver(project, methodSmellAnalyzers, targetPackage);
-
-        // Leave them as they are
-        setContentPane(contentPane);
-        setModal(true);
-        Toolkit toolkit = Toolkit.getDefaultToolkit();
-        Dimension screenSize = toolkit.getScreenSize();
-        int x = (screenSize.width - getWidth()) * 2 / 5;
-        int y = (screenSize.height - getHeight()) / 5;
-        setLocation(x, y);
-        setTitle(TITLE);
-        getRootPane().setDefaultButton(buttonAbort);
 
         buttonAbort.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {

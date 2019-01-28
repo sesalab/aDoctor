@@ -1,13 +1,12 @@
 package adoctorr.presentation.dialog;
 
 import javax.swing.*;
-import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
-public class SuccessDialog extends JDialog {
+public class SuccessDialog extends AbstractDialog {
     public static final String TITLE = "aDoctor - Success";
 
     private SuccessCallback successCallback;
@@ -19,22 +18,17 @@ public class SuccessDialog extends JDialog {
     public static void show(SuccessCallback successCallback) {
         SuccessDialog successDialog = new SuccessDialog(successCallback);
 
-        successDialog.pack();
-        successDialog.setVisible(true);
+        successDialog.showInCenter();
     }
 
     private SuccessDialog(SuccessCallback successCallback) {
-        this.successCallback = successCallback;
+        init(successCallback);
+    }
 
-        setContentPane(contentPane);
-        setModal(true);
-        Toolkit toolkit = Toolkit.getDefaultToolkit();
-        Dimension screenSize = toolkit.getScreenSize();
-        int x = (screenSize.width - getWidth()) * 2 / 5;
-        int y = (screenSize.height - getHeight()) / 5;
-        setLocation(x, y);
-        getRootPane().setDefaultButton(buttonAnalyze);
-        setTitle(TITLE);
+    private void init(SuccessCallback successCallback) {
+        super.init(contentPane, TITLE, buttonAnalyze);
+
+        this.successCallback = successCallback;
 
         buttonAnalyze.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {

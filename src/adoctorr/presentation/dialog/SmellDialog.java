@@ -13,7 +13,6 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultHighlighter;
 import javax.swing.text.Highlighter;
-import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
@@ -21,7 +20,7 @@ import java.awt.event.WindowEvent;
 import java.io.IOException;
 import java.util.ArrayList;
 
-public class SmellDialog extends JDialog {
+public class SmellDialog extends AbstractDialog {
     public static final String TITLE = "aDoctor - Smell list";
 
     private SmellCallback smellCallback;
@@ -42,11 +41,16 @@ public class SmellDialog extends JDialog {
     public static void show(SmellCallback smellCallback, ArrayList<MethodSmell> smellMethodList, boolean[] selections) {
         SmellDialog smellDialog = new SmellDialog(smellCallback, smellMethodList, selections);
 
-        smellDialog.pack();
-        smellDialog.setVisible(true);
+        smellDialog.showInCenter();
     }
 
     private SmellDialog(SmellCallback smellCallback, ArrayList<MethodSmell> methodSmells, boolean[] selections) {
+        init(smellCallback, methodSmells, selections);
+    }
+
+    private void init(SmellCallback smellCallback, ArrayList<MethodSmell> methodSmells, boolean[] selections) {
+        super.init(contentPane, TITLE, buttonApply);
+
         this.smellCallback = smellCallback;
         ArrayList<MethodSmellProposer> methodSmellProposers = new ArrayList<>();
         if (selections[0]) {
@@ -58,16 +62,6 @@ public class SmellDialog extends JDialog {
         this.proposalDriver = new ProposalDriver(methodSmellProposers);
         this.methodSmells = methodSmells;
         this.methodProposal = null;
-
-        setContentPane(contentPane);
-        setModal(true);
-        Toolkit toolkit = Toolkit.getDefaultToolkit();
-        Dimension screenSize = toolkit.getScreenSize();
-        int x = (screenSize.width - getWidth()) / 9;
-        int y = (screenSize.height - getHeight()) / 16;
-        setLocation(x, y);
-        getRootPane().setDefaultButton(buttonApply);
-        setTitle(TITLE);
 
         areaActualCode.setPreferredSize(null);
         areaProposedCode.setPreferredSize(null);
@@ -157,11 +151,11 @@ public class SmellDialog extends JDialog {
         String smellName = methodSmell.getSmellName();
         return "" +
                 "<html>" +
-                "<p>" +
+                "<p style=\"margin:4px;\">" +
                 "<b>" + smellName + "</b>" +
                 "</p>" +
-                "<p>" +
-                "" + methodName + "" +
+                "<p style=\"margin-left:4px; margin-right:4px;\">" +
+                methodName +
                 "</p>" +
                 "</html>";
     }

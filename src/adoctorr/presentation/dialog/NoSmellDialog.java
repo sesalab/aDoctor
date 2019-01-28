@@ -7,7 +7,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
-public class NoSmellDialog extends JDialog {
+public class NoSmellDialog extends AbstractDialog {
     public static final String TITLE = "aDoctor - No Smell";
 
     private NoSmellCallback noSmellCallback;
@@ -18,22 +18,17 @@ public class NoSmellDialog extends JDialog {
     public static void show(NoSmellCallback noSmellCallback) {
         NoSmellDialog noSmellDialog = new NoSmellDialog(noSmellCallback);
 
-        noSmellDialog.pack();
-        noSmellDialog.setVisible(true);
+        noSmellDialog.showInCenter();
     }
 
     private NoSmellDialog(NoSmellCallback noSmellCallback) {
-        this.noSmellCallback = noSmellCallback;
+        init(noSmellCallback);
+    }
 
-        setContentPane(contentPane);
-        setModal(true);
-        Toolkit toolkit = Toolkit.getDefaultToolkit();
-        Dimension screenSize = toolkit.getScreenSize();
-        int x = (screenSize.width - getWidth()) * 2 / 5;
-        int y = (screenSize.height - getHeight()) / 5;
-        setLocation(x, y);
-        getRootPane().setDefaultButton(buttonQuit);
-        setTitle(TITLE);
+    private void init(NoSmellCallback noSmellCallback) {
+        super.init(contentPane, TITLE, buttonQuit);
+
+        this.noSmellCallback = noSmellCallback;
 
         buttonQuit.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {

@@ -15,7 +15,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.concurrent.ExecutionException;
 
-public class RefactoringDialog extends JDialog {
+public class RefactoringDialog extends AbstractDialog {
     public static final String TITLE = "aDoctor - Refactoring";
 
     private RefactoringCallback refactoringCallback;
@@ -29,11 +29,16 @@ public class RefactoringDialog extends JDialog {
 
         refactoringDialog.startRefactoring();
 
-        refactoringDialog.pack();
-        refactoringDialog.setVisible(true);
+        refactoringDialog.showInCenter();
     }
 
     private RefactoringDialog(RefactoringCallback refactoringCallback, MethodProposal methodProposal, boolean[] selections) {
+        init(refactoringCallback, methodProposal, selections);
+    }
+
+    private void init(RefactoringCallback refactoringCallback, MethodProposal methodProposal, boolean[] selections){
+        super.init(contentPane, TITLE, null);
+
         this.refactoringCallback = refactoringCallback;
         ArrayList<MethodSmellRefactorer> methodSmellRefactorers = new ArrayList<>();
         if (selections[0]) {
@@ -44,18 +49,9 @@ public class RefactoringDialog extends JDialog {
         }
         this.refactoringDriver = new RefactoringDriver(methodProposal, methodSmellRefactorers);
 
-        setContentPane(contentPane);
-        setModal(true);
-        Toolkit toolkit = Toolkit.getDefaultToolkit();
-        Dimension screenSize = toolkit.getScreenSize();
-        int x = (screenSize.width - getWidth()) / 3;
-        int y = (screenSize.height - getHeight()) / 5;
-        setLocation(x, y);
-        setTitle(TITLE);
-
         String fileName = methodProposal.getMethodSmell().getSourceFile().getName();
         String methodName = methodProposal.getMethodSmell().getMethodBean().getName();
-        labelMethodFileName.setText("to the method " + methodName + " in file " + fileName);
+        labelMethodFileName.setText("the method " + methodName + " in file " + fileName);
 
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
         addWindowListener(new WindowAdapter() {

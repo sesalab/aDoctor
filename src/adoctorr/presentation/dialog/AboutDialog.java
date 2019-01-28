@@ -7,7 +7,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
-public class AboutDialog extends JDialog {
+public class AboutDialog extends AbstractDialog {
     public static final String TITLE = "aDoctor - About";
     public static final String ABOUT = "" +
             "<html> " +
@@ -32,22 +32,17 @@ public class AboutDialog extends JDialog {
     public static void show(AboutCallback aboutCallback) {
         AboutDialog aboutDialog = new AboutDialog(aboutCallback);
 
-        aboutDialog.pack();
-        aboutDialog.setVisible(true);
+        aboutDialog.showInCenter();
     }
 
     private AboutDialog(AboutCallback aboutCallback) {
-        this.aboutCallback = aboutCallback;
+        init(aboutCallback);
+    }
 
-        setContentPane(contentPane);
-        setModal(true);
-        Toolkit toolkit = Toolkit.getDefaultToolkit();
-        Dimension screenSize = toolkit.getScreenSize();
-        int x = (screenSize.width - getWidth()) / 4;
-        int y = (screenSize.height - getHeight()) / 5;
-        setLocation(x, y);
-        setTitle(TITLE);
-        getRootPane().setDefaultButton(buttonBack);
+    private void init(AboutCallback aboutCallback) {
+        super.init(contentPane, TITLE, buttonBack);
+
+        this.aboutCallback = aboutCallback;
 
         labelAbout.setText(ABOUT);
 

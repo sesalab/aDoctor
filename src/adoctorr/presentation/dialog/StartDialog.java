@@ -4,13 +4,12 @@ import com.intellij.ide.util.PackageChooserDialog;
 import com.intellij.openapi.project.Project;
 
 import javax.swing.*;
-import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
-public class StartDialog extends JDialog {
+public class StartDialog extends AbstractDialog {
     public static final String TITLE = "aDoctor";
 
     private StartCallback startCallback;
@@ -28,25 +27,22 @@ public class StartDialog extends JDialog {
     public static void show(StartCallback startCallback, Project project) {
         StartDialog startDialog = new StartDialog(startCallback, project);
 
-        startDialog.pack();
-        startDialog.setVisible(true);
+        startDialog.showInCenter();
     }
 
     private StartDialog(StartCallback startCallback, Project project) {
+        init(startCallback, project);
+    }
+
+    private void init(StartCallback startCallback, Project project) {
+        super.init(contentPane, TITLE, buttonStart);
+
         this.startCallback = startCallback;
         this.project = project;
 
-        setContentPane(contentPane);
-        setModal(true);
-        Toolkit toolkit = Toolkit.getDefaultToolkit();
-        Dimension screenSize = toolkit.getScreenSize();
-        int x = (screenSize.width - getWidth()) / 3;
-        int y = (screenSize.height - getHeight()) / 5;
-        setLocation(x, y);
-        setTitle(TITLE);
-        getRootPane().setDefaultButton(buttonStart); //Pressing Enter means clicking buttonStart
-
         labelPackage.setText("");
+        checkBoxDW.setSelected(true);
+        checkBoxERB.setSelected(true);
 
         buttonSelect.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {

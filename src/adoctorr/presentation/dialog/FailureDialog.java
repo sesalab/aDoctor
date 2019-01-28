@@ -7,7 +7,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
-public class FailureDialog extends JDialog {
+public class FailureDialog extends AbstractDialog {
     public static final String TITLE = "aDoctor - Failure";
 
     private FailureCallback failureCallback;
@@ -19,22 +19,17 @@ public class FailureDialog extends JDialog {
     public static void show(FailureCallback failureCallback) {
         FailureDialog failureDialog = new FailureDialog(failureCallback);
 
-        failureDialog.pack();
-        failureDialog.setVisible(true);
+        failureDialog.showInCenter();
     }
 
     private FailureDialog(FailureCallback failureCallback) {
-        this.failureCallback = failureCallback;
+        init(failureCallback);
+    }
 
-        setContentPane(contentPane);
-        setModal(true);
-        Toolkit toolkit = Toolkit.getDefaultToolkit();
-        Dimension screenSize = toolkit.getScreenSize();
-        int x = (screenSize.width - getWidth()) * 2 / 5;
-        int y = (screenSize.height - getHeight()) / 5;
-        setLocation(x, y);
-        getRootPane().setDefaultButton(buttonBack);
-        setTitle(TITLE);
+    private void init(FailureCallback failureCallback) {
+        super.init(contentPane, TITLE, buttonBack);
+
+        this.failureCallback = failureCallback;
 
         buttonBack.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
