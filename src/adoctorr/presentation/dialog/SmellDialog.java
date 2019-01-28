@@ -2,6 +2,9 @@ package adoctorr.presentation.dialog;
 
 import adoctorr.application.bean.proposal.MethodProposal;
 import adoctorr.application.bean.smell.MethodSmell;
+import adoctorr.application.proposal.DWProposer;
+import adoctorr.application.proposal.ERBProposer;
+import adoctorr.application.proposal.MethodSmellProposer;
 import adoctorr.application.proposal.ProposalDriver;
 
 import javax.swing.*;
@@ -36,16 +39,23 @@ public class SmellDialog extends JDialog {
     private JButton buttonApply;
     private JButton buttonBack;
 
-    public static void show(SmellCallback smellCallback, ArrayList<MethodSmell> smellMethodList) {
-        SmellDialog smellDialog = new SmellDialog(smellCallback, smellMethodList);
+    public static void show(SmellCallback smellCallback, ArrayList<MethodSmell> smellMethodList, boolean[] selections) {
+        SmellDialog smellDialog = new SmellDialog(smellCallback, smellMethodList, selections);
 
         smellDialog.pack();
         smellDialog.setVisible(true);
     }
 
-    private SmellDialog(SmellCallback smellCallback, ArrayList<MethodSmell> methodSmells) {
+    private SmellDialog(SmellCallback smellCallback, ArrayList<MethodSmell> methodSmells, boolean[] selections) {
         this.smellCallback = smellCallback;
-        this.proposalDriver = new ProposalDriver();
+        ArrayList<MethodSmellProposer> methodSmellProposers = new ArrayList<>();
+        if (selections[0]) {
+            methodSmellProposers.add(new DWProposer());
+        }
+        if (selections[1]) {
+            methodSmellProposers.add(new ERBProposer());
+        }
+        this.proposalDriver = new ProposalDriver(methodSmellProposers);
         this.methodSmells = methodSmells;
         this.methodProposal = null;
 

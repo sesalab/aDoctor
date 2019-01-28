@@ -84,7 +84,7 @@ public class CoreDriver implements StartDialog.StartCallback,
             if (methodSmells.size() == 0) {
                 NoSmellDialog.show(this);
             } else {
-                SmellDialog.show(this, methodSmells);
+                SmellDialog.show(this, methodSmells, selections);
             }
         }
     }
@@ -112,7 +112,7 @@ public class CoreDriver implements StartDialog.StartCallback,
     @Override
     public void smellApply(SmellDialog smellDialog, MethodProposal methodProposal) {
         smellDialog.dispose();
-        RefactoringDialog.show(this, methodProposal);
+        RefactoringDialog.show(this, methodProposal, selections);
     }
 
     @Override
@@ -169,7 +169,7 @@ public class CoreDriver implements StartDialog.StartCallback,
     @Override
     public void failureBack(FailureDialog failureDialog) {
         failureDialog.dispose();
-        SmellDialog.show(this, methodSmells);
+        SmellDialog.show(this, methodSmells, selections);
     }
 
     @Override

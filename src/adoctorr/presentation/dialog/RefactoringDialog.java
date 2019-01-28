@@ -1,6 +1,9 @@
 package adoctorr.presentation.dialog;
 
 import adoctorr.application.bean.proposal.MethodProposal;
+import adoctorr.application.refactoring.DWRefactorer;
+import adoctorr.application.refactoring.ERBRefactorer;
+import adoctorr.application.refactoring.MethodSmellRefactorer;
 import adoctorr.application.refactoring.RefactoringDriver;
 import org.eclipse.jface.text.BadLocationException;
 
@@ -9,6 +12,7 @@ import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.concurrent.ExecutionException;
 
 public class RefactoringDialog extends JDialog {
@@ -20,8 +24,8 @@ public class RefactoringDialog extends JDialog {
     private JPanel contentPane;
     private JLabel labelMethodFileName;
 
-    public static void show(RefactoringCallback refactoringCallback, MethodProposal methodProposal) {
-        RefactoringDialog refactoringDialog = new RefactoringDialog(refactoringCallback, methodProposal);
+    public static void show(RefactoringCallback refactoringCallback, MethodProposal methodProposal, boolean[] selections) {
+        RefactoringDialog refactoringDialog = new RefactoringDialog(refactoringCallback, methodProposal, selections);
 
         refactoringDialog.startRefactoring();
 
@@ -29,9 +33,16 @@ public class RefactoringDialog extends JDialog {
         refactoringDialog.setVisible(true);
     }
 
-    private RefactoringDialog(RefactoringCallback refactoringCallback, MethodProposal methodProposal) {
+    private RefactoringDialog(RefactoringCallback refactoringCallback, MethodProposal methodProposal, boolean[] selections) {
         this.refactoringCallback = refactoringCallback;
-        this.refactoringDriver = new RefactoringDriver(methodProposal);
+        ArrayList<MethodSmellRefactorer> methodSmellRefactorers = new ArrayList<>();
+        if (selections[0]) {
+            methodSmellRefactorers.add(new DWRefactorer());
+        }
+        if (selections[1]) {
+            methodSmellRefactorers.add(new ERBRefactorer());
+        }
+        this.refactoringDriver = new RefactoringDriver(methodProposal, methodSmellRefactorers);
 
         setContentPane(contentPane);
         setModal(true);
