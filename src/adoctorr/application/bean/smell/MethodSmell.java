@@ -5,26 +5,17 @@ import beans.MethodBean;
 import java.io.File;
 
 public abstract class MethodSmell extends Smell {
-    public static final int DURABLE_WAKELOCK = 1;
-    public static final int EARLY_RESOURCE_BINDING = 4;
 
     private MethodBean methodBean;
-    private int smellType;
-    private boolean resolved;
+    private String smellName;
+    private String smellDescription;
     private File sourceFile;
 
     public MethodSmell() {
-    }
-
-    public static String getSmellName(int smellType) {
-        switch (smellType) {
-            case DURABLE_WAKELOCK:
-                return "Durable Wakelock";
-            case EARLY_RESOURCE_BINDING:
-                return "Early Resource Binding";
-            default:
-                return null;
-        }
+        methodBean = null;
+        smellName = "";
+        smellDescription = "";
+        sourceFile = null;
     }
 
     public MethodBean getMethodBean() {
@@ -35,20 +26,20 @@ public abstract class MethodSmell extends Smell {
         this.methodBean = methodBean;
     }
 
-    public int getSmellType() {
-        return smellType;
+    public String getSmellName() {
+        return smellName;
     }
 
-    public void setSmellType(int smellType) {
-        this.smellType = smellType;
+    public void setSmellName(String smellName) {
+        this.smellName = smellName;
     }
 
-    public boolean isResolved() {
-        return resolved;
+    public String getSmellDescription() {
+        return smellDescription;
     }
 
-    public void setResolved(boolean resolved) {
-        this.resolved = resolved;
+    public void setSmellDescription(String smellDescription) {
+        this.smellDescription = smellDescription;
     }
 
     public File getSourceFile() {

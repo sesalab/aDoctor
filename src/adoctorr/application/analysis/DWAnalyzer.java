@@ -12,9 +12,6 @@ import java.util.List;
 
 @SuppressWarnings("unchecked")
 public class DWAnalyzer extends MethodSmellAnalyzer {
-    public static final String ACQUIRE_NAME = "acquire";
-    public static final String RELEASE_NAME = "release";
-    public static final String WAKELOCK_CLASS = "PowerManager.WakeLock";
 
     // Warning: Source code with method-level compile error and accents might give problems in the methodDeclaration fetch
     @Override
@@ -32,15 +29,15 @@ public class DWAnalyzer extends MethodSmellAnalyzer {
             List<Statement> statementList = (List<Statement>) block.statements();
             for (int i = 0; i < statementList.size(); i++) {
                 Statement statement = statementList.get(i);
-                String callerName = ASTUtilities.getCallerName(statement, ACQUIRE_NAME);
+                String callerName = ASTUtilities.getCallerName(statement, DWSmell.ACQUIRE_NAME);
                 if (callerName != null) {
                     // Check type of the caller
                     FieldDeclaration fieldDeclaration = ASTUtilities.getFieldDeclarationFromName(callerName, compilationUnit);
                     VariableDeclarationStatement variableDeclarationStatement = ASTUtilities
                             .getVariableDeclarationStatementFromName(callerName, methodDeclaration);
-                    if (fieldDeclaration != null && fieldDeclaration.getType().toString().equals(WAKELOCK_CLASS)
+                    if (fieldDeclaration != null && fieldDeclaration.getType().toString().equals(DWSmell.WAKELOCK_CLASS)
                             || variableDeclarationStatement != null && variableDeclarationStatement.getType()
-                            .toString().equals(WAKELOCK_CLASS)) {
+                            .toString().equals(DWSmell.WAKELOCK_CLASS)) {
                         // Check if the arguments of the acquire() are absent
                         List arguments = ASTUtilities.getArguments(statement);
                         if (arguments == null || arguments.size() == 0) {
@@ -48,7 +45,7 @@ public class DWAnalyzer extends MethodSmellAnalyzer {
                             boolean releaseFound = false;
                             for (int j = i + 1; j < statementList.size() && !releaseFound; j++) {
                                 Statement statement2 = statementList.get(j);
-                                String callerName2 = ASTUtilities.getCallerName(statement2, RELEASE_NAME);
+                                String callerName2 = ASTUtilities.getCallerName(statement2, DWSmell.RELEASE_NAME);
                                 if (callerName.equals(callerName2)) {
                                     releaseFound = true;
                                 }
@@ -66,9 +63,7 @@ public class DWAnalyzer extends MethodSmellAnalyzer {
         if (smellFound) {
             DWSmell smellMethodBean = new DWSmell();
             smellMethodBean.setMethodBean(methodBean);
-            smellMethodBean.setResolved(false);
             smellMethodBean.setSourceFile(sourceFile);
-            smellMethodBean.setSmellType(MethodSmell.DURABLE_WAKELOCK);
             smellMethodBean.setAcquireBlock(acquireBlock);
             smellMethodBean.setAcquireStatement(acquireStatement);
             return smellMethodBean;

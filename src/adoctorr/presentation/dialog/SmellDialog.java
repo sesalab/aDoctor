@@ -20,14 +20,9 @@ import java.util.ArrayList;
 
 public class SmellDialog extends JDialog {
     public static final String TITLE = "aDoctor - Smell list";
-    public static final String DURABLE_WAKELOCK_DESCRIPTION = "Durable Wakelock is present when there is a " +
-            "PowerManager.WakeLock instance that calls an acquire() without setting a timeout or without calling the " +
-            "corresponding release()";
-    public static final String EARLY_RESOURCE_BINDING_DESCRIPTION = "Early Resource Binding is present when an " +
-            "Android system service is used in the onCreate(Bundle) method of an Activity subclass.";
 
     private SmellCallback smellCallback;
-    private ArrayList<MethodSmell> unresolvedMethodSmells;
+    private ArrayList<MethodSmell> methodSmells;
     private ProposalDriver proposalDriver;
     private MethodProposal methodProposal;
 
@@ -51,12 +46,7 @@ public class SmellDialog extends JDialog {
     private SmellDialog(SmellCallback smellCallback, ArrayList<MethodSmell> methodSmells) {
         this.smellCallback = smellCallback;
         this.proposalDriver = new ProposalDriver();
-        this.unresolvedMethodSmells = new ArrayList<>();
-        for (MethodSmell methodSmell : methodSmells) {
-            if (!methodSmell.isResolved()) {
-                unresolvedMethodSmells.add(methodSmell);
-            }
-        }
+        this.methodSmells = methodSmells;
         this.methodProposal = null;
 
         setContentPane(contentPane);
@@ -73,7 +63,7 @@ public class SmellDialog extends JDialog {
         areaProposedCode.setPreferredSize(null);
         // The smell list
         DefaultListModel<String> listSmellModel = (DefaultListModel<String>) listSmell.getModel();
-        for (MethodSmell methodSmell : unresolvedMethodSmells) {
+        for (MethodSmell methodSmell : methodSmells) {
             listSmellModel.addElement(buildElement(methodSmell));
         }
         listSmell.addListSelectionListener(new ListSelectionListener() {
@@ -109,25 +99,15 @@ public class SmellDialog extends JDialog {
     }
 
     private void updateDetails() {
-        MethodSmell selectedSmell = unresolvedMethodSmells.get(listSmell.getSelectedIndex());
+        MethodSmell selectedSmell = methodSmells.get(listSmell.getSelectedIndex());
 
         // Selected Smell Description
         String className = selectedSmell.getMethodBean().getBelongingClass().getName();
         String packageName = selectedSmell.getMethodBean().getBelongingClass().getBelongingPackage();
         String classFullName = packageName + "." + className;
-        labelSmellName.setText(MethodSmell.getSmellName(selectedSmell.getSmellType()));
         labelClassName.setText(classFullName);
-        int smellType = selectedSmell.getSmellType();
-        switch (smellType) {
-            case MethodSmell.DURABLE_WAKELOCK: {
-                labelIcon.setToolTipText(DURABLE_WAKELOCK_DESCRIPTION);
-                break;
-            }
-            case MethodSmell.EARLY_RESOURCE_BINDING: {
-                labelIcon.setToolTipText(EARLY_RESOURCE_BINDING_DESCRIPTION);
-                break;
-            }
-        }
+        labelSmellName.setText(selectedSmell.getSmellName());
+        labelIcon.setToolTipText(selectedSmell.getSmellDescription());
 
         // Compute the proposal of the selected smell
         try {
@@ -164,13 +144,13 @@ public class SmellDialog extends JDialog {
 
     private String buildElement(MethodSmell methodSmell) {
         String methodName = methodSmell.getMethodBean().getName();
-        String smellName = MethodSmell.getSmellName(methodSmell.getSmellType());
+        String smellName = methodSmell.getSmellName();
         return "" +
                 "<html>" +
-                "<p style=\"font-size:10px\">" +
+                "<p>" +
                 "<b>" + smellName + "</b>" +
                 "</p>" +
-                "<p style=\"font-size:9px\">" +
+                "<p>" +
                 "" + methodName + "" +
                 "</p>" +
                 "</html>";

@@ -142,7 +142,7 @@ public class AnalysisDriver {
         }
         ArrayList<MethodSmell> methodSmells = new ArrayList<>();
 
-        // Builds the correct list of packages according to the user selection
+        // Builds the correct list of packages
         ArrayList<PackageBean> packages = new ArrayList<>();
         for (PackageBean packageBean : projectPackages) {
             Pattern pattern = Pattern.compile("^" + targetPackage + "\\..*");
@@ -150,6 +150,10 @@ public class AnalysisDriver {
                 packages.add(packageBean);
             }
         }
+        if (packages.isEmpty()) {
+            packages = projectPackages;
+        }
+
         for (PackageBean packageBean : packages) {
             for (ClassBean classBean : packageBean.getClasses()) {
                 String classFullName = packageBean.getName() + "." + classBean.getName();
