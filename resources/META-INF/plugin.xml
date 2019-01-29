@@ -1,5 +1,5 @@
 <idea-plugin>
-  <id>it.unisa.plugin.adoctorr</id>
+  <id>it.unisa.plugin.adoctor</id>
   <name>aDoctor</name>
   <version>0.2</version>
   <vendor email="emaiannone@hotmail.it">Emanuele Iannone</vendor>
@@ -28,7 +28,7 @@
 
   <actions>
     <!-- Add your actions here -->
-      <action id="start_action" class="adoctorr.presentation.action.StartAction" text="aDoctor"
+      <action id="start_action" class="adoctor.presentation.action.StartAction" text="aDoctor"
               description="Run the aDoctor plugin">
           <add-to-group group-id="RefactoringMenu" anchor="last"/>
       </action>
