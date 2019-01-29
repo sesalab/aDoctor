@@ -14,36 +14,24 @@ import java.util.stream.Stream;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
-class DWProposerTest {
+class ERBProposerTest {
 
     @ParameterizedTest
     @MethodSource("computeProposalProvider")
     void computeProposal(MethodSmell methodSmell, MethodProposal oracle) throws IOException {
-        DWProposer testedProposer = new DWProposer();
+        ERBProposer testedProposer = new ERBProposer();
         MethodProposal result = testedProposer.computeProposal(methodSmell);
         assertEquals(result, oracle);
     }
 
     private static Stream<Arguments> computeProposalProvider() {
-        ERBSmell erbSmell = new ERBSmell();
-        DWSmell dwSmellInvalid = new DWSmell();
-
-        /*
-        dwSmellValid.setSourceFile(new File("testResources/testDW1.java"));
-        MethodBean methodBean = new MethodBean();
-        methodBean.setTextContent("" +
-                "public void testMethod(){\n" +
-                "  PowerManager.WakeLock wakeLock4=pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK | PowerManager.ON_AFTER_RELEASE,\"wakelock4\");\n" +
-                "  wakeLock4.acquire();\n" +
-                "}\n"
-        );
-        dwSmellValid.setMethodBean(methodBean);
-        */
+        DWSmell dwSmell = new DWSmell();
+        ERBSmell erbSmellInvalid = new ERBSmell();
 
         return Stream.of(
                 arguments(null, null),
-                arguments(erbSmell, null),
-                arguments(dwSmellInvalid, null)
+                arguments(dwSmell, null),
+                arguments(erbSmellInvalid, null)
         );
     }
 }
