@@ -11,9 +11,9 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" name="org.eclipse.jdt:org.eclipse.jdt.core:3.13.101" level="project" />
     <orderEntry type="library" name="aDoctorPlugin" level="project" />
-    <orderEntry type="library" name="org.junit.jupiter:junit-jupiter-params:5.3.2" level="project" />
-    <orderEntry type="library" name="org.mockito:mockito-junit-jupiter:2.23.4" level="project" />
+    <orderEntry type="library" name="JUnit Jupiter" level="project" />
+    <orderEntry type="library" name="Mockito" level="project" />
+    <orderEntry type="library" name="JDT Core" level="project" />
   </component>
 </module>

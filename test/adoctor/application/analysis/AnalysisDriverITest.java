@@ -6,7 +6,6 @@ import beans.MethodBean;
 import beans.PackageBean;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
-import process.FolderToJavaProjectConverter;
 
 import java.io.File;
 import java.io.IOException;

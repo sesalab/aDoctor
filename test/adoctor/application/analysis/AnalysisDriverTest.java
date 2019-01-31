@@ -3,7 +3,6 @@ package adoctor.application.analysis;
 import adoctor.application.bean.smell.DWSmell;
 import adoctor.application.bean.smell.ERBSmell;
 import adoctor.application.bean.smell.MethodSmell;
-import beans.ClassBean;
 import beans.MethodBean;
 import beans.PackageBean;
 import org.eclipse.jdt.core.dom.CompilationUnit;
@@ -14,7 +13,6 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
-import process.FolderToJavaProjectConverter;
 
 import java.io.File;
 import java.io.IOException;

@@ -7,12 +7,11 @@ import process.FolderToJavaProjectConverter;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 
-class AnalysisTestHelper {
+public class AnalysisTestHelper {
 
-    static ArrayList<PackageBean> getPackageBeans(String testDirectory, String testPackage, String testClass) throws IOException {
+    public static ArrayList<PackageBean> getPackageBeans(String testDirectory, String testPackage, String testClass) throws IOException {
         // Phase 1: ArrayList<PackageBean>
         File testDirectoryFile = new File(testDirectory);
         ArrayList<PackageBean> totalPackages = FolderToJavaProjectConverter.convert(testDirectoryFile.getAbsolutePath());
@@ -24,7 +23,6 @@ class AnalysisTestHelper {
                 }
             }
         }
-
         // Phase 2: Removal of useless packages and classes
         ArrayList<PackageBean> testPackages = new ArrayList<>();
         for (PackageBean packageBean : totalPackages) {
@@ -36,7 +34,7 @@ class AnalysisTestHelper {
         return testPackages;
     }
 
-    static ArrayList<MethodBean> getMethodBeans(ArrayList<PackageBean> packages) {
+    public static ArrayList<MethodBean> getMethodBeans(ArrayList<PackageBean> packages) {
         // Phase 3: Building of a single list of MethodBeans
         ArrayList<MethodBean> methodBeans = new ArrayList<>();
         for (PackageBean packageBean : packages) {

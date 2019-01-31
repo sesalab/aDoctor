@@ -1,27 +1,16 @@
 package adoctor.application.proposal;
 
-import adoctor.application.analysis.AnalysisDriver;
-import adoctor.application.analysis.DWAnalyzer;
-import adoctor.application.analysis.ERBAnalyzer;
-import adoctor.application.analysis.MethodSmellAnalyzer;
 import adoctor.application.bean.proposal.MethodProposal;
 import adoctor.application.bean.smell.DWSmell;
 import adoctor.application.bean.smell.ERBSmell;
 import adoctor.application.bean.smell.MethodSmell;
-import beans.ClassBean;
-import beans.MethodBean;
-import beans.PackageBean;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import process.FolderToJavaProjectConverter;
 
-import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;

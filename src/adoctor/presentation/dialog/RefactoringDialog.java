@@ -35,7 +35,7 @@ public class RefactoringDialog extends AbstractDialog {
         init(refactoringCallback, methodProposal, selections);
     }
 
-    private void init(RefactoringCallback refactoringCallback, MethodProposal methodProposal, boolean[] selections){
+    private void init(RefactoringCallback refactoringCallback, MethodProposal methodProposal, boolean[] selections) {
         super.init(contentPane, TITLE, null);
 
         this.refactoringCallback = refactoringCallback;

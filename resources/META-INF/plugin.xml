@@ -1,37 +1,37 @@
 <idea-plugin>
-  <id>it.unisa.plugin.adoctor</id>
-  <name>aDoctor</name>
-  <version>0.2</version>
-  <vendor email="emaiannone@hotmail.it">Emanuele Iannone</vendor>
+    <id>it.unisa.plugin.adoctor</id>
+    <name>aDoctor</name>
+    <version>0.2</version>
+    <vendor email="emaiannone@hotmail.it">Emanuele Iannone</vendor>
 
-  <description><![CDATA[
+    <description><![CDATA[
       Plugin for Android energy smell identification and refactoring.
     ]]></description>
 
-  <change-notes><![CDATA[
+    <change-notes><![CDATA[
       Sadly, no available data about changes, please, visit https://github.com/emaiannone/aDoctor and check the commit list.
     ]]>
-  </change-notes>
+    </change-notes>
 
-  <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/build_number_ranges.html for description -->
-  <idea-version since-build="173.0"/>
+    <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/build_number_ranges.html for description -->
+    <idea-version since-build="173.0"/>
 
-  <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/plugin_compatibility.html
-       on how to target different products -->
-  <!-- uncomment to enable plugin in all products
-  <depends>com.intellij.modules.lang</depends>
-  -->
+    <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/plugin_compatibility.html
+         on how to target different products -->
+    <!-- uncomment to enable plugin in all products
+    <depends>com.intellij.modules.lang</depends>
+    -->
 
-  <extensions defaultExtensionNs="com.intellij">
-    <!-- Add your extensions here -->
-  </extensions>
+    <extensions defaultExtensionNs="com.intellij">
+        <!-- Add your extensions here -->
+    </extensions>
 
-  <actions>
-    <!-- Add your actions here -->
-      <action id="start_action" class="adoctor.presentation.action.StartAction" text="aDoctor"
-              description="Run the aDoctor plugin">
-          <add-to-group group-id="RefactoringMenu" anchor="last"/>
-      </action>
-  </actions>
+    <actions>
+        <!-- Add your actions here -->
+        <action id="start_action" class="adoctor.presentation.action.StartAction" text="aDoctor"
+                description="Run the aDoctor plugin">
+            <add-to-group group-id="RefactoringMenu" anchor="last"/>
+        </action>
+    </actions>
 
 </idea-plugin>

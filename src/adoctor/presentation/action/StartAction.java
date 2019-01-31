@@ -25,7 +25,7 @@ public class StartAction extends AnAction {
         DataContext dataContext = e.getDataContext();
         Project project = CommonDataKeys.PROJECT.getData(dataContext);
         if (project != null) {
-            PluginId pluginId = PluginId.getId("it.unisa.plugin.adoctorr");
+            PluginId pluginId = PluginId.getId("it.unisa.plugin.adoctor");
             IdeaPluginDescriptor pluginDescriptor = PluginManager.getPlugin(pluginId);
             if (!new File(pluginDescriptor.getPath().getAbsolutePath() + "/resources").exists()) {
                 new File(pluginDescriptor.getPath().getAbsolutePath() + "/resources").mkdirs();

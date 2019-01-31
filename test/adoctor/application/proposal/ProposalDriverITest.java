@@ -37,6 +37,7 @@ class ProposalDriverITest {
         ArrayList<MethodSmell> methodSmells = ProposalTestHelper.getMethodSmells(testDirectory, testPackage, testClass);
         MethodSmell dwSmell = methodSmells.get(1);
         MethodSmell erbSmell = methodSmells.get(0);
+        System.out.println(methodSmells.size());
 
         DWProposer dwProposer = new DWProposer();
         ERBProposer erbProposer = new ERBProposer();
