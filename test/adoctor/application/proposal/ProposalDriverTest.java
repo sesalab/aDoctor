@@ -63,7 +63,7 @@ class ProposalDriverTest {
     void computeProposal(ArrayList<MethodSmellProposer> methodSmellProposers, MethodSmell methodSmell, MethodProposal oracle) throws IOException {
         ProposalDriver testedProposalDriver = new ProposalDriver(methodSmellProposers);
         MethodProposal result = testedProposalDriver.computeProposal(methodSmell);
-        assertEquals(result, oracle);
+        assertEquals(oracle, result);
     }
 
     private static Stream<Arguments> computeProposalProvider() throws IOException {
