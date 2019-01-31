@@ -35,6 +35,10 @@ import static org.mockito.Mockito.when;
 @MockitoSettings(strictness = Strictness.STRICT_STUBS)
 class AnalysisDriverTest {
 
+    private static String testDirectory = "testResources";
+    private static String testPackage = "testPackage";
+    private static String testClass = "testDW_ERB1";
+
     @ParameterizedTest
     @MethodSource("analyzeProvider")
     void analyze(ArrayList<MethodSmellAnalyzer> methodSmellAnalyzers, ArrayList<PackageBean> projectPackages, HashMap<String, File> sourceFileMap, int expectedSize) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
@@ -64,10 +68,7 @@ class AnalysisDriverTest {
         analyzersDW_ERB.add(erbAnalyzer);
 
         ArrayList<PackageBean> packagesEmpty = new ArrayList<>();
-        String testDirectory = "testResources";
-        String testPackage = "testPackage";
-        String testClass = "testAnalyzers";
-        ArrayList<PackageBean> packages = getPackageBeans(testDirectory, testPackage, testClass);
+        ArrayList<PackageBean> packages = AnalysisTestHelper.getPackageBeans(testDirectory, testPackage, testClass);
         File testFile = new File(testDirectory + "/" + testPackage + "/" + testClass + ".java");
         HashMap<String, File> fileHashMapEmpty = new HashMap<>();
         HashMap<String, File> fileHashMap = new HashMap<>();
@@ -83,30 +84,5 @@ class AnalysisDriverTest {
                 arguments(analyzersERB, packages, fileHashMap, 4),
                 arguments(analyzersDW_ERB, packages, fileHashMap, 8)
         );
-    }
-
-    private static ArrayList<PackageBean> getPackageBeans(String testDirectoryPath, String testPackageName, String testClassName) throws IOException {
-        // Phase 1: ArrayList<PackageBean>
-        File testDirectory = new File(testDirectoryPath);
-        ArrayList<PackageBean> totalPackages = FolderToJavaProjectConverter.convert(testDirectory.getAbsolutePath());
-        // belongingClass was not set in aDoctor API: this is just a fix
-        for (PackageBean packageBean : totalPackages) {
-            for (ClassBean classBean : packageBean.getClasses()) {
-                for (MethodBean methodBean : classBean.getMethods()) {
-                    methodBean.setBelongingClass(classBean);
-                }
-            }
-        }
-
-        // Phase 2: Removal of useless packages and classes
-        ArrayList<PackageBean> testPackages = new ArrayList<>();
-        for (PackageBean packageBean : totalPackages) {
-            if (packageBean.getName().equals(testPackageName)) {
-                testPackages.add(packageBean);
-            }
-        }
-        testPackages.get(0).getClasses().removeIf(classBean -> !classBean.getName().equals(testClassName));
-
-        return testPackages;
     }
 }

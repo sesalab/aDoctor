@@ -2,7 +2,6 @@ package adoctor.application.analysis;
 
 import adoctor.application.ast.ASTUtilities;
 import adoctor.application.bean.smell.MethodSmell;
-import beans.ClassBean;
 import beans.MethodBean;
 import beans.PackageBean;
 import org.eclipse.jdt.core.dom.CompilationUnit;
@@ -10,7 +9,6 @@ import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import process.FolderToJavaProjectConverter;
 
 import java.io.File;
 import java.io.IOException;
@@ -22,6 +20,10 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 class ERBAnalyzerITest {
+
+    private static String testDirectory = "testResources";
+    private static String testPackage = "testPackage";
+    private static String testClass = "testDW_ERB1";
 
     @ParameterizedTest
     @MethodSource("analyzerMethodProvider")
@@ -39,16 +41,13 @@ class ERBAnalyzerITest {
         ArrayList<Arguments> testDatas = new ArrayList<>();
         testDatas.add(arguments(null, null, null, null, false));
 
-        String testDirectory = "testResources";
-        String testPackage = "testPackage";
-        String testClass = "testAnalyzers";
-
         String testFilePath = testDirectory + "/" + testPackage + "/" + testClass + ".java";
         File testFile = new File(testFilePath);
         CompilationUnit compilationUnit = ASTUtilities.getCompilationUnit(testFile);
 
         // Add a test data for each Method in tested class
-        ArrayList<MethodBean> methodBeans = getMethodBeans(testDirectory, testPackage, testClass);
+        ArrayList<PackageBean> packageBeans = AnalysisTestHelper.getPackageBeans(testDirectory, testPackage, testClass);
+        ArrayList<MethodBean> methodBeans = AnalysisTestHelper.getMethodBeans(packageBeans);
         MethodBean methodBean1 = methodBeans.get(0);
         MethodBean methodBean2 = methodBeans.get(1);
         MethodBean methodBean3 = methodBeans.get(2);
@@ -65,37 +64,5 @@ class ERBAnalyzerITest {
         testDatas.add(arguments(methodBean4, methodDeclaration4, compilationUnit, testFile, false));
 
         return testDatas.stream();
-    }
-
-    private static ArrayList<MethodBean> getMethodBeans(String testDirectoryPath, String testPackageName, String testClassName) throws IOException {
-        // Phase 1: ArrayList<PackageBean>
-        File testDirectory = new File(testDirectoryPath);
-        ArrayList<PackageBean> totalPackages = FolderToJavaProjectConverter.convert(testDirectory.getAbsolutePath());
-        // belongingClass was not set in aDoctor API: this is just a fix
-        for (PackageBean packageBean : totalPackages) {
-            for (ClassBean classBean : packageBean.getClasses()) {
-                for (MethodBean methodBean : classBean.getMethods()) {
-                    methodBean.setBelongingClass(classBean);
-                }
-            }
-        }
-
-        // Phase 2: Removal of useless packages and classes
-        ArrayList<PackageBean> testPackages = new ArrayList<>();
-        for (PackageBean packageBean : totalPackages) {
-            if (packageBean.getName().equals(testPackageName)) {
-                testPackages.add(packageBean);
-            }
-        }
-        testPackages.get(0).getClasses().removeIf(classBean -> !classBean.getName().equals(testClassName));
-
-        // Phase 3: Building of a single list of MethodBeans
-        ArrayList<MethodBean> methodBeans = new ArrayList<>();
-        for (PackageBean packageBean : testPackages) {
-            for (ClassBean classBean : packageBean.getClasses()) {
-                methodBeans.addAll(classBean.getMethods());
-            }
-        }
-        return methodBeans;
     }
 }
