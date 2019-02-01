@@ -26,6 +26,9 @@ public class DWRefactorer extends MethodSmellRefactorer {
         MethodDeclaration proposedMethod = dwProposal.getProposedMethodDeclaration();
 
         CompilationUnit compilationUnit = getCompilationUnit(methodProposal);
+        if (compilationUnit == null) {
+            return false;
+        }
         // MethodDeclaration to be replaced
         MethodDeclaration targetMethod = ASTUtilities.getMethodDeclarationFromContent(methodProposal.getMethodSmell().getMethodBean().getTextContent(), compilationUnit);
         if (targetMethod == null) {

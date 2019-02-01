@@ -80,12 +80,10 @@ public class CoreDriver implements StartDialog.StartCallback,
     public void analysisDone(AnalysisDialog analysisDialog, ArrayList<MethodSmell> methodSmells) {
         this.methodSmells = methodSmells;
         analysisDialog.dispose();
-        if (methodSmells != null) {
-            if (methodSmells.size() == 0) {
-                NoSmellDialog.show(this);
-            } else {
-                SmellDialog.show(this, methodSmells, selections);
-            }
+        if (methodSmells == null || methodSmells.size() == 0) {
+            NoSmellDialog.show(this);
+        } else {
+            SmellDialog.show(this, methodSmells, selections);
         }
     }
 

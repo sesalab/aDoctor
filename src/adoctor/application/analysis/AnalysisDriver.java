@@ -137,11 +137,12 @@ public class AnalysisDriver {
      * @return
      */
     private ArrayList<MethodSmell> analyze(ArrayList<PackageBean> projectPackages, HashMap<String, File> sourceFileMap) throws IOException {
-        if (methodSmellAnalyzers == null || projectPackages == null || sourceFileMap == null) {
-            return null;
-        }
         ArrayList<MethodSmell> methodSmells = new ArrayList<>();
-
+        if (methodSmellAnalyzers == null || methodSmellAnalyzers.size() <= 0
+                || projectPackages == null || projectPackages.size() <= 0
+                || sourceFileMap == null || sourceFileMap.size() <= 0) {
+            return methodSmells;
+        }
         // Builds the correct list of packages
         ArrayList<PackageBean> packages = new ArrayList<>();
         for (PackageBean packageBean : projectPackages) {

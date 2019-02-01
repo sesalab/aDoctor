@@ -17,6 +17,9 @@ public class RefactoringDriver {
     }
 
     public boolean startRefactoring() throws IOException, BadLocationException {
+        if (methodSmellRefactorers == null) {
+            return false;
+        }
         for (MethodSmellRefactorer refactorer : methodSmellRefactorers) {
             if (refactorer.applyRefactoring(methodProposal)) {
                 return true;

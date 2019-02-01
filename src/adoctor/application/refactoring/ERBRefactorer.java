@@ -30,6 +30,9 @@ public class ERBRefactorer extends MethodSmellRefactorer {
         MethodDeclaration proposedOnResume = erbProposal.getProposedOnResume();
 
         CompilationUnit compilationUnit = getCompilationUnit(methodProposal);
+        if (compilationUnit == null) {
+            return false;
+        }
         // MethodDeclaration to be replaced
         MethodDeclaration targetOnCreate = ASTUtilities.getMethodDeclarationFromContent(methodProposal.getMethodSmell().getMethodBean().getTextContent(), compilationUnit);
         if (targetOnCreate == null) {

@@ -31,6 +31,9 @@ public abstract class MethodSmellRefactorer {
     }
 
     public CompilationUnit getCompilationUnit(MethodProposal methodProposal) throws IOException {
+        if (methodProposal == null || methodProposal.getMethodSmell() == null || methodProposal.getMethodSmell().getSourceFile() == null) {
+            return null;
+        }
         File sourceFile = methodProposal.getMethodSmell().getSourceFile();
         return ASTUtilities.getCompilationUnit(sourceFile);
     }

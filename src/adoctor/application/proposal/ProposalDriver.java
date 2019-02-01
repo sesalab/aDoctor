@@ -15,6 +15,9 @@ public class ProposalDriver {
     }
 
     public MethodProposal computeProposal(MethodSmell methodSmell) throws IOException {
+        if (methodSmellProposers == null) {
+            return null;
+        }
         for (MethodSmellProposer proposer : methodSmellProposers) {
             MethodProposal methodProposal = proposer.computeProposal(methodSmell);
             if (methodProposal != null) {

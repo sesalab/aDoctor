@@ -27,44 +27,48 @@ public class DWProposer extends MethodSmellProposer {
         DWSmell dwSmell = (DWSmell) methodSmell;
         File sourceFile = dwSmell.getSourceFile();
         MethodBean methodBean = dwSmell.getMethodBean();
+        if (sourceFile == null || methodBean == null) {
+            return null;
+        }
         CompilationUnit compilationUnit = ASTUtilities.getCompilationUnit(sourceFile);
         MethodDeclaration methodDeclaration = ASTUtilities.getMethodDeclarationFromContent(methodBean.getTextContent(), compilationUnit);
-        if (methodDeclaration != null) {
-            Statement acquireStatement = dwSmell.getAcquireStatement();
-            if (acquireStatement != null) {
-                AST targetAST = compilationUnit.getAST();
-
-                MethodInvocation releaseMethodInvocation = targetAST.newMethodInvocation();
-                // This is done in order to get the wakelock identifier
-                ExpressionStatement acquireExpressionStatement = (ExpressionStatement) acquireStatement;
-                Expression acquireExpression = acquireExpressionStatement.getExpression();
-                MethodInvocation acquireMethodInvocation = (MethodInvocation) acquireExpression;
-                releaseMethodInvocation.setExpression((Expression) ASTNode.copySubtree(targetAST, acquireMethodInvocation.getExpression()));
-
-                SimpleName releaseSimpleName = targetAST.newSimpleName(DWSmell.RELEASE_NAME);
-                releaseMethodInvocation.setName(releaseSimpleName);
-
-                // Wrap the MethodInvocation in an ExpressionStatement
-                ExpressionStatement releaseExpressionStatement = targetAST.newExpressionStatement(releaseMethodInvocation);
-
-                // If the scope is the method, then add it to the end of the method
-                Block acquireBlock = ASTUtilities.getBlockFromContent(dwSmell.getAcquireBlock().toString(), methodDeclaration);
-                if (acquireBlock == null) {
-                    return null;
-                }
-                List<Statement> statementList = (List<Statement>) acquireBlock.statements();
-                statementList.add(releaseExpressionStatement);
-
-                ArrayList<String> proposedCodeToHighlightList = new ArrayList<>();
-                proposedCodeToHighlightList.add(releaseExpressionStatement.toString());
-
-                DWProposal proposalMethodBean = new DWProposal();
-                proposalMethodBean.setMethodSmell(dwSmell);
-                proposalMethodBean.setProposedMethodDeclaration(methodDeclaration);
-                proposalMethodBean.setProposedCodeToHighlightList(proposedCodeToHighlightList);
-                return proposalMethodBean;
-            }
+        if (methodDeclaration == null) {
+            return null;
         }
-        return null;
+        Statement acquireStatement = dwSmell.getAcquireStatement();
+        if (acquireStatement == null) {
+            return null;
+        }
+        AST targetAST = compilationUnit.getAST();
+
+        MethodInvocation releaseMethodInvocation = targetAST.newMethodInvocation();
+        // This is done in order to get the wakelock identifier
+        ExpressionStatement acquireExpressionStatement = (ExpressionStatement) acquireStatement;
+        Expression acquireExpression = acquireExpressionStatement.getExpression();
+        MethodInvocation acquireMethodInvocation = (MethodInvocation) acquireExpression;
+        releaseMethodInvocation.setExpression((Expression) ASTNode.copySubtree(targetAST, acquireMethodInvocation.getExpression()));
+
+        SimpleName releaseSimpleName = targetAST.newSimpleName(DWSmell.RELEASE_NAME);
+        releaseMethodInvocation.setName(releaseSimpleName);
+
+        // Wrap the MethodInvocation in an ExpressionStatement
+        ExpressionStatement releaseExpressionStatement = targetAST.newExpressionStatement(releaseMethodInvocation);
+
+        // If the scope is the method, then add it to the end of the method
+        Block acquireBlock = ASTUtilities.getBlockFromContent(dwSmell.getAcquireBlock().toString(), methodDeclaration);
+        if (acquireBlock == null) {
+            return null;
+        }
+        List<Statement> statementList = (List<Statement>) acquireBlock.statements();
+        statementList.add(releaseExpressionStatement);
+
+        ArrayList<String> proposedCodeToHighlightList = new ArrayList<>();
+        proposedCodeToHighlightList.add(releaseExpressionStatement.toString());
+
+        DWProposal proposalMethodBean = new DWProposal();
+        proposalMethodBean.setMethodSmell(dwSmell);
+        proposalMethodBean.setProposedMethodDeclaration(methodDeclaration);
+        proposalMethodBean.setProposedCodeToHighlightList(proposedCodeToHighlightList);
+        return proposalMethodBean;
     }
 }
