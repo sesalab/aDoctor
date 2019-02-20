@@ -1,4 +1,4 @@
-package adoctor.application.ast;
+package adoctor.application.ast.visitor;
 
 import org.eclipse.jdt.core.dom.ASTVisitor;
 import org.eclipse.jdt.core.dom.VariableDeclarationStatement;
@@ -9,7 +9,7 @@ public class VariableDeclarationStatementVisitor extends ASTVisitor {
 
     private ArrayList<VariableDeclarationStatement> variableDeclarationFragmentList;
 
-    VariableDeclarationStatementVisitor(ArrayList<VariableDeclarationStatement> variableDeclarationFragmentList) {
+    public VariableDeclarationStatementVisitor(ArrayList<VariableDeclarationStatement> variableDeclarationFragmentList) {
         this.variableDeclarationFragmentList = variableDeclarationFragmentList;
     }
 

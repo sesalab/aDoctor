@@ -1,4 +1,4 @@
-package adoctor.application.ast;
+package adoctor.application.ast.visitor;
 
 import org.eclipse.jdt.core.dom.ASTVisitor;
 import org.eclipse.jdt.core.dom.ExpressionStatement;
@@ -9,7 +9,7 @@ public class ExpressionStatementVisitor extends ASTVisitor {
 
     private ArrayList<ExpressionStatement> statementList;
 
-    ExpressionStatementVisitor(ArrayList<ExpressionStatement> statementList) {
+    public ExpressionStatementVisitor(ArrayList<ExpressionStatement> statementList) {
         this.statementList = statementList;
     }
 

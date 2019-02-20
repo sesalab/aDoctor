@@ -1,5 +1,6 @@
 package adoctor.application.ast;
 
+import adoctor.application.ast.visitor.*;
 import org.eclipse.jdt.core.dom.*;
 import parser.CodeParser;
 import parser.MethodVisitor;
@@ -10,6 +11,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+@SuppressWarnings("unchecked")
 public class ASTUtilities {
 
     public static CompilationUnit getCompilationUnit(File sourceFile) throws IOException {
@@ -63,16 +65,6 @@ public class ASTUtilities {
             return methodDeclarationList.get(i);
         } else {
             return null;
-        }
-    }
-
-    public static ArrayList<Block> getBlocksInMethod(MethodDeclaration methodDeclaration) {
-        if (methodDeclaration == null) {
-            return null;
-        } else {
-            ArrayList<Block> blockList = new ArrayList<>();
-            methodDeclaration.accept(new BlockVisitor(blockList));
-            return blockList;
         }
     }
 
@@ -166,6 +158,26 @@ public class ASTUtilities {
         }
     }
 
+    public static List<FieldDeclaration> getFieldDeclarations(CompilationUnit compilationUnit) {
+        if (compilationUnit == null) {
+            return null;
+        } else {
+            ArrayList<FieldDeclaration> fieldDeclarations = new ArrayList<>();
+            compilationUnit.accept(new FieldDeclarationVisitor(fieldDeclarations));
+            return fieldDeclarations;
+        }
+    }
+
+    public static ArrayList<Block> getBlocks(MethodDeclaration methodDeclaration) {
+        if (methodDeclaration == null) {
+            return null;
+        } else {
+            ArrayList<Block> blockList = new ArrayList<>();
+            methodDeclaration.accept(new BlockVisitor(blockList));
+            return blockList;
+        }
+    }
+
     public static List<Expression> getArguments(Statement statement) {
         if (statement != null) {
             if (statement instanceof ExpressionStatement) {
@@ -179,5 +191,37 @@ public class ASTUtilities {
         }
         return null;
     }
+
+    public static List<VariableDeclarationStatement> getVariableDeclarationStatements(MethodDeclaration methodDeclaration) {
+        if (methodDeclaration == null) {
+            return null;
+        } else {
+            ArrayList<VariableDeclarationStatement> variableDeclarationStatements = new ArrayList<>();
+            methodDeclaration.accept(new VariableDeclarationStatementVisitor(variableDeclarationStatements));
+            return variableDeclarationStatements;
+        }
+    }
+
+    /*
+    public static List<MethodInvocation> getMethodInvocations(MethodDeclaration methodDeclaration) {
+        if (methodDeclaration == null) {
+            return null;
+        } else {
+            ArrayList<MethodInvocation> methodInvocations = new ArrayList<>();
+            methodDeclaration.accept(new MethodInvocationVisitor(methodInvocations));
+            return methodInvocations;
+        }
+    }
+
+    public static List<ClassInstanceCreation> getClassInstanceCreations(MethodDeclaration methodDeclaration) {
+        if (methodDeclaration == null) {
+            return null;
+        } else {
+            ArrayList<ClassInstanceCreation> classInstanceCreations = new ArrayList<>();
+            methodDeclaration.accept(new ClassInstanceCreationVisitor(classInstanceCreations));
+            return classInstanceCreations;
+        }
+    }
+    */
 }
 

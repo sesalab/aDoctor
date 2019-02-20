@@ -9,11 +9,11 @@
       <sourceFolder url="file://$MODULE_DIR$/test" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/testResources" type="java-test-resource" />
     </content>
-    <orderEntry type="inheritedJdk" />
+    <orderEntry type="jdk" jdkName="IntelliJ IDEA IU-183.5153.38" jdkType="IDEA JDK" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="aDoctorPlugin" level="project" />
-    <orderEntry type="library" name="JUnit Jupiter" level="project" />
-    <orderEntry type="library" name="Mockito" level="project" />
+    <orderEntry type="library" scope="TEST" name="JUnit Jupiter" level="project" />
+    <orderEntry type="library" scope="TEST" name="Mockito" level="project" />
     <orderEntry type="library" name="JDT Core" level="project" />
   </component>
 </module>

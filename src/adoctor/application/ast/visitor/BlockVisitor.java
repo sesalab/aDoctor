@@ -1,4 +1,4 @@
-package adoctor.application.ast;
+package adoctor.application.ast.visitor;
 
 import org.eclipse.jdt.core.dom.ASTVisitor;
 import org.eclipse.jdt.core.dom.Block;
@@ -9,7 +9,7 @@ public class BlockVisitor extends ASTVisitor {
 
     private ArrayList<Block> blockList;
 
-    BlockVisitor(ArrayList<Block> blockList) {
+    public BlockVisitor(ArrayList<Block> blockList) {
         this.blockList = blockList;
     }
 

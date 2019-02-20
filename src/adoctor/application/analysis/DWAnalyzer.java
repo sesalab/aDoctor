@@ -21,7 +21,7 @@ public class DWAnalyzer extends MethodSmellAnalyzer {
         boolean smellFound = false;
         Block acquireBlock = null;
         Statement acquireStatement = null;
-        ArrayList<Block> methodBlockList = ASTUtilities.getBlocksInMethod(methodDeclaration);
+        ArrayList<Block> methodBlockList = ASTUtilities.getBlocks(methodDeclaration);
         // Look for the block with acquire() but not the release()
         for (int k = 0; k < methodBlockList.size() && !smellFound; k++) {
             Block block = methodBlockList.get(k);

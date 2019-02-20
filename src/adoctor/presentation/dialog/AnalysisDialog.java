@@ -1,9 +1,6 @@
 package adoctor.presentation.dialog;
 
-import adoctor.application.analysis.AnalysisDriver;
-import adoctor.application.analysis.DWAnalyzer;
-import adoctor.application.analysis.ERBAnalyzer;
-import adoctor.application.analysis.MethodSmellAnalyzer;
+import adoctor.application.analysis.*;
 import adoctor.application.bean.smell.MethodSmell;
 import com.intellij.openapi.project.Project;
 
@@ -45,6 +42,9 @@ public class AnalysisDialog extends AbstractDialog {
         }
         if (selections[1]) {
             methodSmellAnalyzers.add(new ERBAnalyzer());
+        }
+        if (selections[2]) {
+            methodSmellAnalyzers.add(new IDSAnalyzer());
         }
         this.analysisDriver = new AnalysisDriver(project, methodSmellAnalyzers, targetPackage);
 

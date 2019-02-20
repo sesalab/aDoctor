@@ -1,4 +1,4 @@
-package adoctor.application.ast;
+package adoctor.application.ast.visitor;
 
 import org.eclipse.jdt.core.dom.ASTVisitor;
 import org.eclipse.jdt.core.dom.FieldDeclaration;
@@ -9,7 +9,7 @@ public class FieldDeclarationVisitor extends ASTVisitor {
 
     private ArrayList<FieldDeclaration> fieldDeclarationList;
 
-    FieldDeclarationVisitor(ArrayList<FieldDeclaration> fieldDeclarationList) {
+    public FieldDeclarationVisitor(ArrayList<FieldDeclaration> fieldDeclarationList) {
         this.fieldDeclarationList = fieldDeclarationList;
     }
 

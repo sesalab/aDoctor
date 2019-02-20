@@ -42,7 +42,7 @@ public class ERBAnalyzer extends MethodSmellAnalyzer {
                     boolean smellFound = false;
                     Block requestBlock = null;
                     Statement requestStatement = null;
-                    ArrayList<Block> methodBlockList = ASTUtilities.getBlocksInMethod(methodDeclaration);
+                    ArrayList<Block> methodBlockList = ASTUtilities.getBlocks(methodDeclaration);
                     for (int j = 0; j < methodBlockList.size() && !smellFound; j++) {
                         Block block = methodBlockList.get(j);
                         List<Statement> statementList = (List<Statement>) block.statements();
