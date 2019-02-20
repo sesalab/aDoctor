@@ -106,8 +106,8 @@ public class SmellDialog extends AbstractDialog {
         MethodSmell selectedSmell = methodSmells.get(listSmell.getSelectedIndex());
 
         // Selected Smell Description
-        String className = selectedSmell.getMethodBean().getBelongingClass().getName();
-        String packageName = selectedSmell.getMethodBean().getBelongingClass().getBelongingPackage();
+        String className = selectedSmell.getMethod().getLegacyMethodBean().getBelongingClass().getName();
+        String packageName = selectedSmell.getMethod().getLegacyMethodBean().getBelongingClass().getBelongingPackage();
         String classFullName = packageName + "." + className;
         labelClassName.setText(classFullName);
         labelSmellName.setText(selectedSmell.getSmellName());
@@ -120,7 +120,7 @@ public class SmellDialog extends AbstractDialog {
             e.printStackTrace();
         }
 
-        String actualCode = selectedSmell.getMethodBean().getTextContent();
+        String actualCode = selectedSmell.getMethod().getLegacyMethodBean().getTextContent();
         prepareArea(areaActualCode, actualCode, methodProposal.getActualCodeToHighlightList());
         if (methodProposal != null) {
             String proposalCode = methodProposal.proposalToString();
@@ -147,7 +147,7 @@ public class SmellDialog extends AbstractDialog {
     }
 
     private String buildElement(MethodSmell methodSmell) {
-        String methodName = methodSmell.getMethodBean().getName();
+        String methodName = methodSmell.getMethod().getLegacyMethodBean().getName();
         String smellName = methodSmell.getSmellName();
         return "" +
                 "<html>" +

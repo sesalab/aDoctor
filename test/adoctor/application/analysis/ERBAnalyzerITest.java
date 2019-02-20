@@ -31,7 +31,7 @@ class ERBAnalyzerITest {
         ERBAnalyzer testedAnalyzer = new ERBAnalyzer();
         MethodSmell result = testedAnalyzer.analyzeMethod(methodBean, methodDeclaration, compilationUnit, sourceFile);
         if (shouldBeSmell) {
-            assertEquals(result.getMethodBean(), methodBean);
+            assertEquals(result.getMethod(), methodBean);
         } else {
             assertNull(result);
         }

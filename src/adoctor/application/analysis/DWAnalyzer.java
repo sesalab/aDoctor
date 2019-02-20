@@ -1,11 +1,12 @@
 package adoctor.application.analysis;
 
 import adoctor.application.ast.ASTUtilities;
+import adoctor.application.bean.Method;
 import adoctor.application.bean.smell.DWSmell;
-import beans.MethodBean;
 import org.eclipse.jdt.core.dom.*;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,10 +15,23 @@ public class DWAnalyzer extends MethodSmellAnalyzer {
 
     // Warning: Source code with method-level compile error and accents might give problems in the methodDeclaration fetch
     @Override
-    public DWSmell analyzeMethod(MethodBean methodBean, MethodDeclaration methodDeclaration, CompilationUnit compilationUnit, File sourceFile) {
-        if (methodBean == null || methodDeclaration == null || compilationUnit == null || sourceFile == null) {
+    public DWSmell analyzeMethod(Method method) throws IOException {
+        if (method == null) {
             return null;
         }
+        File sourceFile = method.getSourceFile();
+        if (sourceFile == null) {
+            return null;
+        }
+        CompilationUnit compilationUnit = ASTUtilities.getCompilationUnit(sourceFile);
+        if (compilationUnit == null) {
+            return null;
+        }
+        MethodDeclaration methodDeclaration = ASTUtilities.getMethodDeclarationFromContent(method.getLegacyMethodBean().getTextContent(), compilationUnit);
+        if (methodDeclaration == null) {
+            return null;
+        }
+
         boolean smellFound = false;
         Block acquireBlock = null;
         Statement acquireStatement = null;
@@ -60,12 +74,11 @@ public class DWAnalyzer extends MethodSmellAnalyzer {
             }
         }
         if (smellFound) {
-            DWSmell smellMethodBean = new DWSmell();
-            smellMethodBean.setMethodBean(methodBean);
-            smellMethodBean.setSourceFile(sourceFile);
-            smellMethodBean.setAcquireBlock(acquireBlock);
-            smellMethodBean.setAcquireStatement(acquireStatement);
-            return smellMethodBean;
+            DWSmell smell = new DWSmell();
+            smell.setMethod(method);
+            smell.setAcquireBlock(acquireBlock);
+            smell.setAcquireStatement(acquireStatement);
+            return smell;
         }
         return null;
     }

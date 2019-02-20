@@ -34,7 +34,7 @@ public class ERBRefactorer extends MethodSmellRefactorer {
             return false;
         }
         // MethodDeclaration to be replaced
-        MethodDeclaration targetOnCreate = ASTUtilities.getMethodDeclarationFromContent(methodProposal.getMethodSmell().getMethodBean().getTextContent(), compilationUnit);
+        MethodDeclaration targetOnCreate = ASTUtilities.getMethodDeclarationFromContent(methodProposal.getMethodSmell().getMethod().getLegacyMethodBean().getTextContent(), compilationUnit);
         if (targetOnCreate == null) {
             return false;
         }

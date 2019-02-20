@@ -1,11 +1,12 @@
 package adoctor.application.analysis;
 
 import adoctor.application.ast.ASTUtilities;
+import adoctor.application.bean.Method;
 import adoctor.application.bean.smell.ERBSmell;
-import beans.MethodBean;
 import org.eclipse.jdt.core.dom.*;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,10 +15,23 @@ public class ERBAnalyzer extends MethodSmellAnalyzer {
 
     // Warning: Source code with method-level compile error and accents might give problems in the methodDeclaration fetch
     @Override
-    public ERBSmell analyzeMethod(MethodBean methodBean, MethodDeclaration methodDeclaration, CompilationUnit compilationUnit, File sourceFile) {
-        if (methodBean == null || methodDeclaration == null || compilationUnit == null || sourceFile == null) {
+    public ERBSmell analyzeMethod(Method method) throws IOException {
+        if (method == null) {
             return null;
         }
+        File sourceFile = method.getSourceFile();
+        if (sourceFile == null) {
+            return null;
+        }
+        CompilationUnit compilationUnit = ASTUtilities.getCompilationUnit(sourceFile);
+        if (compilationUnit == null) {
+            return null;
+        }
+        MethodDeclaration methodDeclaration = ASTUtilities.getMethodDeclarationFromContent(method.getLegacyMethodBean().getTextContent(), compilationUnit);
+        if (methodDeclaration == null) {
+            return null;
+        }
+
         // Only for public|protected void onCreate(Bundle)
         boolean onCreateFound = false;
         if (methodDeclaration.getName().toString().equals(ERBSmell.ONCREATE_NAME)) {
@@ -60,12 +74,11 @@ public class ERBAnalyzer extends MethodSmellAnalyzer {
                         }
                     }
                     if (smellFound) {
-                        ERBSmell smellMethodBean = new ERBSmell();
-                        smellMethodBean.setMethodBean(methodBean);
-                        smellMethodBean.setSourceFile(sourceFile);
-                        smellMethodBean.setRequestBlock(requestBlock);
-                        smellMethodBean.setRequestStatement(requestStatement);
-                        return smellMethodBean;
+                        ERBSmell smell = new ERBSmell();
+                        smell.setMethod(method);
+                        smell.setRequestBlock(requestBlock);
+                        smell.setRequestStatement(requestStatement);
+                        return smell;
                     }
                 }
             }

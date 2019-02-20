@@ -1,29 +1,25 @@
 package adoctor.application.bean.smell;
 
-import beans.MethodBean;
-
-import java.io.File;
+import adoctor.application.bean.Method;
 
 public abstract class MethodSmell extends Smell {
 
-    private MethodBean methodBean;
+    private Method method;
     private String smellName;
     private String smellDescription;
-    private File sourceFile;
 
     public MethodSmell() {
-        methodBean = null;
+        method = null;
         smellName = "";
         smellDescription = "";
-        sourceFile = null;
     }
 
-    public MethodBean getMethodBean() {
-        return methodBean;
+    public Method getMethod() {
+        return method;
     }
 
-    public void setMethodBean(MethodBean methodBean) {
-        this.methodBean = methodBean;
+    public void setMethod(Method method) {
+        this.method = method;
     }
 
     public String getSmellName() {
@@ -40,13 +36,5 @@ public abstract class MethodSmell extends Smell {
 
     public void setSmellDescription(String smellDescription) {
         this.smellDescription = smellDescription;
-    }
-
-    public File getSourceFile() {
-        return sourceFile;
-    }
-
-    public void setSourceFile(File sourceFile) {
-        this.sourceFile = sourceFile;
     }
 }

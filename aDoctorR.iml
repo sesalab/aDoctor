@@ -8,6 +8,8 @@
       <sourceFolder url="file://$MODULE_DIR$/resources" type="java-resource" />
       <sourceFolder url="file://$MODULE_DIR$/test" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/testResources" type="java-test-resource" />
+      <excludeFolder url="file://$MODULE_DIR$/test" />
+      <excludeFolder url="file://$MODULE_DIR$/testResources" />
     </content>
     <orderEntry type="jdk" jdkName="IntelliJ IDEA IU-183.5153.38" jdkType="IDEA JDK" />
     <orderEntry type="sourceFolder" forTests="false" />

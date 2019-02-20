@@ -1,6 +1,9 @@
 package adoctor.application.proposal;
 
-import adoctor.application.analysis.*;
+import adoctor.application.analysis.AnalysisDriver;
+import adoctor.application.analysis.DWAnalyzer;
+import adoctor.application.analysis.ERBAnalyzer;
+import adoctor.application.analysis.MethodSmellAnalyzer;
 import adoctor.application.bean.smell.MethodSmell;
 import beans.PackageBean;
 

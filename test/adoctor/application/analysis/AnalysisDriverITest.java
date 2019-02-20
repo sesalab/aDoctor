@@ -36,7 +36,7 @@ class AnalysisDriverITest {
 
         assertEquals(oracle.size(), result.size());
         for (int i = 0; i < result.size(); i++) {
-            assertEquals(oracle.get(0), result.get(0).getMethodBean());
+            assertEquals(oracle.get(0), result.get(0).getMethod());
         }
     }
 

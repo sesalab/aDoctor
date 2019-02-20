@@ -1,6 +1,9 @@
 package adoctor.application.ast;
 
-import adoctor.application.ast.visitor.*;
+import adoctor.application.ast.visitor.BlockVisitor;
+import adoctor.application.ast.visitor.ExpressionStatementVisitor;
+import adoctor.application.ast.visitor.FieldDeclarationVisitor;
+import adoctor.application.ast.visitor.VariableDeclarationStatementVisitor;
 import org.eclipse.jdt.core.dom.*;
 import parser.CodeParser;
 import parser.MethodVisitor;

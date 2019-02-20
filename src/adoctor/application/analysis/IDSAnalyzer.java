@@ -1,12 +1,13 @@
 package adoctor.application.analysis;
 
 import adoctor.application.ast.ASTUtilities;
+import adoctor.application.bean.Method;
 import adoctor.application.bean.smell.IDSSmell;
 import adoctor.application.bean.smell.MethodSmell;
-import beans.MethodBean;
 import org.eclipse.jdt.core.dom.*;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,10 +15,23 @@ import java.util.List;
 public class IDSAnalyzer extends MethodSmellAnalyzer {
 
     @Override
-    public MethodSmell analyzeMethod(MethodBean methodBean, MethodDeclaration methodDeclaration, CompilationUnit compilationUnit, File sourceFile) {
-        if (methodBean == null || methodDeclaration == null || compilationUnit == null || sourceFile == null) {
+    public MethodSmell analyzeMethod(Method method) throws IOException {
+        if (method == null) {
             return null;
         }
+        File sourceFile = method.getSourceFile();
+        if (sourceFile == null) {
+            return null;
+        }
+        CompilationUnit compilationUnit = ASTUtilities.getCompilationUnit(sourceFile);
+        if (compilationUnit == null) {
+            return null;
+        }
+        MethodDeclaration methodDeclaration = ASTUtilities.getMethodDeclarationFromContent(method.getLegacyMethodBean().getTextContent(), compilationUnit);
+        if (methodDeclaration == null) {
+            return null;
+        }
+
         List<SimpleName> names = new ArrayList<>();
         // Local variables
         List<VariableDeclarationStatement> variableDeclarationStatements = ASTUtilities.getVariableDeclarationStatements(methodDeclaration);
@@ -30,7 +44,8 @@ public class IDSAnalyzer extends MethodSmellAnalyzer {
             }
         }
 
-        //TODO E' bene che le var di istanza siano gestite diversamente. Fare questo per ciascun metodo è computazionalmente inutile
+        // TODO E' bene che le var di istanza siano gestite in analisi a lv di classe
+        //  Fare questo per ciascun metodo è computazionalmente inutile
         /*
         List<FieldDeclaration> fieldDeclarations = ASTUtilities.getFieldDeclarations((CompilationUnit) methodDeclaration.getRoot());
         for (FieldDeclaration fieldDecl : fieldDeclarations) {
@@ -50,16 +65,12 @@ public class IDSAnalyzer extends MethodSmellAnalyzer {
         }
         System.out.println(names);
         IDSSmell smell = new IDSSmell();
-        smell.setMethodBean(methodBean);
-        smell.setSourceFile(sourceFile);
+        smell.setMethod(method);
         smell.setNames(names);
         return smell;
 
-        //TODO: Fare delle classi nuove MethodBean che contengono il MethodBean legacy con MethodDeclaration e File associati
-        //TODO Rimuovere il parametro CompilationUnit perché ricavabile con getRoot di MethodDeclaration
-
         // TODO Data una di esse (es sempre la prima) si propone di cambiarle il tipo di dichiarazione in SparseArray<Object> (aggiungere import!)
-        // TODO Si propone anche di cambiare automaticamente alcune invocazioni di metodi della stessa variabile, se presenti
+        //  Si propone anche di cambiare automaticamente alcune invocazioni di metodi della stessa variabile, se presenti
     }
 
     private boolean isHashMapIntegerObject(Type typeNode) {
@@ -71,7 +82,7 @@ public class IDSAnalyzer extends MethodSmellAnalyzer {
             return false;
         }
         SimpleType type = (SimpleType) parameterizedType.getType();
-        if (!type.getName().toString().equals("HashMap")) {
+        if (!type.getName().toString().equals(IDSSmell.HASHMAP)) {
             return false;
         }
         List<Type> typeParameters = parameterizedType.typeArguments();
@@ -79,6 +90,6 @@ public class IDSAnalyzer extends MethodSmellAnalyzer {
             return false;
         }
         SimpleType FirstParType = (SimpleType) typeParameters.get(0);
-        return FirstParType.getName().toString().equals("Integer") && typeParameters.get(1).isSimpleType();
+        return FirstParType.getName().toString().equals(IDSSmell.INTEGER) && typeParameters.get(1).isSimpleType();
     }
 }

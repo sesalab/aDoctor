@@ -48,8 +48,8 @@ public class RefactoringDialog extends AbstractDialog {
         }
         this.refactoringDriver = new RefactoringDriver(methodProposal, methodSmellRefactorers);
 
-        String fileName = methodProposal.getMethodSmell().getSourceFile().getName();
-        String methodName = methodProposal.getMethodSmell().getMethodBean().getName();
+        String fileName = methodProposal.getMethodSmell().getMethod().getSourceFile().getName();
+        String methodName = methodProposal.getMethodSmell().getMethod().getLegacyMethodBean().getName();
         labelMethodFileName.setText("the method " + methodName + " in file " + fileName);
 
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);

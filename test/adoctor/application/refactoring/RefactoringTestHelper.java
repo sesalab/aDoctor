@@ -2,7 +2,10 @@ package adoctor.application.refactoring;
 
 import adoctor.application.bean.proposal.MethodProposal;
 import adoctor.application.bean.smell.MethodSmell;
-import adoctor.application.proposal.*;
+import adoctor.application.proposal.DWProposer;
+import adoctor.application.proposal.ERBProposer;
+import adoctor.application.proposal.MethodSmellProposer;
+import adoctor.application.proposal.ProposalDriver;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;

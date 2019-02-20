@@ -1,10 +1,10 @@
 package adoctor.application.proposal;
 
 import adoctor.application.ast.ASTUtilities;
+import adoctor.application.bean.Method;
 import adoctor.application.bean.proposal.DWProposal;
 import adoctor.application.bean.smell.DWSmell;
 import adoctor.application.bean.smell.MethodSmell;
-import beans.MethodBean;
 import org.eclipse.jdt.core.dom.*;
 
 import java.io.File;
@@ -25,16 +25,24 @@ public class DWProposer extends MethodSmellProposer {
             return null;
         }
         DWSmell dwSmell = (DWSmell) methodSmell;
-        File sourceFile = dwSmell.getSourceFile();
-        MethodBean methodBean = dwSmell.getMethodBean();
-        if (sourceFile == null || methodBean == null) {
+        Method method = dwSmell.getMethod();
+        if (method == null) {
+            return null;
+        }
+        File sourceFile = method.getSourceFile();
+        if (sourceFile == null) {
             return null;
         }
         CompilationUnit compilationUnit = ASTUtilities.getCompilationUnit(sourceFile);
-        MethodDeclaration methodDeclaration = ASTUtilities.getMethodDeclarationFromContent(methodBean.getTextContent(), compilationUnit);
+        if (compilationUnit == null) {
+            return null;
+        }
+        MethodDeclaration methodDeclaration = ASTUtilities.getMethodDeclarationFromContent(method.getLegacyMethodBean().getTextContent(), compilationUnit);
         if (methodDeclaration == null) {
             return null;
         }
+
+        // Important part starts here
         Statement acquireStatement = dwSmell.getAcquireStatement();
         if (acquireStatement == null) {
             return null;
@@ -65,10 +73,10 @@ public class DWProposer extends MethodSmellProposer {
         ArrayList<String> proposedCodeToHighlightList = new ArrayList<>();
         proposedCodeToHighlightList.add(releaseExpressionStatement.toString());
 
-        DWProposal proposalMethodBean = new DWProposal();
-        proposalMethodBean.setMethodSmell(dwSmell);
-        proposalMethodBean.setProposedMethodDeclaration(methodDeclaration);
-        proposalMethodBean.setProposedCodeToHighlightList(proposedCodeToHighlightList);
-        return proposalMethodBean;
+        DWProposal proposal = new DWProposal();
+        proposal.setMethodSmell(dwSmell);
+        proposal.setProposedMethodDeclaration(methodDeclaration);
+        proposal.setProposedCodeToHighlightList(proposedCodeToHighlightList);
+        return proposal;
     }
 }

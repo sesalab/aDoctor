@@ -1,10 +1,10 @@
 package adoctor.application.proposal;
 
 import adoctor.application.ast.ASTUtilities;
+import adoctor.application.bean.Method;
 import adoctor.application.bean.proposal.ERBProposal;
 import adoctor.application.bean.smell.ERBSmell;
 import adoctor.application.bean.smell.MethodSmell;
-import beans.MethodBean;
 import org.eclipse.jdt.core.dom.*;
 
 import java.io.File;
@@ -25,16 +25,24 @@ public class ERBProposer extends MethodSmellProposer {
             return null;
         }
         ERBSmell erbSmell = (ERBSmell) methodSmell;
-        File sourceFile = erbSmell.getSourceFile();
-        MethodBean methodBean = erbSmell.getMethodBean();
-        if (sourceFile == null || methodBean == null) {
+        Method method = erbSmell.getMethod();
+        if (method == null) {
+            return null;
+        }
+        File sourceFile = method.getSourceFile();
+        if (sourceFile == null) {
             return null;
         }
         CompilationUnit compilationUnit = ASTUtilities.getCompilationUnit(sourceFile);
-        MethodDeclaration onCreateMethodDeclaration = ASTUtilities.getMethodDeclarationFromContent(methodBean.getTextContent(), compilationUnit);
+        if (compilationUnit == null) {
+            return null;
+        }
+        MethodDeclaration onCreateMethodDeclaration = ASTUtilities.getMethodDeclarationFromContent(method.getLegacyMethodBean().getTextContent(), compilationUnit);
         if (onCreateMethodDeclaration == null) {
             return null;
         }
+
+        // Important part starts here
         Statement requestStatement = erbSmell.getRequestStatement();
         if (requestStatement == null) {
             return null;
@@ -110,13 +118,13 @@ public class ERBProposer extends MethodSmellProposer {
             proposedCodeToHighlightList.add(newRequestStatement.toString());
         }
 
-        ERBProposal proposalMethodBean = new ERBProposal();
-        proposalMethodBean.setMethodSmell(erbSmell);
-        proposalMethodBean.setProposedOnCreate(onCreateMethodDeclaration);
-        proposalMethodBean.setActualOnResume(actualOnResumeMethodDeclaration);
-        proposalMethodBean.setProposedOnResume(proposedOnResumeMethodDeclaration);
-        proposalMethodBean.setActualCodeToHighlightList(actualCodeToHighlightList);
-        proposalMethodBean.setProposedCodeToHighlightList(proposedCodeToHighlightList);
-        return proposalMethodBean;
+        ERBProposal proposal = new ERBProposal();
+        proposal.setMethodSmell(erbSmell);
+        proposal.setProposedOnCreate(onCreateMethodDeclaration);
+        proposal.setActualOnResume(actualOnResumeMethodDeclaration);
+        proposal.setProposedOnResume(proposedOnResumeMethodDeclaration);
+        proposal.setActualCodeToHighlightList(actualCodeToHighlightList);
+        proposal.setProposedCodeToHighlightList(proposedCodeToHighlightList);
+        return proposal;
     }
 }

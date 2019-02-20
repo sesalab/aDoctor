@@ -31,15 +31,15 @@ public abstract class MethodSmellRefactorer {
     }
 
     public CompilationUnit getCompilationUnit(MethodProposal methodProposal) throws IOException {
-        if (methodProposal == null || methodProposal.getMethodSmell() == null || methodProposal.getMethodSmell().getSourceFile() == null) {
+        if (methodProposal == null || methodProposal.getMethodSmell() == null || methodProposal.getMethodSmell().getMethod().getSourceFile() == null) {
             return null;
         }
-        File sourceFile = methodProposal.getMethodSmell().getSourceFile();
+        File sourceFile = methodProposal.getMethodSmell().getMethod().getSourceFile();
         return ASTUtilities.getCompilationUnit(sourceFile);
     }
 
     public UndoEdit rewriteFile(MethodProposal methodProposal, ASTRewrite astRewrite) throws IOException, BadLocationException {
-        File sourceFile = methodProposal.getMethodSmell().getSourceFile();
+        File sourceFile = methodProposal.getMethodSmell().getMethod().getSourceFile();
         Document document = new Document(FileUtilities.readFile(sourceFile.getAbsolutePath()));
         TextEdit edits = astRewrite.rewriteAST(document, JavaCore.getDefaultOptions()); // With JavaCore Options we keep the code format settings, so the \n
         // TODO: Implementare uno stack di Undo, the UndoEdit could be used on the same document to reverse the changes

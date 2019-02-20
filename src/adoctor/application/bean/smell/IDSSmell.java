@@ -8,6 +8,8 @@ public class IDSSmell extends MethodSmell {
     public static final String NAME = "Inefficient Data Structure";
     public static final String DESCRIPTION = "Inefficient Data Structure is present when a HashMap<Integer, Object> " +
             "is used. This affects performances with the autoboxing problem.";
+    public static final String HASHMAP = "HashMap";
+    public static final String INTEGER = "Integer";
 
     private List<SimpleName> names;
 

@@ -1,13 +1,11 @@
 package adoctor.application.analysis;
 
-import adoctor.application.ast.ASTUtilities;
+import adoctor.application.bean.Method;
 import adoctor.application.bean.smell.MethodSmell;
 import beans.ClassBean;
 import beans.MethodBean;
 import beans.PackageBean;
 import com.intellij.openapi.project.Project;
-import org.eclipse.jdt.core.dom.CompilationUnit;
-import org.eclipse.jdt.core.dom.MethodDeclaration;
 
 import java.io.File;
 import java.io.IOException;
@@ -159,11 +157,12 @@ public class AnalysisDriver {
             for (ClassBean classBean : packageBean.getClasses()) {
                 String classFullName = packageBean.getName() + "." + classBean.getName();
                 File sourceFile = sourceFileMap.get(classFullName);
-                CompilationUnit compilationUnit = ASTUtilities.getCompilationUnit(sourceFile);
                 for (MethodBean methodBean : classBean.getMethods()) {
-                    MethodDeclaration methodDeclaration = ASTUtilities.getMethodDeclarationFromContent(methodBean.getTextContent(), compilationUnit);
+                    Method method = new Method();
+                    method.setLegacyMethodBean(methodBean);
+                    method.setSourceFile(sourceFile);
                     for (MethodSmellAnalyzer analyzer : methodSmellAnalyzers) {
-                        MethodSmell methodSmell = analyzer.analyzeMethod(methodBean, methodDeclaration, compilationUnit, sourceFile);
+                        MethodSmell methodSmell = analyzer.analyzeMethod(method);
                         if (methodSmell != null) {
                             methodSmells.add(methodSmell);
                         }
