@@ -37,7 +37,7 @@ public class ERBProposer extends MethodSmellProposer {
         if (compilationUnit == null) {
             return null;
         }
-        MethodDeclaration onCreateMethodDeclaration = ASTUtilities.getMethodDeclarationFromContent(method.getLegacyMethodBean().getTextContent(), compilationUnit);
+        MethodDeclaration onCreateMethodDeclaration = ASTUtilities.getMethodDeclarationFromContent(compilationUnit, method.getLegacyMethodBean().getTextContent());
         if (onCreateMethodDeclaration == null) {
             return null;
         }
@@ -49,12 +49,12 @@ public class ERBProposer extends MethodSmellProposer {
         }
         AST targetAST = compilationUnit.getAST();
 
-        ArrayList<String> actualCodeToHighlightList = new ArrayList<>();
-        actualCodeToHighlightList.add(requestStatement.toString());
-        ArrayList<String> proposedCodeToHighlightList = new ArrayList<>();
+        ArrayList<String> actualHighlights = new ArrayList<>();
+        actualHighlights.add(requestStatement.toString());
+        ArrayList<String> proposedHighlights = new ArrayList<>();
         // Only for public|protected void onResume()
         boolean foundOnResume = false;
-        MethodDeclaration proposedOnResumeMethodDeclaration = ASTUtilities.getMethodDeclarationFromName(ERBSmell.ONRESUME_NAME, compilationUnit);
+        MethodDeclaration proposedOnResumeMethodDeclaration = ASTUtilities.getMethodDeclarationFromName(compilationUnit, ERBSmell.ONRESUME_NAME);
         if (proposedOnResumeMethodDeclaration != null) {
             Type returnType = proposedOnResumeMethodDeclaration.getReturnType2();
             if (returnType != null && returnType.toString().equals(ERBSmell.ONCREATE_TYPE)) {
@@ -78,7 +78,7 @@ public class ERBProposer extends MethodSmellProposer {
 
         // Create the new statement for onResume
         ExpressionStatement requestExpressionStatementTEMP = (ExpressionStatement) requestStatement;
-        ExpressionStatement requestExpressionStatement = ASTUtilities.getExpressionStatementFromContent(requestExpressionStatementTEMP.toString(), onCreateMethodDeclaration);
+        ExpressionStatement requestExpressionStatement = ASTUtilities.getExpressionStatementFromContent(onCreateMethodDeclaration, requestExpressionStatementTEMP.toString());
         if (requestExpressionStatement == null) {
             return null;
         }
@@ -86,7 +86,7 @@ public class ERBProposer extends MethodSmellProposer {
         Statement newRequestStatement = targetAST.newExpressionStatement((Expression) ASTNode.copySubtree(targetAST, requestExpression));
 
         // Remove from onCreate
-        Block requestBlock = ASTUtilities.getBlockFromContent(erbSmell.getRequestBlock().toString(), onCreateMethodDeclaration);
+        Block requestBlock = ASTUtilities.getBlockFromContent(onCreateMethodDeclaration, erbSmell.getRequestBlock().toString());
         if (requestBlock == null) {
             return null;
         }
@@ -113,9 +113,9 @@ public class ERBProposer extends MethodSmellProposer {
 
         if (!foundOnResume) {
             String onResumeMethodDeclarationString = proposedOnResumeMethodDeclaration.toString();
-            proposedCodeToHighlightList.add(onResumeMethodDeclarationString);
+            proposedHighlights.add(onResumeMethodDeclarationString);
         } else {
-            proposedCodeToHighlightList.add(newRequestStatement.toString());
+            proposedHighlights.add(newRequestStatement.toString());
         }
 
         ERBProposal proposal = new ERBProposal();
@@ -123,8 +123,9 @@ public class ERBProposer extends MethodSmellProposer {
         proposal.setProposedOnCreate(onCreateMethodDeclaration);
         proposal.setActualOnResume(actualOnResumeMethodDeclaration);
         proposal.setProposedOnResume(proposedOnResumeMethodDeclaration);
-        proposal.setActualCodeToHighlightList(actualCodeToHighlightList);
-        proposal.setProposedCodeToHighlightList(proposedCodeToHighlightList);
+        proposal.setProposedCode(onCreateMethodDeclaration.toString() + "\n" + proposedOnResumeMethodDeclaration.toString());
+        proposal.setActualHighlights(actualHighlights);
+        proposal.setProposedHighlights(proposedHighlights);
         return proposal;
     }
 }

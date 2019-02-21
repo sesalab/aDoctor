@@ -30,7 +30,7 @@ public class DWRefactorer extends MethodSmellRefactorer {
             return false;
         }
         // MethodDeclaration to be replaced
-        MethodDeclaration targetMethod = ASTUtilities.getMethodDeclarationFromContent(methodProposal.getMethodSmell().getMethod().getLegacyMethodBean().getTextContent(), compilationUnit);
+        MethodDeclaration targetMethod = ASTUtilities.getMethodDeclarationFromContent(compilationUnit, methodProposal.getMethodSmell().getMethod().getLegacyMethodBean().getTextContent());
         if (targetMethod == null) {
             return false;
         }

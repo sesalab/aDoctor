@@ -16,9 +16,4 @@ public class DWProposal extends MethodProposal {
     public void setProposedMethodDeclaration(MethodDeclaration proposedMethodDeclaration) {
         this.proposedMethodDeclaration = proposedMethodDeclaration;
     }
-
-    @Override
-    public String proposalToString() {
-        return proposedMethodDeclaration.toString();
-    }
 }

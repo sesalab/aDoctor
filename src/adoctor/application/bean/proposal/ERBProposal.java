@@ -35,9 +35,4 @@ public class ERBProposal extends MethodProposal {
     public void setProposedOnResume(MethodDeclaration proposedOnResume) {
         this.proposedOnResume = proposedOnResume;
     }
-
-    @Override
-    public String proposalToString() {
-        return proposedOnCreate.toString() + "\n" + proposedOnResume.toString();
-    }
 }

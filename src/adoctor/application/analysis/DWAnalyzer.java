@@ -27,7 +27,7 @@ public class DWAnalyzer extends MethodSmellAnalyzer {
         if (compilationUnit == null) {
             return null;
         }
-        MethodDeclaration methodDeclaration = ASTUtilities.getMethodDeclarationFromContent(method.getLegacyMethodBean().getTextContent(), compilationUnit);
+        MethodDeclaration methodDeclaration = ASTUtilities.getMethodDeclarationFromContent(compilationUnit, method.getLegacyMethodBean().getTextContent());
         if (methodDeclaration == null) {
             return null;
         }
@@ -45,9 +45,9 @@ public class DWAnalyzer extends MethodSmellAnalyzer {
                 String callerName = ASTUtilities.getCallerName(statement, DWSmell.ACQUIRE_NAME);
                 if (callerName != null) {
                     // Check type of the caller
-                    FieldDeclaration fieldDeclaration = ASTUtilities.getFieldDeclarationFromName(callerName, compilationUnit);
+                    FieldDeclaration fieldDeclaration = ASTUtilities.getFieldDeclarationFromName(compilationUnit, callerName);
                     VariableDeclarationStatement variableDeclarationStatement = ASTUtilities
-                            .getVariableDeclarationStatementFromName(callerName, methodDeclaration);
+                            .getVariableDeclarationStatementFromName(methodDeclaration, callerName);
                     if (fieldDeclaration != null && fieldDeclaration.getType().toString().equals(DWSmell.WAKELOCK_CLASS)
                             || variableDeclarationStatement != null && variableDeclarationStatement.getType()
                             .toString().equals(DWSmell.WAKELOCK_CLASS)) {

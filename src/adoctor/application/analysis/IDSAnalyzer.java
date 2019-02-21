@@ -8,7 +8,6 @@ import org.eclipse.jdt.core.dom.*;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 @SuppressWarnings("unchecked")
@@ -27,20 +26,19 @@ public class IDSAnalyzer extends MethodSmellAnalyzer {
         if (compilationUnit == null) {
             return null;
         }
-        MethodDeclaration methodDeclaration = ASTUtilities.getMethodDeclarationFromContent(method.getLegacyMethodBean().getTextContent(), compilationUnit);
+        MethodDeclaration methodDeclaration = ASTUtilities.getMethodDeclarationFromContent(compilationUnit, method.getLegacyMethodBean().getTextContent());
         if (methodDeclaration == null) {
             return null;
         }
 
-        List<SimpleName> names = new ArrayList<>();
         // Local variables
         List<VariableDeclarationStatement> variableDeclarationStatements = ASTUtilities.getVariableDeclarationStatements(methodDeclaration);
         for (VariableDeclarationStatement varDecl : variableDeclarationStatements) {
             if (isHashMapIntegerObject(varDecl.getType())) {
-                List<VariableDeclarationFragment> varFragments = varDecl.fragments();
-                for (VariableDeclarationFragment f : varFragments) {
-                    names.add(f.getName());
-                }
+                IDSSmell smell = new IDSSmell();
+                smell.setMethod(method);
+                smell.setVariableDeclarationStatement(varDecl);
+                return smell;
             }
         }
 
@@ -52,25 +50,12 @@ public class IDSAnalyzer extends MethodSmellAnalyzer {
             System.out.println(fieldDecl);
             if (isHashMapIntegerObject(fieldDecl.getType())) {
                 System.out.println("Ho smell di istanza");
-                List<VariableDeclarationFragment> varFragments = fieldDecl.fragments();
-                for (VariableDeclarationFragment f : varFragments) {
-                    names.add(f.getName());
-                }
+
             }
         }
         */
+        return null;
 
-        if (names.isEmpty()) {
-            return null;
-        }
-        System.out.println(names);
-        IDSSmell smell = new IDSSmell();
-        smell.setMethod(method);
-        smell.setNames(names);
-        return smell;
-
-        // TODO Data una di esse (es sempre la prima) si propone di cambiarle il tipo di dichiarazione in SparseArray<Object> (aggiungere import!)
-        //  Si propone anche di cambiare automaticamente alcune invocazioni di metodi della stessa variabile, se presenti
     }
 
     private boolean isHashMapIntegerObject(Type typeNode) {

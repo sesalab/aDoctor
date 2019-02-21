@@ -34,7 +34,7 @@ public class ERBRefactorer extends MethodSmellRefactorer {
             return false;
         }
         // MethodDeclaration to be replaced
-        MethodDeclaration targetOnCreate = ASTUtilities.getMethodDeclarationFromContent(methodProposal.getMethodSmell().getMethod().getLegacyMethodBean().getTextContent(), compilationUnit);
+        MethodDeclaration targetOnCreate = ASTUtilities.getMethodDeclarationFromContent(compilationUnit, methodProposal.getMethodSmell().getMethod().getLegacyMethodBean().getTextContent());
         if (targetOnCreate == null) {
             return false;
         }
@@ -49,7 +49,7 @@ public class ERBRefactorer extends MethodSmellRefactorer {
             listRewrite.insertAfter(proposedOnResume, proposedOnCreate, null);
         } else {
             // Replaces the current onResume() with the new one
-            MethodDeclaration targetOnResume = ASTUtilities.getMethodDeclarationFromContent(actualOnResume.toString(), compilationUnit);
+            MethodDeclaration targetOnResume = ASTUtilities.getMethodDeclarationFromContent(compilationUnit, actualOnResume.toString());
             if (targetOnResume == null) {
                 return false;
             } else {

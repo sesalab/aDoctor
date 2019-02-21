@@ -1,8 +1,6 @@
 package adoctor.application.bean.smell;
 
-import org.eclipse.jdt.core.dom.SimpleName;
-
-import java.util.List;
+import org.eclipse.jdt.core.dom.VariableDeclarationStatement;
 
 public class IDSSmell extends MethodSmell {
     public static final String NAME = "Inefficient Data Structure";
@@ -10,21 +8,22 @@ public class IDSSmell extends MethodSmell {
             "is used. This affects performances with the autoboxing problem.";
     public static final String HASHMAP = "HashMap";
     public static final String INTEGER = "Integer";
+    public static final String SPARSE_ARRAY = "SparseArray";
 
-    private List<SimpleName> names;
+    private VariableDeclarationStatement variableDeclarationStatement;
 
     public IDSSmell() {
         super();
         setSmellName(NAME);
         setSmellDescription(DESCRIPTION);
-        names = null;
+        variableDeclarationStatement = null;
     }
 
-    public List<SimpleName> getNames() {
-        return names;
+    public VariableDeclarationStatement getVariableDeclarationStatement() {
+        return variableDeclarationStatement;
     }
 
-    public void setNames(List<SimpleName> names) {
-        this.names = names;
+    public void setVariableDeclarationStatement(VariableDeclarationStatement variableDeclarationStatement) {
+        this.variableDeclarationStatement = variableDeclarationStatement;
     }
 }

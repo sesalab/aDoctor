@@ -27,7 +27,7 @@ public class ERBAnalyzer extends MethodSmellAnalyzer {
         if (compilationUnit == null) {
             return null;
         }
-        MethodDeclaration methodDeclaration = ASTUtilities.getMethodDeclarationFromContent(method.getLegacyMethodBean().getTextContent(), compilationUnit);
+        MethodDeclaration methodDeclaration = ASTUtilities.getMethodDeclarationFromContent(compilationUnit, method.getLegacyMethodBean().getTextContent());
         if (methodDeclaration == null) {
             return null;
         }
@@ -64,7 +64,7 @@ public class ERBAnalyzer extends MethodSmellAnalyzer {
                             Statement statement = statementList.get(k);
                             String callerName = ASTUtilities.getCallerName(statement, ERBSmell.GPS_REQUEST_METHOD_NAME);
                             if (callerName != null) {
-                                FieldDeclaration fieldDeclaration = ASTUtilities.getFieldDeclarationFromName(callerName, compilationUnit);
+                                FieldDeclaration fieldDeclaration = ASTUtilities.getFieldDeclarationFromName(compilationUnit, callerName);
                                 if (fieldDeclaration != null) {
                                     smellFound = true;
                                     requestBlock = block;

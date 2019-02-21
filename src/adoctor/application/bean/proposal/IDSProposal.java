@@ -1,21 +1,16 @@
 package adoctor.application.bean.proposal;
 
-import org.eclipse.jdt.core.dom.MethodDeclaration;
+import org.eclipse.jdt.core.dom.VariableDeclarationStatement;
 
 public class IDSProposal extends MethodProposal {
 
-    private MethodDeclaration proposedMethod;
+    private VariableDeclarationStatement proposedVarDecl;
 
-    public MethodDeclaration getProposedMethodDeclaration() {
-        return proposedMethod;
+    public VariableDeclarationStatement getProposedVarDecl() {
+        return proposedVarDecl;
     }
 
-    public void setProposedMethodDeclaration(MethodDeclaration proposedMethod) {
-        this.proposedMethod = proposedMethod;
-    }
-
-    @Override
-    public String proposalToString() {
-        return proposedMethod.toString();
+    public void setProposedVarDecl(VariableDeclarationStatement proposedVarDecl) {
+        this.proposedVarDecl = proposedVarDecl;
     }
 }

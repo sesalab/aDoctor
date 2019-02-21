@@ -37,7 +37,7 @@ public class DWProposer extends MethodSmellProposer {
         if (compilationUnit == null) {
             return null;
         }
-        MethodDeclaration methodDeclaration = ASTUtilities.getMethodDeclarationFromContent(method.getLegacyMethodBean().getTextContent(), compilationUnit);
+        MethodDeclaration methodDeclaration = ASTUtilities.getMethodDeclarationFromContent(compilationUnit, method.getLegacyMethodBean().getTextContent());
         if (methodDeclaration == null) {
             return null;
         }
@@ -63,20 +63,24 @@ public class DWProposer extends MethodSmellProposer {
         ExpressionStatement releaseExpressionStatement = targetAST.newExpressionStatement(releaseMethodInvocation);
 
         // If the scope is the method, then add it to the end of the method
-        Block acquireBlock = ASTUtilities.getBlockFromContent(dwSmell.getAcquireBlock().toString(), methodDeclaration);
+        Block acquireBlock = ASTUtilities.getBlockFromContent(methodDeclaration, dwSmell.getAcquireBlock().toString());
         if (acquireBlock == null) {
             return null;
         }
         List<Statement> statementList = (List<Statement>) acquireBlock.statements();
         statementList.add(releaseExpressionStatement);
 
-        ArrayList<String> proposedCodeToHighlightList = new ArrayList<>();
-        proposedCodeToHighlightList.add(releaseExpressionStatement.toString());
+        ArrayList<String> actualHighlights = new ArrayList<>();
+        actualHighlights.add(acquireStatement.toString());
+        ArrayList<String> proposedHighlights = new ArrayList<>();
+        proposedHighlights.add(releaseExpressionStatement.toString());
 
         DWProposal proposal = new DWProposal();
         proposal.setMethodSmell(dwSmell);
         proposal.setProposedMethodDeclaration(methodDeclaration);
-        proposal.setProposedCodeToHighlightList(proposedCodeToHighlightList);
+        proposal.setProposedCode(methodDeclaration.toString());
+        proposal.setActualHighlights(actualHighlights);
+        proposal.setProposedHighlights(proposedHighlights);
         return proposal;
     }
 }

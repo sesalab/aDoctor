@@ -2,10 +2,7 @@ package adoctor.presentation.dialog;
 
 import adoctor.application.bean.proposal.MethodProposal;
 import adoctor.application.bean.smell.MethodSmell;
-import adoctor.application.proposal.DWProposer;
-import adoctor.application.proposal.ERBProposer;
-import adoctor.application.proposal.MethodSmellProposer;
-import adoctor.application.proposal.ProposalDriver;
+import adoctor.application.proposal.*;
 
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
@@ -58,6 +55,9 @@ public class SmellDialog extends AbstractDialog {
         }
         if (selections[1]) {
             methodSmellProposers.add(new ERBProposer());
+        }
+        if (selections[2]) {
+            methodSmellProposers.add(new IDSProposer());
         }
         this.proposalDriver = new ProposalDriver(methodSmellProposers);
         this.methodSmells = methodSmells;
@@ -121,10 +121,13 @@ public class SmellDialog extends AbstractDialog {
         }
 
         String actualCode = selectedSmell.getMethod().getLegacyMethodBean().getTextContent();
-        prepareArea(areaActualCode, actualCode, methodProposal.getActualCodeToHighlightList());
         if (methodProposal != null) {
-            String proposalCode = methodProposal.proposalToString();
-            prepareArea(areaProposedCode, proposalCode, methodProposal.getProposedCodeToHighlightList());
+            prepareArea(areaActualCode, actualCode, methodProposal.getActualHighlights());
+            String proposalCode = methodProposal.getProposedCode();
+            prepareArea(areaProposedCode, proposalCode, methodProposal.getProposedHighlights());
+        } else {
+            prepareArea(areaActualCode, actualCode, null);
+            prepareArea(areaProposedCode, "No proposal available", null);
         }
     }
 
@@ -132,12 +135,12 @@ public class SmellDialog extends AbstractDialog {
         try {
             area.setText(code);
             area.setCaretPosition(0);
-            Highlighter actualHighlighter = area.getHighlighter();
-            actualHighlighter.removeAllHighlights();
+            Highlighter highlighter = area.getHighlighter();
+            highlighter.removeAllHighlights();
             if (highlightList != null && highlightList.size() > 0) {
                 for (String actualCodeToHighlight : highlightList) {
                     int highlightIndex = code.indexOf(actualCodeToHighlight);
-                    actualHighlighter.addHighlight(highlightIndex, highlightIndex + actualCodeToHighlight.length(), DefaultHighlighter.DefaultPainter);
+                    highlighter.addHighlight(highlightIndex, highlightIndex + actualCodeToHighlight.length(), DefaultHighlighter.DefaultPainter);
                 }
             }
         } catch (BadLocationException e) {
