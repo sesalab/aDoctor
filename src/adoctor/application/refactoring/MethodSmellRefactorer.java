@@ -2,6 +2,7 @@ package adoctor.application.refactoring;
 
 import adoctor.application.ast.ASTUtilities;
 import adoctor.application.bean.proposal.MethodProposal;
+import adoctor.application.refactoring.rewriting.FileRewriter;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.rewrite.ASTRewrite;
@@ -18,7 +19,7 @@ public abstract class MethodSmellRefactorer {
 
     private FileRewriter fileRewriter;
 
-    public MethodSmellRefactorer() {
+    MethodSmellRefactorer() {
         this.fileRewriter = new FileRewriter();
     }
 
@@ -38,7 +39,7 @@ public abstract class MethodSmellRefactorer {
         return ASTUtilities.getCompilationUnit(sourceFile);
     }
 
-    public UndoEdit rewriteFile(MethodProposal methodProposal, ASTRewrite astRewrite) throws IOException, BadLocationException {
+    UndoEdit rewriteFile(MethodProposal methodProposal, ASTRewrite astRewrite) throws IOException, BadLocationException {
         File sourceFile = methodProposal.getMethodSmell().getMethod().getSourceFile();
         Document document = new Document(FileUtilities.readFile(sourceFile.getAbsolutePath()));
         TextEdit edits = astRewrite.rewriteAST(document, JavaCore.getDefaultOptions()); // With JavaCore Options we keep the code format settings, so the \n

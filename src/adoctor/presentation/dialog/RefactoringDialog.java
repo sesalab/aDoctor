@@ -1,10 +1,7 @@
 package adoctor.presentation.dialog;
 
 import adoctor.application.bean.proposal.MethodProposal;
-import adoctor.application.refactoring.DWRefactorer;
-import adoctor.application.refactoring.ERBRefactorer;
-import adoctor.application.refactoring.MethodSmellRefactorer;
-import adoctor.application.refactoring.RefactoringDriver;
+import adoctor.application.refactoring.*;
 import org.eclipse.jface.text.BadLocationException;
 
 import javax.swing.*;
@@ -45,6 +42,9 @@ public class RefactoringDialog extends AbstractDialog {
         }
         if (selections[1]) {
             methodSmellRefactorers.add(new ERBRefactorer());
+        }
+        if (selections[2]) {
+            methodSmellRefactorers.add(new IDSRefactorer());
         }
         this.refactoringDriver = new RefactoringDriver(methodProposal, methodSmellRefactorers);
 

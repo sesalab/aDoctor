@@ -10,13 +10,16 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultHighlighter;
 import javax.swing.text.Highlighter;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Random;
 
+@SuppressWarnings("UseJBColor")
 public class SmellDialog extends AbstractDialog {
     public static final String TITLE = "aDoctor - Smell list";
 
@@ -131,16 +134,20 @@ public class SmellDialog extends AbstractDialog {
         }
     }
 
-    private void prepareArea(JTextArea area, String code, ArrayList<String> highlightList) {
+    private void prepareArea(JTextArea area, String code, ArrayList<String> strings) {
         try {
             area.setText(code);
             area.setCaretPosition(0);
             Highlighter highlighter = area.getHighlighter();
             highlighter.removeAllHighlights();
-            if (highlightList != null && highlightList.size() > 0) {
-                for (String actualCodeToHighlight : highlightList) {
-                    int highlightIndex = code.indexOf(actualCodeToHighlight);
-                    highlighter.addHighlight(highlightIndex, highlightIndex + actualCodeToHighlight.length(), DefaultHighlighter.DefaultPainter);
+            if (strings != null && strings.size() > 0) {
+                Random r = new Random();
+                int highlightEnd = 0;
+                for (String string : strings) {
+                    int highlightIndex = code.indexOf(string, highlightEnd);
+                    highlightEnd = highlightIndex + string.length();
+                    Color randomColor = new Color(0, 40 + r.nextInt(11) * 5, 200);
+                    highlighter.addHighlight(highlightIndex, highlightEnd, new DefaultHighlighter.DefaultHighlightPainter(randomColor));
                 }
             }
         } catch (BadLocationException e) {

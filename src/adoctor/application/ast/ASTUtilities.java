@@ -221,5 +221,15 @@ public class ASTUtilities {
             return classInstanceCreations;
         }
     }
+
+    public static List<SimpleName> getSimpleNames(ASTNode node) {
+        if (node == null) {
+            return null;
+        } else {
+            ArrayList<SimpleName> simpleNames = new ArrayList<>();
+            node.accept(new SimpleNameVisitor(simpleNames));
+            return simpleNames;
+        }
+    }
 }
 
