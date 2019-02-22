@@ -10,20 +10,19 @@ public class IDSSmell extends MethodSmell {
     public static final String INTEGER = "Integer";
     public static final String SPARSE_ARRAY = "SparseArray";
 
-    private VariableDeclarationStatement variableDeclarationStatement;
+    private VariableDeclarationStatement smellyVarDecl;
 
     public IDSSmell() {
         super();
         setSmellName(NAME);
         setSmellDescription(DESCRIPTION);
-        variableDeclarationStatement = null;
     }
 
-    public VariableDeclarationStatement getVariableDeclarationStatement() {
-        return variableDeclarationStatement;
+    public VariableDeclarationStatement getSmellyVarDecl() {
+        return smellyVarDecl;
     }
 
-    public void setVariableDeclarationStatement(VariableDeclarationStatement variableDeclarationStatement) {
-        this.variableDeclarationStatement = variableDeclarationStatement;
+    public void setSmellyVarDecl(VariableDeclarationStatement smellyVarDecl) {
+        this.smellyVarDecl = smellyVarDecl;
     }
 }

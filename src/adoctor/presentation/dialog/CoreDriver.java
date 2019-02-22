@@ -3,6 +3,8 @@ package adoctor.presentation.dialog;
 import adoctor.application.bean.proposal.MethodProposal;
 import adoctor.application.bean.smell.MethodSmell;
 import com.intellij.ide.SaveAndSyncHandlerImpl;
+import com.intellij.openapi.application.ModalityState;
+import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
@@ -130,6 +132,7 @@ public class CoreDriver implements StartDialog.StartCallback,
         refactoringDialog.dispose();
 
         // Refreshes the Editor in order to reflect the changes to the files
+        TransactionGuard.getInstance().assertWriteSafeContext(ModalityState.NON_MODAL);
         SaveAndSyncHandlerImpl.getInstance().refreshOpenFiles();
         VirtualFileManager.getInstance().refreshWithoutFileWatcher(false);
 

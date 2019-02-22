@@ -124,7 +124,7 @@ public class ERBProposer extends MethodSmellProposer {
         proposal.setActualOnResume(actualOnResumeMethodDeclaration);
         proposal.setProposedOnResume(proposedOnResumeMethodDeclaration);
         proposal.setProposedCode(onCreateMethodDeclaration.toString() + "\n" + proposedOnResumeMethodDeclaration.toString());
-        proposal.setActualHighlights(actualHighlights);
+        proposal.setCurrentHighlights(actualHighlights);
         proposal.setProposedHighlights(proposedHighlights);
         return proposal;
     }

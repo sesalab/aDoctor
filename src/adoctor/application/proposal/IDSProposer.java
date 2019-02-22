@@ -1,15 +1,12 @@
 package adoctor.application.proposal;
 
 import adoctor.application.ast.ASTUtilities;
-import adoctor.application.bean.Method;
 import adoctor.application.bean.proposal.IDSProposal;
 import adoctor.application.bean.proposal.MethodProposal;
 import adoctor.application.bean.smell.IDSSmell;
 import adoctor.application.bean.smell.MethodSmell;
 import org.eclipse.jdt.core.dom.*;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.List;
@@ -18,42 +15,32 @@ import java.util.List;
 public class IDSProposer extends MethodSmellProposer {
 
     @Override
-    public MethodProposal computeProposal(MethodSmell methodSmell) throws IOException {
-        // Preconditions check
+    public MethodProposal computeProposal(MethodSmell methodSmell) {
+        if (methodSmell == null) {
+            return null;
+        }
         if (!(methodSmell instanceof IDSSmell)) {
             return null;
         }
         IDSSmell idsSmell = (IDSSmell) methodSmell;
-        Method method = idsSmell.getMethod();
-        if (method == null) {
+        MethodDeclaration smellyMethodDecl = idsSmell.getMethod().getMethodDecl();
+        if (smellyMethodDecl == null) {
             return null;
         }
-        File sourceFile = method.getSourceFile();
-        if (sourceFile == null) {
+        VariableDeclarationStatement smellyVarDecl = idsSmell.getSmellyVarDecl();
+        if (smellyVarDecl == null) {
             return null;
         }
-        CompilationUnit compilationUnit = ASTUtilities.getCompilationUnit(sourceFile);
-        if (compilationUnit == null) {
-            return null;
-        }
-        MethodDeclaration methodDeclaration = ASTUtilities.getMethodDeclarationFromContent(compilationUnit, method.getLegacyMethodBean().getTextContent());
-        if (methodDeclaration == null) {
-            return null;
-        }
-        VariableDeclarationStatement varDecl = idsSmell.getVariableDeclarationStatement();
-        if (varDecl == null) {
-            return null;
-        }
+        AST targetAST = smellyMethodDecl.getAST();
 
-        AST targetAST = compilationUnit.getAST();
         // Changes of Declaration of SparseArray<SecondType> to HashMap<Integer, SecondType>
         ParameterizedType newType = targetAST.newParameterizedType(targetAST.newSimpleType(targetAST.newSimpleName(IDSSmell.SPARSE_ARRAY)));
-        ParameterizedType parType = (ParameterizedType) varDecl.getType();
+        ParameterizedType parType = (ParameterizedType) smellyVarDecl.getType();
         SimpleType secondType = (SimpleType) parType.typeArguments().get(1);
         SimpleType newSimpleType = (SimpleType) ASTNode.copySubtree(targetAST, secondType);
         List<Type> typeParameters = newType.typeArguments();
         typeParameters.add(newSimpleType);
-        VariableDeclarationStatement newVarDecl = (VariableDeclarationStatement) ASTNode.copySubtree(targetAST, varDecl);
+        VariableDeclarationStatement newVarDecl = (VariableDeclarationStatement) ASTNode.copySubtree(targetAST, smellyVarDecl);
         newVarDecl.setType(newType);
         // Changes of HashMap<> constructor to SparseArray<> one
         List<VariableDeclarationFragment> fragments = newVarDecl.fragments();
@@ -74,7 +61,7 @@ public class IDSProposer extends MethodSmellProposer {
             }
         }
         // List of involved method invocations
-        List<MethodInvocation> allInvocations = ASTUtilities.getMethodInvocations(varDecl.getParent());
+        List<MethodInvocation> allInvocations = ASTUtilities.getMethodInvocations(smellyVarDecl.getParent());
         List<MethodInvocation> invocations = new ArrayList<>();
         for (MethodInvocation invocation : allInvocations) {
             if (variables.contains(invocation.getExpression().toString())) {
@@ -164,21 +151,20 @@ public class IDSProposer extends MethodSmellProposer {
             replacements.add(new AbstractMap.SimpleEntry<>(invocation, newExpr));
         }
         System.out.println(replacements);
-        // TODO Bisognerebbe costruire una lista di coppie (SimpleEntry va bene) e darla a proposal
 
         // TODO OPZIONALE: Aggiungere import di SparseArray se assente: serve il campo proposedImport in IDSProposal
         String actualCode = methodSmell.getMethod().getLegacyMethodBean().getTextContent();
-        String proposedCode = actualCode.replace(varDecl.toString(), newVarDecl.toString());
+        String proposedCode = actualCode.replace(smellyVarDecl.toString(), newVarDecl.toString());
         for (AbstractMap.SimpleEntry<MethodInvocation, Expression> entry : replacements) {
             proposedCode = proposedCode.replace(entry.getKey().toString(), entry.getValue().toString());
         }
 
-        ArrayList<String> actualHighlights = new ArrayList<>();
-        actualHighlights.add(varDecl.toString());
+        ArrayList<String> currentHighlights = new ArrayList<>();
+        currentHighlights.add(smellyVarDecl.toString());
         ArrayList<String> proposedHighlights = new ArrayList<>();
         proposedHighlights.add(newVarDecl.toString());
         for (AbstractMap.SimpleEntry<MethodInvocation, Expression> entry : replacements) {
-            actualHighlights.add(entry.getKey().toString());
+            currentHighlights.add(entry.getKey().toString());
             proposedHighlights.add(entry.getValue().toString());
         }
 
@@ -187,7 +173,7 @@ public class IDSProposer extends MethodSmellProposer {
         proposal.setProposedVarDecl(newVarDecl);
         proposal.setInvocationReplacements(replacements);
         proposal.setProposedCode(proposedCode);
-        proposal.setActualHighlights(actualHighlights);
+        proposal.setCurrentHighlights(currentHighlights);
         proposal.setProposedHighlights(proposedHighlights);
         return proposal;
     }

@@ -4,16 +4,13 @@ import org.eclipse.jdt.core.dom.MethodDeclaration;
 
 public class DWProposal extends MethodProposal {
 
-    private MethodDeclaration proposedMethodDeclaration;
+    private MethodDeclaration proposedMethodDecl;
 
-    public DWProposal() {
+    public MethodDeclaration getProposedMethodDecl() {
+        return proposedMethodDecl;
     }
 
-    public MethodDeclaration getProposedMethodDeclaration() {
-        return proposedMethodDeclaration;
-    }
-
-    public void setProposedMethodDeclaration(MethodDeclaration proposedMethodDeclaration) {
-        this.proposedMethodDeclaration = proposedMethodDeclaration;
+    public void setProposedMethodDecl(MethodDeclaration proposedMethodDecl) {
+        this.proposedMethodDecl = proposedMethodDecl;
     }
 }

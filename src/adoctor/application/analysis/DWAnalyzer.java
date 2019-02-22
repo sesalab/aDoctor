@@ -5,49 +5,39 @@ import adoctor.application.bean.Method;
 import adoctor.application.bean.smell.DWSmell;
 import org.eclipse.jdt.core.dom.*;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 @SuppressWarnings("unchecked")
 public class DWAnalyzer extends MethodSmellAnalyzer {
 
-    // Warning: Source code with method-level compile error and accents might give problems in the methodDeclaration fetch
     @Override
-    public DWSmell analyzeMethod(Method method) throws IOException {
+    public DWSmell analyzeMethod(Method method) {
         if (method == null) {
             return null;
         }
-        File sourceFile = method.getSourceFile();
-        if (sourceFile == null) {
-            return null;
-        }
-        CompilationUnit compilationUnit = ASTUtilities.getCompilationUnit(sourceFile);
-        if (compilationUnit == null) {
-            return null;
-        }
-        MethodDeclaration methodDeclaration = ASTUtilities.getMethodDeclarationFromContent(compilationUnit, method.getLegacyMethodBean().getTextContent());
-        if (methodDeclaration == null) {
+        MethodDeclaration methodDecl = method.getMethodDecl();
+        if (methodDecl == null) {
             return null;
         }
 
         boolean smellFound = false;
         Block acquireBlock = null;
         Statement acquireStatement = null;
-        ArrayList<Block> methodBlockList = ASTUtilities.getBlocks(methodDeclaration);
+        ArrayList<Block> blocks = ASTUtilities.getBlocks(methodDecl);
         // Look for the block with acquire() but not the release()
-        for (int k = 0; k < methodBlockList.size() && !smellFound; k++) {
-            Block block = methodBlockList.get(k);
-            List<Statement> statementList = (List<Statement>) block.statements();
-            for (int i = 0; i < statementList.size(); i++) {
-                Statement statement = statementList.get(i);
+        for (int k = 0; k < blocks.size() && !smellFound; k++) {
+            Block block = blocks.get(k);
+            List<Statement> statements = (List<Statement>) block.statements();
+            for (int i = 0; i < statements.size(); i++) {
+                Statement statement = statements.get(i);
                 String callerName = ASTUtilities.getCallerName(statement, DWSmell.ACQUIRE_NAME);
                 if (callerName != null) {
                     // Check type of the caller
+                    CompilationUnit compilationUnit = (CompilationUnit) methodDecl.getRoot();
                     FieldDeclaration fieldDeclaration = ASTUtilities.getFieldDeclarationFromName(compilationUnit, callerName);
                     VariableDeclarationStatement variableDeclarationStatement = ASTUtilities
-                            .getVariableDeclarationStatementFromName(methodDeclaration, callerName);
+                            .getVariableDeclarationStatementFromName(methodDecl, callerName);
                     if (fieldDeclaration != null && fieldDeclaration.getType().toString().equals(DWSmell.WAKELOCK_CLASS)
                             || variableDeclarationStatement != null && variableDeclarationStatement.getType()
                             .toString().equals(DWSmell.WAKELOCK_CLASS)) {
@@ -56,8 +46,8 @@ public class DWAnalyzer extends MethodSmellAnalyzer {
                         if (arguments == null || arguments.size() == 0) {
                             // Look for corresponding release
                             boolean releaseFound = false;
-                            for (int j = i + 1; j < statementList.size() && !releaseFound; j++) {
-                                Statement statement2 = statementList.get(j);
+                            for (int j = i + 1; j < statements.size() && !releaseFound; j++) {
+                                Statement statement2 = statements.get(j);
                                 String callerName2 = ASTUtilities.getCallerName(statement2, DWSmell.RELEASE_NAME);
                                 if (callerName.equals(callerName2)) {
                                     releaseFound = true;

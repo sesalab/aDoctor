@@ -31,11 +31,11 @@ public abstract class MethodSmellRefactorer {
         this.fileRewriter = fileRewriter;
     }
 
-    public CompilationUnit getCompilationUnit(MethodProposal methodProposal) throws IOException {
-        if (methodProposal == null || methodProposal.getMethodSmell() == null || methodProposal.getMethodSmell().getMethod().getSourceFile() == null) {
+    CompilationUnit getCompilationUnit(MethodProposal proposal) throws IOException {
+        if (proposal == null || proposal.getMethodSmell() == null || proposal.getMethodSmell().getMethod().getSourceFile() == null) {
             return null;
         }
-        File sourceFile = methodProposal.getMethodSmell().getMethod().getSourceFile();
+        File sourceFile = proposal.getMethodSmell().getMethod().getSourceFile();
         return ASTUtilities.getCompilationUnit(sourceFile);
     }
 

@@ -125,7 +125,7 @@ public class SmellDialog extends AbstractDialog {
 
         String actualCode = selectedSmell.getMethod().getLegacyMethodBean().getTextContent();
         if (methodProposal != null) {
-            prepareArea(areaActualCode, actualCode, methodProposal.getActualHighlights());
+            prepareArea(areaActualCode, actualCode, methodProposal.getCurrentHighlights());
             String proposalCode = methodProposal.getProposedCode();
             prepareArea(areaProposedCode, proposalCode, methodProposal.getProposedHighlights());
         } else {

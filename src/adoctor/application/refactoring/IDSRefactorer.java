@@ -1,10 +1,9 @@
 package adoctor.application.refactoring;
 
-import adoctor.application.ast.ASTUtilities;
 import adoctor.application.bean.proposal.IDSProposal;
 import adoctor.application.bean.proposal.MethodProposal;
+import adoctor.application.bean.smell.IDSSmell;
 import org.eclipse.jdt.core.dom.CompilationUnit;
-import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.VariableDeclarationStatement;
 import org.eclipse.jdt.core.dom.rewrite.ASTRewrite;
 import org.eclipse.jface.text.BadLocationException;
@@ -15,25 +14,26 @@ import java.io.IOException;
 public class IDSRefactorer extends MethodSmellRefactorer {
     @Override
     public boolean applyRefactoring(MethodProposal methodProposal) throws BadLocationException, IOException {
-        // Preconditions check
+        if (methodProposal == null) {
+            return false;
+        }
         if (!(methodProposal instanceof IDSProposal)) {
             return false;
         }
         IDSProposal idsProposal = (IDSProposal) methodProposal;
+
+        VariableDeclarationStatement smellyVarDecl = ((IDSSmell) idsProposal.getMethodSmell()).getSmellyVarDecl();
         VariableDeclarationStatement proposedVarDecl = idsProposal.getProposedVarDecl();
-        CompilationUnit compilationUnit = getCompilationUnit(methodProposal);
-        if (compilationUnit == null) {
-            return false;
-        }
-        // MethodDeclaration to be replaced
-        MethodDeclaration targetMethod = ASTUtilities.getMethodDeclarationFromContent(compilationUnit, methodProposal.getMethodSmell().getMethod().getLegacyMethodBean().getTextContent());
-        if (targetMethod == null) {
+        if (smellyVarDecl == null || proposedVarDecl == null) {
             return false;
         }
 
-        // Accumulate the replacements
+        // Creation of the rewriter
+        CompilationUnit compilationUnit = (CompilationUnit) smellyVarDecl.getRoot();
         ASTRewrite astRewrite = ASTRewrite.create(compilationUnit.getAST());
-        //astRewrite.replace(targetMethod, proposedMethod, null);
+        // Accumulate the replacements
+        astRewrite.replace(smellyVarDecl, proposedVarDecl, null);
+        //TODO Gli altri replace
 
         UndoEdit undoEdit = rewriteFile(methodProposal, astRewrite);
         //TODO Eliminare

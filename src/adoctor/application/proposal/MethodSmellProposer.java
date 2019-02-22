@@ -8,5 +8,4 @@ import java.io.IOException;
 public abstract class MethodSmellProposer {
 
     public abstract MethodProposal computeProposal(MethodSmell methodSmell) throws IOException;
-
 }

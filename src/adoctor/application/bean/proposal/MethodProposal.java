@@ -7,7 +7,7 @@ import java.util.ArrayList;
 public abstract class MethodProposal extends Proposal {
     private MethodSmell methodSmell;
     private String proposedCode;
-    private ArrayList<String> actualHighlights;
+    private ArrayList<String> currentHighlights;
     private ArrayList<String> proposedHighlights;
 
     MethodProposal() {
@@ -29,12 +29,12 @@ public abstract class MethodProposal extends Proposal {
         this.proposedCode = proposedCode;
     }
 
-    public ArrayList<String> getActualHighlights() {
-        return actualHighlights;
+    public ArrayList<String> getCurrentHighlights() {
+        return currentHighlights;
     }
 
-    public void setActualHighlights(ArrayList<String> actualHighlights) {
-        this.actualHighlights = actualHighlights;
+    public void setCurrentHighlights(ArrayList<String> currentHighlights) {
+        this.currentHighlights = currentHighlights;
     }
 
     public ArrayList<String> getProposedHighlights() {
