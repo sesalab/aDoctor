@@ -8,6 +8,9 @@ import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ex.ProjectManagerEx;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileEvent;
 import com.intellij.openapi.vfs.VirtualFileManager;
 
 import java.util.ArrayList;
@@ -38,8 +41,9 @@ public class CoreDriver implements StartDialog.StartCallback,
 
     private void launchAnalysis() {
         // Save all files in the current project before starting the analysis
-        FileDocumentManager.getInstance().saveAllDocuments();
         project.save();
+        FileDocumentManager.getInstance().saveAllDocuments();
+        ProjectManagerEx.getInstanceEx().blockReloadingProjectOnExternalChanges();
 
         AnalysisDialog.show(this, project, selections, targetPackage);
     }
@@ -135,15 +139,16 @@ public class CoreDriver implements StartDialog.StartCallback,
         TransactionGuard.getInstance().assertWriteSafeContext(ModalityState.NON_MODAL);
         SaveAndSyncHandlerImpl.getInstance().refreshOpenFiles();
         VirtualFileManager.getInstance().refreshWithoutFileWatcher(false);
+        ProjectManagerEx.getInstanceEx().unblockReloadingProjectOnExternalChanges();
 
         if (!result) {
             FailureDialog.show(this);
         } else {
-            //methodProposal.getMethodSmell().setResolved(true);
             // Updates the editor with the changes made to the files
+            //TODO Funziona?
             Document[] documents = FileDocumentManager.getInstance().getUnsavedDocuments();
-            for (Document document1 : documents) {
-                FileDocumentManager.getInstance().reloadFromDisk(document1);
+            for (Document document : documents) {
+                FileDocumentManager.getInstance().reloadFromDisk(document);
             }
 
             SuccessDialog.show(this);

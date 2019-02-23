@@ -15,33 +15,25 @@ public class ERBAnalyzer extends MethodSmellAnalyzer {
 
     // Warning: Source code with method-level compile error and accents might give problems in the methodDeclaration fetch
     @Override
-    public ERBSmell analyzeMethod(Method method) throws IOException {
+    public ERBSmell analyzeMethod(Method method) {
         if (method == null) {
             return null;
         }
-        File sourceFile = method.getSourceFile();
-        if (sourceFile == null) {
-            return null;
-        }
-        CompilationUnit compilationUnit = ASTUtilities.getCompilationUnit(sourceFile);
-        if (compilationUnit == null) {
-            return null;
-        }
-        MethodDeclaration methodDeclaration = ASTUtilities.getMethodDeclarationFromContent(compilationUnit, method.getLegacyMethodBean().getTextContent());
-        if (methodDeclaration == null) {
+        MethodDeclaration methodDecl = method.getMethodDecl();
+        if (methodDecl == null) {
             return null;
         }
 
         // Only for public|protected void onCreate(Bundle)
         boolean onCreateFound = false;
-        if (methodDeclaration.getName().toString().equals(ERBSmell.ONCREATE_NAME)) {
-            Type returnType = methodDeclaration.getReturnType2();
+        if (methodDecl.getName().toString().equals(ERBSmell.ONCREATE_NAME)) {
+            Type returnType = methodDecl.getReturnType2();
             if (returnType != null && returnType.toString().equals(ERBSmell.ONCREATE_TYPE)) {
-                List modifierList = methodDeclaration.modifiers();
+                List modifierList = methodDecl.modifiers();
                 for (int i = 0; i < modifierList.size() && !onCreateFound; i++) {
                     IExtendedModifier modifier = (IExtendedModifier) modifierList.get(i);
                     if (modifier.toString().equals(ERBSmell.ONCREATE_SCOPE1) || modifier.toString().equals(ERBSmell.ONCREATE_SCOPE2)) {
-                        List parameters = methodDeclaration.parameters();
+                        List parameters = methodDecl.parameters();
                         if (parameters != null && parameters.size() > 0) {
                             SingleVariableDeclaration parameter = (SingleVariableDeclaration) parameters.get(0);
                             Type parameterType = parameter.getType();
@@ -56,7 +48,7 @@ public class ERBAnalyzer extends MethodSmellAnalyzer {
                     boolean smellFound = false;
                     Block requestBlock = null;
                     Statement requestStatement = null;
-                    ArrayList<Block> methodBlockList = ASTUtilities.getBlocks(methodDeclaration);
+                    ArrayList<Block> methodBlockList = ASTUtilities.getBlocks(methodDecl);
                     for (int j = 0; j < methodBlockList.size() && !smellFound; j++) {
                         Block block = methodBlockList.get(j);
                         List<Statement> statementList = (List<Statement>) block.statements();
@@ -64,6 +56,7 @@ public class ERBAnalyzer extends MethodSmellAnalyzer {
                             Statement statement = statementList.get(k);
                             String callerName = ASTUtilities.getCallerName(statement, ERBSmell.GPS_REQUEST_METHOD_NAME);
                             if (callerName != null) {
+                                CompilationUnit compilationUnit = (CompilationUnit) methodDecl.getRoot();
                                 FieldDeclaration fieldDeclaration = ASTUtilities.getFieldDeclarationFromName(compilationUnit, callerName);
                                 if (fieldDeclaration != null) {
                                     smellFound = true;

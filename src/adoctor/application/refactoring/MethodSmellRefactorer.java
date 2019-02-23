@@ -31,14 +31,6 @@ public abstract class MethodSmellRefactorer {
         this.fileRewriter = fileRewriter;
     }
 
-    CompilationUnit getCompilationUnit(MethodProposal proposal) throws IOException {
-        if (proposal == null || proposal.getMethodSmell() == null || proposal.getMethodSmell().getMethod().getSourceFile() == null) {
-            return null;
-        }
-        File sourceFile = proposal.getMethodSmell().getMethod().getSourceFile();
-        return ASTUtilities.getCompilationUnit(sourceFile);
-    }
-
     UndoEdit rewriteFile(MethodProposal methodProposal, ASTRewrite astRewrite) throws IOException, BadLocationException {
         File sourceFile = methodProposal.getMethodSmell().getMethod().getSourceFile();
         Document document = new Document(FileUtilities.readFile(sourceFile.getAbsolutePath()));

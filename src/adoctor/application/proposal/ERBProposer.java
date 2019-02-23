@@ -1,71 +1,51 @@
 package adoctor.application.proposal;
 
 import adoctor.application.ast.ASTUtilities;
-import adoctor.application.bean.Method;
 import adoctor.application.bean.proposal.ERBProposal;
 import adoctor.application.bean.smell.ERBSmell;
 import adoctor.application.bean.smell.MethodSmell;
 import org.eclipse.jdt.core.dom.*;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 @SuppressWarnings("unchecked")
 public class ERBProposer extends MethodSmellProposer {
 
-    public ERBProposer() {
-
-    }
-
     @Override
-    public ERBProposal computeProposal(MethodSmell methodSmell) throws IOException {
+    public ERBProposal computeProposal(MethodSmell methodSmell) {
+        if (methodSmell == null) {
+            return null;
+        }
         if (!(methodSmell instanceof ERBSmell)) {
             return null;
         }
         ERBSmell erbSmell = (ERBSmell) methodSmell;
-        Method method = erbSmell.getMethod();
-        if (method == null) {
+        MethodDeclaration smellyOnCreate = erbSmell.getMethod().getMethodDecl();
+        if (smellyOnCreate == null) {
             return null;
         }
-        File sourceFile = method.getSourceFile();
-        if (sourceFile == null) {
-            return null;
-        }
-        CompilationUnit compilationUnit = ASTUtilities.getCompilationUnit(sourceFile);
-        if (compilationUnit == null) {
-            return null;
-        }
-        MethodDeclaration onCreateMethodDeclaration = ASTUtilities.getMethodDeclarationFromContent(compilationUnit, method.getLegacyMethodBean().getTextContent());
-        if (onCreateMethodDeclaration == null) {
-            return null;
-        }
-
-        // Important part starts here
         Statement requestStatement = erbSmell.getRequestStatement();
         if (requestStatement == null) {
             return null;
         }
-        AST targetAST = compilationUnit.getAST();
+        AST targetAST = smellyOnCreate.getAST();
 
-        ArrayList<String> actualHighlights = new ArrayList<>();
-        actualHighlights.add(requestStatement.toString());
-        ArrayList<String> proposedHighlights = new ArrayList<>();
-        // Only for public|protected void onResume()
+        // Look for public|protected void onResume()
         boolean foundOnResume = false;
-        MethodDeclaration proposedOnResumeMethodDeclaration = ASTUtilities.getMethodDeclarationFromName(compilationUnit, ERBSmell.ONRESUME_NAME);
-        if (proposedOnResumeMethodDeclaration != null) {
-            Type returnType = proposedOnResumeMethodDeclaration.getReturnType2();
+        CompilationUnit compilationUnit = (CompilationUnit) smellyOnCreate.getRoot();
+        MethodDeclaration onResume = ASTUtilities.getMethodDeclarationFromName(compilationUnit, ERBSmell.ONRESUME_NAME);
+        if (onResume != null) {
+            Type returnType = onResume.getReturnType2();
             if (returnType != null && returnType.toString().equals(ERBSmell.ONCREATE_TYPE)) {
                 boolean found = false;
                 int i = 0;
-                List modifierList = proposedOnResumeMethodDeclaration.modifiers();
+                List modifierList = onResume.modifiers();
                 int n = modifierList.size();
                 while (!found && i < n) {
                     IExtendedModifier modifier = (IExtendedModifier) modifierList.get(i);
                     if (modifier.toString().equals(ERBSmell.ONCREATE_SCOPE1) || modifier.toString().equals(ERBSmell.ONCREATE_SCOPE2)) {
-                        List parameters = proposedOnResumeMethodDeclaration.parameters();
+                        List parameters = onResume.parameters();
                         if (parameters == null || parameters.size() == 0) {
                             found = true;
                         }
@@ -76,55 +56,56 @@ public class ERBProposer extends MethodSmellProposer {
             }
         }
 
-        // Create the new statement for onResume
-        ExpressionStatement requestExpressionStatementTEMP = (ExpressionStatement) requestStatement;
-        ExpressionStatement requestExpressionStatement = ASTUtilities.getExpressionStatementFromContent(onCreateMethodDeclaration, requestExpressionStatementTEMP.toString());
-        if (requestExpressionStatement == null) {
-            return null;
-        }
-        Expression requestExpression = requestExpressionStatement.getExpression();
-        Statement newRequestStatement = targetAST.newExpressionStatement((Expression) ASTNode.copySubtree(targetAST, requestExpression));
-
-        // Remove from onCreate
-        Block requestBlock = ASTUtilities.getBlockFromContent(onCreateMethodDeclaration, erbSmell.getRequestBlock().toString());
-        if (requestBlock == null) {
-            return null;
-        }
-        List<Statement> statementList = (List<Statement>) requestBlock.statements();
-        statementList.remove(requestExpressionStatement);
-
-        MethodDeclaration actualOnResumeMethodDeclaration = null;
-        if (!foundOnResume) {
+        // Creation of the new onResume
+        MethodDeclaration newOnResume;
+        if (foundOnResume) {
+            newOnResume = (MethodDeclaration) ASTNode.copySubtree(targetAST, onResume);
+        } else {
             SimpleName onResumeIdentifier = targetAST.newSimpleName(ERBSmell.ONRESUME_NAME);
             Modifier onResumePublicModifier = targetAST.newModifier(Modifier.ModifierKeyword.PUBLIC_KEYWORD);
             Block onResumeBody = targetAST.newBlock();
 
-            proposedOnResumeMethodDeclaration = targetAST.newMethodDeclaration();
-            proposedOnResumeMethodDeclaration.setName(onResumeIdentifier);
-            proposedOnResumeMethodDeclaration.modifiers().add(onResumePublicModifier);
-            proposedOnResumeMethodDeclaration.setBody(onResumeBody);
-        } else {
-            actualOnResumeMethodDeclaration = (MethodDeclaration) ASTNode.copySubtree(targetAST, proposedOnResumeMethodDeclaration);
+            newOnResume = targetAST.newMethodDeclaration();
+            newOnResume.setName(onResumeIdentifier);
+            newOnResume.modifiers().add(onResumePublicModifier);
+            newOnResume.setBody(onResumeBody);
         }
 
-        // Add at the bottom of the onResume
-        List<Statement> onResumeStatementList = (List<Statement>) proposedOnResumeMethodDeclaration.getBody().statements();
-        onResumeStatementList.add(newRequestStatement);
+        // Creation of the new statement for the onResume and removal from the new onCreate
+        MethodDeclaration newOnCreate = (MethodDeclaration) ASTNode.copySubtree(targetAST, smellyOnCreate);
+        ExpressionStatement requestExpressionStatement = ASTUtilities.getExpressionStatementFromContent(newOnCreate, requestStatement.toString());
+        if (requestExpressionStatement == null) {
+            return null;
+        }
+        Statement newRequestStatement = targetAST.newExpressionStatement((Expression) ASTNode.copySubtree(targetAST, requestExpressionStatement.getExpression()));
+        Block requestBlock = ASTUtilities.getBlockFromContent(newOnCreate, erbSmell.getRequestBlock().toString());
+        if (requestBlock == null) {
+            return null;
+        }
+        List<Statement> statements = (List<Statement>) requestBlock.statements();
+        statements.remove(requestExpressionStatement);
 
-        if (!foundOnResume) {
-            String onResumeMethodDeclarationString = proposedOnResumeMethodDeclaration.toString();
-            proposedHighlights.add(onResumeMethodDeclarationString);
-        } else {
+        // Addition of the new statement at the bottom of the new onResume
+        List<Statement> onResumeStatements = (List<Statement>) newOnResume.getBody().statements();
+        onResumeStatements.add(newRequestStatement);
+
+        // Highlights
+        ArrayList<String> currentHighlights = new ArrayList<>();
+        currentHighlights.add(requestStatement.toString());
+        ArrayList<String> proposedHighlights = new ArrayList<>();
+        if (foundOnResume) {
             proposedHighlights.add(newRequestStatement.toString());
+        } else {
+            proposedHighlights.add(newOnResume.toString());
         }
 
         ERBProposal proposal = new ERBProposal();
         proposal.setMethodSmell(erbSmell);
-        proposal.setProposedOnCreate(onCreateMethodDeclaration);
-        proposal.setActualOnResume(actualOnResumeMethodDeclaration);
-        proposal.setProposedOnResume(proposedOnResumeMethodDeclaration);
-        proposal.setProposedCode(onCreateMethodDeclaration.toString() + "\n" + proposedOnResumeMethodDeclaration.toString());
-        proposal.setCurrentHighlights(actualHighlights);
+        proposal.setProposedOnCreate(newOnCreate);
+        proposal.setCurrentOnResume(onResume);
+        proposal.setProposedOnResume(newOnResume);
+        proposal.setProposedCode(newOnCreate.toString() + "\n" + newOnResume.toString());
+        proposal.setCurrentHighlights(currentHighlights);
         proposal.setProposedHighlights(proposedHighlights);
         return proposal;
     }

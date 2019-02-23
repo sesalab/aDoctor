@@ -6,18 +6,15 @@ import org.eclipse.jdt.core.dom.MethodDeclaration;
 public class ERBProposal extends MethodProposal {
 
     private MethodDeclaration proposedOnCreate;
-    private MethodDeclaration actualOnResume;
+    private MethodDeclaration currentOnResume;
     private MethodDeclaration proposedOnResume;
 
-    public ERBProposal() {
+    public MethodDeclaration getCurrentOnResume() {
+        return currentOnResume;
     }
 
-    public MethodDeclaration getActualOnResume() {
-        return actualOnResume;
-    }
-
-    public void setActualOnResume(MethodDeclaration actualOnResume) {
-        this.actualOnResume = actualOnResume;
+    public void setCurrentOnResume(MethodDeclaration currentOnResume) {
+        this.currentOnResume = currentOnResume;
     }
 
     public MethodDeclaration getProposedOnCreate() {
