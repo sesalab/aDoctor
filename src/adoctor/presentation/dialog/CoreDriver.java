@@ -3,15 +3,10 @@ package adoctor.presentation.dialog;
 import adoctor.application.bean.proposal.MethodProposal;
 import adoctor.application.bean.smell.MethodSmell;
 import com.intellij.ide.SaveAndSyncHandlerImpl;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
-import com.intellij.openapi.application.TransactionGuard;
-import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ex.ProjectManagerEx;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.vfs.VirtualFileEvent;
-import com.intellij.openapi.vfs.VirtualFileManager;
 
 import java.util.ArrayList;
 
@@ -43,7 +38,8 @@ public class CoreDriver implements StartDialog.StartCallback,
         // Save all files in the current project before starting the analysis
         project.save();
         FileDocumentManager.getInstance().saveAllDocuments();
-        ProjectManagerEx.getInstanceEx().blockReloadingProjectOnExternalChanges();
+        SaveAndSyncHandlerImpl.getInstance().refreshOpenFiles();
+        //ProjectManagerEx.getInstanceEx().blockReloadingProjectOnExternalChanges();
 
         AnalysisDialog.show(this, project, selections, targetPackage);
     }
@@ -136,22 +132,35 @@ public class CoreDriver implements StartDialog.StartCallback,
         refactoringDialog.dispose();
 
         // Refreshes the Editor in order to reflect the changes to the files
-        TransactionGuard.getInstance().assertWriteSafeContext(ModalityState.NON_MODAL);
-        SaveAndSyncHandlerImpl.getInstance().refreshOpenFiles();
-        VirtualFileManager.getInstance().refreshWithoutFileWatcher(false);
-        ProjectManagerEx.getInstanceEx().unblockReloadingProjectOnExternalChanges();
-
-        if (!result) {
-            FailureDialog.show(this);
-        } else {
-            // Updates the editor with the changes made to the files
-            //TODO Funziona?
-            Document[] documents = FileDocumentManager.getInstance().getUnsavedDocuments();
-            for (Document document : documents) {
-                FileDocumentManager.getInstance().reloadFromDisk(document);
+        ApplicationManager.getApplication().invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                SaveAndSyncHandlerImpl.getInstance().refreshOpenFiles();
             }
+        }, ModalityState.NON_MODAL);
 
+        /* Fired when all modal dialogs are closed
+        TransactionGuardImpl.submitTransaction(Disposer.newDisposable(), new Runnable() {
+            @Override
+            public void run() {
+                SaveAndSyncHandlerImpl.getInstance().refreshOpenFiles();
+            }
+        });
+        */
+        // VirtualFileManager.getInstance().refreshWithoutFileWatcher(false);
+        // ProjectManagerEx.getInstanceEx().unblockReloadingProjectOnExternalChanges();
+        /* Useless...
+            Document[] documents = FileDocumentManager.getInstance().getUnsavedDocuments();
+            System.out.println(documents.length);
+            for (Document document : documents) {
+                FileDocumentManager.getInstance().saveDocument(document);
+            }
+        */
+
+        if (result) {
             SuccessDialog.show(this);
+        } else {
+            FailureDialog.show(this);
         }
     }
 
