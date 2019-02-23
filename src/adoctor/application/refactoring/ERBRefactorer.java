@@ -28,6 +28,9 @@ public class ERBRefactorer extends MethodSmellRefactorer {
         MethodDeclaration proposedOnCreate = erbProposal.getProposedOnCreate();
         MethodDeclaration currentOnResume = erbProposal.getCurrentOnResume();
         MethodDeclaration proposedOnResume = erbProposal.getProposedOnResume();
+        if (currentOnCreate == null || proposedOnCreate == null || currentOnResume == null || proposedOnResume == null) {
+            return false;
+        }
 
         // Creation of the rewriter
         CompilationUnit compilationUnit = (CompilationUnit) currentOnCreate.getRoot();

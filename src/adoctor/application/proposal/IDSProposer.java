@@ -64,22 +64,23 @@ public class IDSProposer extends MethodSmellProposer {
         List<MethodInvocation> allInvocations = ASTUtilities.getMethodInvocations(smellyVarDecl.getParent());
         List<MethodInvocation> invocations = new ArrayList<>();
         for (MethodInvocation invocation : allInvocations) {
-            if (variables.contains(invocation.getExpression().toString())) {
-                String methodName = invocation.getName().getIdentifier();
-                if (methodName.equals(IDSProposal.REMOVE) && invocation.arguments().size() == 2
-                        || methodName.equals(IDSProposal.CONTAINS_KEY)
-                        || methodName.equals(IDSProposal.CONTAINS_VALUE)
-                        || methodName.equals(IDSProposal.IS_EMPTY)
+            if (invocation.getExpression() != null) {
+                if (variables.contains(invocation.getExpression().toString())) {
+                    String methodName = invocation.getName().getIdentifier();
+                    if (methodName.equals(IDSProposal.REMOVE) && invocation.arguments().size() == 2
+                            || methodName.equals(IDSProposal.CONTAINS_KEY)
+                            || methodName.equals(IDSProposal.CONTAINS_VALUE)
+                            || methodName.equals(IDSProposal.IS_EMPTY)
                         /*
                         || methodName.equals(IDSProposal.ENTRY_SET)
                         || methodName.equals(IDSProposal.KEY_SET)
                         || methodName.equals(IDSProposal.VALUES)
                         || methodName.equals(IDSProposal.PUT_ALL)*/) {
-                    invocations.add(invocation);
+                        invocations.add(invocation);
+                    }
                 }
             }
         }
-        System.out.println(invocations);
         // Creation of list of the new Expressions (mainly MethodInvocations, but not only)
         List<AbstractMap.SimpleEntry<MethodInvocation, Expression>> replacements = new ArrayList<>();
         for (MethodInvocation invocation : invocations) {
@@ -150,18 +151,34 @@ public class IDSProposer extends MethodSmellProposer {
             }
             replacements.add(new AbstractMap.SimpleEntry<>(invocation, newExpr));
         }
-        System.out.println(replacements);
 
-        // TODO OPZIONALE: Aggiungere import di SparseArray se assente: serve il campo proposedImport in IDSProposal
+        // Proposal of import android.util.SparseArray if not present
+        ImportDeclaration newImportDecl = targetAST.newImportDeclaration();
+        newImportDecl.setName(targetAST.newName((IDSProposal.IMPORT)));
+        CompilationUnit compilationUnit = (CompilationUnit) smellyMethodDecl.getRoot();
+        List<ImportDeclaration> imports = compilationUnit.imports();
+        for (ImportDeclaration anImport : imports) {
+            if (anImport.getName().toString().equals(IDSProposal.IMPORT)) {
+                newImportDecl = null;
+            }
+        }
+
+        // Data useful for presentation
         String actualCode = methodSmell.getMethod().getLegacyMethodBean().getTextContent();
         String proposedCode = actualCode.replace(smellyVarDecl.toString(), newVarDecl.toString());
         for (AbstractMap.SimpleEntry<MethodInvocation, Expression> entry : replacements) {
             proposedCode = proposedCode.replace(entry.getKey().toString(), entry.getValue().toString());
         }
+        if (newImportDecl != null) {
+            proposedCode = newImportDecl.toString() + "\n" + proposedCode;
+        }
 
         ArrayList<String> currentHighlights = new ArrayList<>();
         currentHighlights.add(smellyVarDecl.toString());
         ArrayList<String> proposedHighlights = new ArrayList<>();
+        if (newImportDecl != null) {
+            proposedHighlights.add(newImportDecl.toString());
+        }
         proposedHighlights.add(newVarDecl.toString());
         for (AbstractMap.SimpleEntry<MethodInvocation, Expression> entry : replacements) {
             currentHighlights.add(entry.getKey().toString());
@@ -172,6 +189,7 @@ public class IDSProposer extends MethodSmellProposer {
         proposal.setMethodSmell(methodSmell);
         proposal.setProposedVarDecl(newVarDecl);
         proposal.setInvocationReplacements(replacements);
+        proposal.setNewImportDecl(newImportDecl);
         proposal.setProposedCode(proposedCode);
         proposal.setCurrentHighlights(currentHighlights);
         proposal.setProposedHighlights(proposedHighlights);

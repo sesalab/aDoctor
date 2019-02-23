@@ -1,6 +1,7 @@
 package adoctor.application.bean.proposal;
 
 import org.eclipse.jdt.core.dom.Expression;
+import org.eclipse.jdt.core.dom.ImportDeclaration;
 import org.eclipse.jdt.core.dom.MethodInvocation;
 import org.eclipse.jdt.core.dom.VariableDeclarationStatement;
 
@@ -8,6 +9,7 @@ import java.util.AbstractMap;
 import java.util.List;
 
 public class IDSProposal extends MethodProposal {
+    public static final String IMPORT = "android.util.SparseArray";
     public static final String REMOVE = "remove";
     public static final String CONTAINS_KEY = "containsKey";
     public static final String CONTAINS_VALUE = "containsValue";
@@ -22,6 +24,7 @@ public class IDSProposal extends MethodProposal {
     
     private VariableDeclarationStatement proposedVarDecl;
     private List<AbstractMap.SimpleEntry<MethodInvocation, Expression>> invocationReplacements;
+    private ImportDeclaration newImportDecl;
 
     public VariableDeclarationStatement getProposedVarDecl() {
         return proposedVarDecl;
@@ -37,5 +40,13 @@ public class IDSProposal extends MethodProposal {
 
     public void setInvocationReplacements(List<AbstractMap.SimpleEntry<MethodInvocation, Expression>> invocationReplacements) {
         this.invocationReplacements = invocationReplacements;
+    }
+
+    public ImportDeclaration getNewImportDecl() {
+        return newImportDecl;
+    }
+
+    public void setNewImportDecl(ImportDeclaration newImportDecl) {
+        this.newImportDecl = newImportDecl;
     }
 }

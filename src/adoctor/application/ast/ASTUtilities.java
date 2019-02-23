@@ -231,5 +231,15 @@ public class ASTUtilities {
             return simpleNames;
         }
     }
+
+    public static List<ImportDeclaration> getImportDeclaration(ASTNode node) {
+        if (node == null) {
+            return null;
+        } else {
+            ArrayList<ImportDeclaration> importDeclarations = new ArrayList<>();
+            node.accept(new ImportDeclarationVisitor(importDeclarations));
+            return importDeclarations;
+        }
+    }
 }
 
