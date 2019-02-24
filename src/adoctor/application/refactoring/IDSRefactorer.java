@@ -15,19 +15,19 @@ import java.util.List;
 
 public class IDSRefactorer extends MethodSmellRefactorer {
     @Override
-    public boolean applyRefactoring(MethodProposal methodProposal) throws BadLocationException, IOException {
+    public UndoEdit applyRefactoring(MethodProposal methodProposal) throws BadLocationException, IOException {
         if (methodProposal == null) {
-            return false;
+            return null;
         }
         if (!(methodProposal instanceof IDSProposal)) {
-            return false;
+            return null;
         }
         IDSProposal idsProposal = (IDSProposal) methodProposal;
 
         VariableDeclarationStatement smellyVarDecl = ((IDSSmell) idsProposal.getMethodSmell()).getSmellyVarDecl();
         VariableDeclarationStatement proposedVarDecl = idsProposal.getProposedVarDecl();
         if (smellyVarDecl == null || proposedVarDecl == null) {
-            return false;
+            return null;
         }
 
         // Creation of the rewriter
@@ -46,12 +46,6 @@ public class IDSRefactorer extends MethodSmellRefactorer {
             listRewrite.insertLast(newImportDecl, null);
         }
 
-        UndoEdit undoEdit = rewriteFile(methodProposal, astRewrite);
-        //TODO Eliminare
-        if (undoEdit != null) {
-            return true;
-        } else {
-            return false;
-        }
+        return rewriteFile(methodProposal, astRewrite);
     }
 }

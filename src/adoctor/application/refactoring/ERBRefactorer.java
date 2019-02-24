@@ -15,12 +15,12 @@ import java.io.IOException;
 public class ERBRefactorer extends MethodSmellRefactorer {
 
     @Override
-    public boolean applyRefactoring(MethodProposal methodProposal) throws BadLocationException, IOException {
+    public UndoEdit applyRefactoring(MethodProposal methodProposal) throws BadLocationException, IOException {
         if (methodProposal == null) {
-            return false;
+            return null;
         }
         if (!(methodProposal instanceof ERBProposal)) {
-            return false;
+            return null;
         }
         ERBProposal erbProposal = (ERBProposal) methodProposal;
 
@@ -28,8 +28,8 @@ public class ERBRefactorer extends MethodSmellRefactorer {
         MethodDeclaration proposedOnCreate = erbProposal.getProposedOnCreate();
         MethodDeclaration currentOnResume = erbProposal.getCurrentOnResume();
         MethodDeclaration proposedOnResume = erbProposal.getProposedOnResume();
-        if (currentOnCreate == null || proposedOnCreate == null || currentOnResume == null || proposedOnResume == null) {
-            return false;
+        if (currentOnCreate == null || proposedOnCreate == null || proposedOnResume == null) {
+            return null;
         }
 
         // Creation of the rewriter
@@ -46,12 +46,6 @@ public class ERBRefactorer extends MethodSmellRefactorer {
             astRewrite.replace(currentOnResume, proposedOnResume, null);
         }
 
-        UndoEdit undoEdit = rewriteFile(methodProposal, astRewrite);
-        //TODO Eliminare
-        if (undoEdit != null) {
-            return true;
-        } else {
-            return false;
-        }
+        return rewriteFile(methodProposal, astRewrite);
     }
 }

@@ -37,18 +37,19 @@ public class SmellDialog extends AbstractDialog {
     private JTextArea areaProposedCode;
     private JButton buttonApply;
     private JButton buttonBack;
+    private JButton buttonUndo;
 
-    public static void show(SmellCallback smellCallback, ArrayList<MethodSmell> smellMethodList, boolean[] selections) {
-        SmellDialog smellDialog = new SmellDialog(smellCallback, smellMethodList, selections);
+    public static void show(SmellCallback smellCallback, ArrayList<MethodSmell> smellMethodList, boolean[] selections, boolean undoExists) {
+        SmellDialog smellDialog = new SmellDialog(smellCallback, smellMethodList, selections, undoExists);
 
         smellDialog.showInCenter();
     }
 
-    private SmellDialog(SmellCallback smellCallback, ArrayList<MethodSmell> methodSmells, boolean[] selections) {
-        init(smellCallback, methodSmells, selections);
+    private SmellDialog(SmellCallback smellCallback, ArrayList<MethodSmell> methodSmells, boolean[] selections, boolean undoExists) {
+        init(smellCallback, methodSmells, selections, undoExists);
     }
 
-    private void init(SmellCallback smellCallback, ArrayList<MethodSmell> methodSmells, boolean[] selections) {
+    private void init(SmellCallback smellCallback, ArrayList<MethodSmell> methodSmells, boolean[] selections, boolean undoExists) {
         super.init(contentPane, TITLE, buttonApply);
 
         this.smellCallback = smellCallback;
@@ -66,6 +67,7 @@ public class SmellDialog extends AbstractDialog {
         this.methodSmells = methodSmells;
         this.methodProposal = null;
 
+        buttonUndo.setVisible(undoExists);
         areaActualCode.setPreferredSize(null);
         areaProposedCode.setPreferredSize(null);
         // The smell list
@@ -84,7 +86,6 @@ public class SmellDialog extends AbstractDialog {
         });
         listSmell.setSelectedIndex(0); // Select the first smell of the list
 
-
         buttonApply.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 onApply();
@@ -94,6 +95,13 @@ public class SmellDialog extends AbstractDialog {
         buttonBack.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 onBack();
+            }
+        });
+
+        buttonUndo.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                onUndo();
             }
         });
 
@@ -134,6 +142,7 @@ public class SmellDialog extends AbstractDialog {
         }
     }
 
+    //TODO I colori sono dei blu randomici: sistemare e renderli consistenti
     private void prepareArea(JTextArea area, String code, ArrayList<String> strings) {
         try {
             area.setText(code);
@@ -186,11 +195,20 @@ public class SmellDialog extends AbstractDialog {
         smellCallback.smellQuit(this);
     }
 
+    private void onUndo() {
+        int dialogResult = JOptionPane.showConfirmDialog(this, "Are you sure to undo the last refactoring?", "Warning", JOptionPane.YES_NO_OPTION);
+        if (dialogResult == 0) {
+            smellCallback.smellUndo(this);
+        }
+    }
+
     interface SmellCallback {
         void smellApply(SmellDialog smellDialog, MethodProposal methodProposal);
 
         void smellBack(SmellDialog analysisDialog);
 
         void smellQuit(SmellDialog analysisDialog);
+
+        void smellUndo(SmellDialog analysisDialog);
     }
 }

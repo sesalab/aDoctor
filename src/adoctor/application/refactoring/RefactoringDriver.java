@@ -2,6 +2,7 @@ package adoctor.application.refactoring;
 
 import adoctor.application.bean.proposal.MethodProposal;
 import org.eclipse.jface.text.BadLocationException;
+import org.eclipse.text.edits.UndoEdit;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -16,15 +17,16 @@ public class RefactoringDriver {
         this.methodSmellRefactorers = methodSmellRefactorers;
     }
 
-    public boolean startRefactoring() throws IOException, BadLocationException {
+    public UndoEdit startRefactoring() throws IOException, BadLocationException {
         if (methodSmellRefactorers == null) {
-            return false;
+            return null;
         }
         for (MethodSmellRefactorer refactorer : methodSmellRefactorers) {
-            if (refactorer.applyRefactoring(methodProposal)) {
-                return true;
+            UndoEdit undoEdit = refactorer.applyRefactoring(methodProposal);
+            if (undoEdit != null) {
+                return undoEdit;
             }
         }
-        return false;
+        return null;
     }
 }

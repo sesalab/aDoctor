@@ -13,12 +13,12 @@ import java.io.IOException;
 public class DWRefactorer extends MethodSmellRefactorer {
 
     @Override
-    public boolean applyRefactoring(MethodProposal methodProposal) throws BadLocationException, IOException {
+    public UndoEdit applyRefactoring(MethodProposal methodProposal) throws BadLocationException, IOException {
         if (methodProposal == null) {
-            return false;
+            return null;
         }
         if (!(methodProposal instanceof DWProposal)) {
-            return false;
+            return null;
         }
         DWProposal dwProposal = (DWProposal) methodProposal;
 
@@ -26,7 +26,7 @@ public class DWRefactorer extends MethodSmellRefactorer {
         MethodDeclaration smellyMethodDecl = dwProposal.getMethodSmell().getMethod().getMethodDecl();
         MethodDeclaration proposedMethodDecl = dwProposal.getProposedMethodDecl();
         if (smellyMethodDecl == null || proposedMethodDecl == null) {
-            return false;
+            return null;
         }
 
         // Creation of the rewriter
@@ -35,12 +35,6 @@ public class DWRefactorer extends MethodSmellRefactorer {
         // Accumulate the replacements
         astRewrite.replace(smellyMethodDecl, proposedMethodDecl, null);
 
-        UndoEdit undoEdit = rewriteFile(methodProposal, astRewrite);
-        //TODO Eliminare
-        if (undoEdit != null) {
-            return true;
-        } else {
-            return false;
-        }
+        return rewriteFile(methodProposal, astRewrite);
     }
 }

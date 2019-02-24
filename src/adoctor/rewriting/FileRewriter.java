@@ -1,4 +1,4 @@
-package adoctor.application.refactoring.rewriting;
+package adoctor.rewriting;
 
 import java.io.File;
 import java.io.FileNotFoundException;

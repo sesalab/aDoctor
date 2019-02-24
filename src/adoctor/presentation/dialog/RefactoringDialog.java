@@ -3,6 +3,7 @@ package adoctor.presentation.dialog;
 import adoctor.application.bean.proposal.MethodProposal;
 import adoctor.application.refactoring.*;
 import org.eclipse.jface.text.BadLocationException;
+import org.eclipse.text.edits.UndoEdit;
 
 import javax.swing.*;
 import java.awt.event.WindowAdapter;
@@ -61,9 +62,9 @@ public class RefactoringDialog extends AbstractDialog {
     }
 
     private void startRefactoring() {
-        SwingWorker<Boolean, Void> swingWorker = new SwingWorker<Boolean, Void>() {
+        SwingWorker<UndoEdit, Void> swingWorker = new SwingWorker<UndoEdit, Void>() {
             @Override
-            protected Boolean doInBackground() {
+            protected UndoEdit doInBackground() {
                 try {
                     return refactoringDriver.startRefactoring();
                 } catch (IOException | BadLocationException e) {
@@ -74,14 +75,14 @@ public class RefactoringDialog extends AbstractDialog {
 
             @Override
             protected void done() {
-                boolean result;
+                UndoEdit undoEdit;
                 try {
-                    result = get();
+                    undoEdit = get();
                 } catch (InterruptedException | ExecutionException e) {
                     e.printStackTrace();
-                    result = false;
+                    undoEdit = null;
                 }
-                refactoringCallback.refactoringDone(RefactoringDialog.this, result);
+                refactoringCallback.refactoringDone(RefactoringDialog.this, undoEdit);
             }
         };
         swingWorker.execute();
@@ -92,7 +93,7 @@ public class RefactoringDialog extends AbstractDialog {
     }
 
     interface RefactoringCallback {
-        void refactoringDone(RefactoringDialog refactoringDialog, boolean result);
+        void refactoringDone(RefactoringDialog refactoringDialog, UndoEdit undoEdit);
 
         void refactoringQuit(RefactoringDialog refactoringDialog);
     }

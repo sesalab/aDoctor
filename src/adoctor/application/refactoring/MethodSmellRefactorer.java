@@ -1,10 +1,8 @@
 package adoctor.application.refactoring;
 
-import adoctor.application.ast.ASTUtilities;
 import adoctor.application.bean.proposal.MethodProposal;
-import adoctor.application.refactoring.rewriting.FileRewriter;
+import adoctor.rewriting.FileRewriter;
 import org.eclipse.jdt.core.JavaCore;
-import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.rewrite.ASTRewrite;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.Document;
@@ -35,7 +33,6 @@ public abstract class MethodSmellRefactorer {
         File sourceFile = methodProposal.getMethodSmell().getMethod().getSourceFile();
         Document document = new Document(FileUtilities.readFile(sourceFile.getAbsolutePath()));
         TextEdit edits = astRewrite.rewriteAST(document, JavaCore.getDefaultOptions()); // With JavaCore Options we keep the code format settings, so the \n
-        // TODO: Implementare uno stack di Undo, the UndoEdit could be used on the same document to reverse the changes
         UndoEdit undoEdit = edits.apply(document, TextEdit.CREATE_UNDO | TextEdit.UPDATE_REGIONS);
         String documentContent = document.get();
         boolean result = fileRewriter.writeText(sourceFile, documentContent);
@@ -46,5 +43,5 @@ public abstract class MethodSmellRefactorer {
         }
     }
 
-    public abstract boolean applyRefactoring(MethodProposal methodProposal) throws BadLocationException, IOException;
+    public abstract UndoEdit applyRefactoring(MethodProposal methodProposal) throws BadLocationException, IOException;
 }

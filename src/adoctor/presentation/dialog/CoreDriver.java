@@ -7,8 +7,10 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
+import org.eclipse.text.edits.UndoEdit;
 
 import java.util.ArrayList;
+import java.util.Stack;
 
 public class CoreDriver implements StartDialog.StartCallback,
         AboutDialog.AboutCallback,
@@ -21,13 +23,14 @@ public class CoreDriver implements StartDialog.StartCallback,
         FailureDialog.FailureCallback {
 
     private Project project;
+    private Stack<UndoEdit> undoStack;
     private boolean[] selections;
     private String targetPackage;
     private ArrayList<MethodSmell> methodSmells;
 
     public CoreDriver(Project project) {
         this.project = project;
-        this.methodSmells = null;
+        this.undoStack = new Stack<>();
     }
 
     public void start() {
@@ -85,7 +88,7 @@ public class CoreDriver implements StartDialog.StartCallback,
         if (methodSmells == null || methodSmells.size() == 0) {
             NoSmellDialog.show(this);
         } else {
-            SmellDialog.show(this, methodSmells, selections);
+            SmellDialog.show(this, methodSmells, selections, !undoStack.isEmpty());
         }
     }
 
@@ -126,9 +129,18 @@ public class CoreDriver implements StartDialog.StartCallback,
         smellDialog.dispose();
     }
 
+    @Override
+    public void smellUndo(SmellDialog smellDialog) {
+        //TODO Fai robe con l'undo
+        // 1.Segui lo stesso pattern di quando chiami RefactoringDialog, solo che chiami UndoDialog
+        // 2.Essa deve fare cose analoghe a RefactoringDialog
+        // 3.Al termine, rilancia di nuovo l'analisi con launchAnalysis()
+        System.out.println("E qui faccio l'undo");
+    }
+
     /////////////RefactoringDialog//////////////
     @Override
-    public void refactoringDone(RefactoringDialog refactoringDialog, boolean result) {
+    public void refactoringDone(RefactoringDialog refactoringDialog, UndoEdit undoEdit) {
         refactoringDialog.dispose();
 
         // Refreshes the Editor in order to reflect the changes to the files
@@ -138,6 +150,13 @@ public class CoreDriver implements StartDialog.StartCallback,
                 SaveAndSyncHandlerImpl.getInstance().refreshOpenFiles();
             }
         }, ModalityState.NON_MODAL);
+
+        if (undoEdit != null) {
+            undoStack.push(undoEdit);
+            SuccessDialog.show(this);
+        } else {
+            FailureDialog.show(this);
+        }
 
         /* Fired when all modal dialogs are closed
         TransactionGuardImpl.submitTransaction(Disposer.newDisposable(), new Runnable() {
@@ -156,12 +175,6 @@ public class CoreDriver implements StartDialog.StartCallback,
                 FileDocumentManager.getInstance().saveDocument(document);
             }
         */
-
-        if (result) {
-            SuccessDialog.show(this);
-        } else {
-            FailureDialog.show(this);
-        }
     }
 
     @Override
@@ -184,7 +197,7 @@ public class CoreDriver implements StartDialog.StartCallback,
     @Override
     public void failureBack(FailureDialog failureDialog) {
         failureDialog.dispose();
-        SmellDialog.show(this, methodSmells, selections);
+        SmellDialog.show(this, methodSmells, selections, !undoStack.isEmpty());
     }
 
     @Override
