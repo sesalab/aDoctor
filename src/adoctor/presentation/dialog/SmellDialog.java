@@ -5,8 +5,7 @@ import adoctor.application.bean.smell.MethodSmell;
 import adoctor.application.proposal.*;
 
 import javax.swing.*;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
+import javax.swing.plaf.basic.BasicComboBoxRenderer;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultHighlighter;
 import javax.swing.text.Highlighter;
@@ -19,9 +18,29 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Random;
 
-@SuppressWarnings("UseJBColor")
+@SuppressWarnings({"UseJBColor", "GtkPreferredJComboBoxRenderer"})
 public class SmellDialog extends AbstractDialog {
-    public static final String TITLE = "aDoctor - Smell list";
+    public static final String TITLE = "aDoctor - Smell List";
+    private static final String baseHTML = "" +
+            "<html>" +
+            "<body>" +
+            "<div style=\"margin:4px;\">" +
+            "<div style=\"font-size:14px;\"><b>" + "%s" + "</b></div>" +
+            "<div style=\"margin-left:8px;\">" + "%s" + "</div>" +
+            "</div>" +
+            "</body>" +
+            "</html>";
+    private static final String extendedHTML = "" +
+            "<html>" +
+            "<body>" +
+            "<div style=\"margin-left:4px; font-size:14px\">" +
+            "<div><b>Smell</b>: " + "%s" + "</div>" +
+            "<div style=\"margin-left:8px;\"><b>Description</b>: " + "%s" + "</div>" +
+            "<div style=\"margin-left:8px;\"><b>Class</b>: " + "%s" + "</div>" +
+            "<div style=\"margin-left:8px;\"><b>Method</b>: " + "%s" + "</div>" +
+            "</div>" +
+            "</body>" +
+            "</html>";
 
     private SmellCallback smellCallback;
     private ArrayList<MethodSmell> methodSmells;
@@ -29,10 +48,8 @@ public class SmellDialog extends AbstractDialog {
     private MethodProposal methodProposal;
 
     private JPanel contentPane;
-    private JList<String> listSmell;
-    private JLabel labelSmellName;
-    private JLabel labelIcon;
-    private JLabel labelClassName;
+    private JComboBox<MethodSmell> boxSmell;
+    private JTextPane paneDetails;
     private JTextArea areaActualCode;
     private JTextArea areaProposedCode;
     private JButton buttonApply;
@@ -41,7 +58,6 @@ public class SmellDialog extends AbstractDialog {
 
     public static void show(SmellCallback smellCallback, ArrayList<MethodSmell> smellMethodList, boolean[] selections, boolean undoExists) {
         SmellDialog smellDialog = new SmellDialog(smellCallback, smellMethodList, selections, undoExists);
-
         smellDialog.showInCenter();
     }
 
@@ -70,21 +86,20 @@ public class SmellDialog extends AbstractDialog {
         buttonUndo.setVisible(undoExists);
         areaActualCode.setPreferredSize(null);
         areaProposedCode.setPreferredSize(null);
+
         // The smell list
-        DefaultListModel<String> listSmellModel = (DefaultListModel<String>) listSmell.getModel();
+        this.boxSmell.setRenderer(new SmellRenderer());
+        boxSmell.removeAllItems();
         for (MethodSmell methodSmell : methodSmells) {
-            listSmellModel.addElement(buildElement(methodSmell));
+            boxSmell.addItem(methodSmell);
         }
-        listSmell.addListSelectionListener(new ListSelectionListener() {
+        boxSmell.addActionListener(new ActionListener() {
             @Override
-            public void valueChanged(ListSelectionEvent e) {
-                // This if statement prevents multiple fires
-                if (!e.getValueIsAdjusting()) {
-                    onSelectItem();
-                }
+            public void actionPerformed(ActionEvent e) {
+                onSelectItem();
             }
         });
-        listSmell.setSelectedIndex(0); // Select the first smell of the list
+        boxSmell.setSelectedIndex(0); // Select the first smell of the list
 
         buttonApply.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -114,15 +129,15 @@ public class SmellDialog extends AbstractDialog {
     }
 
     private void updateDetails() {
-        MethodSmell selectedSmell = methodSmells.get(listSmell.getSelectedIndex());
+        MethodSmell selectedSmell = methodSmells.get(boxSmell.getSelectedIndex());
 
-        // Selected Smell Description
-        String className = selectedSmell.getMethod().getLegacyMethodBean().getBelongingClass().getName();
-        String packageName = selectedSmell.getMethod().getLegacyMethodBean().getBelongingClass().getBelongingPackage();
-        String classFullName = packageName + "." + className;
-        labelClassName.setText(classFullName);
-        labelSmellName.setText(selectedSmell.getSmellName());
-        labelIcon.setToolTipText(selectedSmell.getSmellDescription());
+        // Updates the extended description
+        String smellName = selectedSmell.getSmellName();
+        String smellClass = selectedSmell.getMethod().getLegacyMethodBean().getBelongingClass().getName();
+        String smellDescription = selectedSmell.getSmellDescription();
+        String smellMethod = selectedSmell.getMethod().getLegacyMethodBean().getName();
+        String text = String.format(extendedHTML, smellName, smellDescription, smellClass, smellMethod);
+        paneDetails.setText(text);
 
         // Compute the proposal of the selected smell
         try {
@@ -130,6 +145,9 @@ public class SmellDialog extends AbstractDialog {
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        //TODO Introdurre il DIFF
+
 
         String actualCode = selectedSmell.getMethod().getLegacyMethodBean().getTextContent();
         if (methodProposal != null) {
@@ -142,7 +160,7 @@ public class SmellDialog extends AbstractDialog {
         }
     }
 
-    //TODO I colori sono dei blu randomici: sistemare e renderli consistenti
+    //TODO Introdurre il DIFF
     private void prepareArea(JTextArea area, String code, ArrayList<String> strings) {
         try {
             area.setText(code);
@@ -163,20 +181,6 @@ public class SmellDialog extends AbstractDialog {
             // When the index of the string to highlight is wrong
             e.printStackTrace();
         }
-    }
-
-    private String buildElement(MethodSmell methodSmell) {
-        String methodName = methodSmell.getMethod().getLegacyMethodBean().getName();
-        String smellName = methodSmell.getSmellName();
-        return "" +
-                "<html>" +
-                "<p style=\"margin:4px;\">" +
-                "<b>" + smellName + "</b>" +
-                "</p>" +
-                "<p style=\"margin-left:4px; margin-right:4px;\">" +
-                methodName +
-                "</p>" +
-                "</html>";
     }
 
     private void onSelectItem() {
@@ -210,5 +214,28 @@ public class SmellDialog extends AbstractDialog {
         void smellQuit(SmellDialog analysisDialog);
 
         void smellUndo(SmellDialog analysisDialog);
+    }
+
+    private class SmellRenderer extends BasicComboBoxRenderer {
+        @Override
+        public Component getListCellRendererComponent(JList list, Object value, int index,
+                                                      boolean isSelected, boolean cellHasFocus) {
+            JLabel label = new JLabel();
+            MethodSmell methodSmell = (MethodSmell) value;
+            label.setOpaque(true);
+            if (isSelected) {
+                label.setBackground(list.getSelectionBackground());
+                label.setForeground(list.getSelectionForeground());
+            } else {
+                label.setBackground(list.getBackground());
+                label.setForeground(list.getForeground());
+            }
+
+            String smellName = methodSmell.getSmellName();
+            String smellClass = methodSmell.getMethod().getLegacyMethodBean().getBelongingClass().getName();
+            String text = String.format(baseHTML, smellName, smellClass);
+            label.setText(text);
+            return label;
+        }
     }
 }
