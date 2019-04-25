@@ -2,13 +2,18 @@ package adoctor.presentation.dialog;
 
 import adoctor.application.bean.proposal.MethodProposal;
 import adoctor.application.bean.smell.MethodSmell;
+import com.intellij.diff.DiffManager;
+import com.intellij.diff.DiffRequestPanel;
+import com.intellij.diff.requests.SimpleDiffRequest;
 import com.intellij.ide.SaveAndSyncHandlerImpl;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
 import org.eclipse.text.edits.UndoEdit;
 
+import javax.swing.*;
 import java.util.ArrayList;
 import java.util.Stack;
 
@@ -88,7 +93,7 @@ public class CoreDriver implements StartDialog.StartCallback,
         if (methodSmells == null || methodSmells.size() == 0) {
             NoSmellDialog.show(this);
         } else {
-            SmellDialog.show(this, methodSmells, selections, !undoStack.isEmpty());
+            SmellDialog.show(this, project, methodSmells, selections, !undoStack.isEmpty());
         }
     }
 
@@ -197,7 +202,7 @@ public class CoreDriver implements StartDialog.StartCallback,
     @Override
     public void failureBack(FailureDialog failureDialog) {
         failureDialog.dispose();
-        SmellDialog.show(this, methodSmells, selections, !undoStack.isEmpty());
+        SmellDialog.show(this, project, methodSmells, selections, !undoStack.isEmpty());
     }
 
     @Override

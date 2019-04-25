@@ -89,10 +89,13 @@ public class StartDialog extends AbstractDialog {
         */
     }
 
+    // TODO Rendere più carina la grafica della selezione del package
     private void onSelectModule() {
         PackageChooserDialog pcd = new PackageChooserDialog("Select target package", project);
         pcd.show();
-        labelPackage.setText(pcd.getSelectedPackage().getQualifiedName());
+        if (pcd.getSelectedPackage() != null) {
+            labelPackage.setText(pcd.getSelectedPackage().getQualifiedName());
+        }
     }
 
     private void onStart() {

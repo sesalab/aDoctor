@@ -3,12 +3,16 @@ package adoctor.presentation.dialog;
 import adoctor.application.bean.proposal.MethodProposal;
 import adoctor.application.bean.smell.MethodSmell;
 import adoctor.application.proposal.*;
+import com.intellij.diff.DiffContentFactory;
+import com.intellij.diff.DiffManager;
+import com.intellij.diff.DiffRequestPanel;
+import com.intellij.diff.contents.DocumentContent;
+import com.intellij.diff.requests.SimpleDiffRequest;
+import com.intellij.openapi.Disposable;
+import com.intellij.openapi.project.Project;
 
 import javax.swing.*;
 import javax.swing.plaf.basic.BasicComboBoxRenderer;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.DefaultHighlighter;
-import javax.swing.text.Highlighter;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -16,11 +20,10 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Random;
 
-@SuppressWarnings({"UseJBColor", "GtkPreferredJComboBoxRenderer"})
+@SuppressWarnings({"GtkPreferredJComboBoxRenderer", "unchecked"})
 public class SmellDialog extends AbstractDialog {
-    public static final String TITLE = "aDoctor - Smell List";
+    private static final String TITLE = "aDoctor - Smell List";
     private static final String baseHTML = "" +
             "<html>" +
             "<body>" +
@@ -43,32 +46,34 @@ public class SmellDialog extends AbstractDialog {
             "</html>";
 
     private SmellCallback smellCallback;
+    private Project project;
     private ArrayList<MethodSmell> methodSmells;
     private ProposalDriver proposalDriver;
     private MethodProposal methodProposal;
 
     private JPanel contentPane;
+    private JPanel panelList;
     private JComboBox<MethodSmell> boxSmell;
     private JTextPane paneDetails;
-    private JTextArea areaActualCode;
-    private JTextArea areaProposedCode;
+    private JPanel panelDiff;
     private JButton buttonApply;
     private JButton buttonBack;
     private JButton buttonUndo;
 
-    public static void show(SmellCallback smellCallback, ArrayList<MethodSmell> smellMethodList, boolean[] selections, boolean undoExists) {
-        SmellDialog smellDialog = new SmellDialog(smellCallback, smellMethodList, selections, undoExists);
+    public static void show(SmellCallback smellCallback, Project project, ArrayList<MethodSmell> smellMethodList, boolean[] selections, boolean undoExists) {
+        SmellDialog smellDialog = new SmellDialog(smellCallback, project, smellMethodList, selections, undoExists);
         smellDialog.showInCenter();
     }
 
-    private SmellDialog(SmellCallback smellCallback, ArrayList<MethodSmell> methodSmells, boolean[] selections, boolean undoExists) {
-        init(smellCallback, methodSmells, selections, undoExists);
+    private SmellDialog(SmellCallback smellCallback, Project project, ArrayList<MethodSmell> methodSmells, boolean[] selections, boolean undoExists) {
+        init(smellCallback, project, methodSmells, selections, undoExists);
     }
 
-    private void init(SmellCallback smellCallback, ArrayList<MethodSmell> methodSmells, boolean[] selections, boolean undoExists) {
+    private void init(SmellCallback smellCallback, Project project, ArrayList<MethodSmell> methodSmells, boolean[] selections, boolean undoExists) {
         super.init(contentPane, TITLE, buttonApply);
 
         this.smellCallback = smellCallback;
+        this.project = project;
         ArrayList<MethodSmellProposer> methodSmellProposers = new ArrayList<>();
         if (selections[0]) {
             methodSmellProposers.add(new DWProposer());
@@ -84,8 +89,6 @@ public class SmellDialog extends AbstractDialog {
         this.methodProposal = null;
 
         buttonUndo.setVisible(undoExists);
-        areaActualCode.setPreferredSize(null);
-        areaProposedCode.setPreferredSize(null);
 
         // The smell list
         this.boxSmell.setRenderer(new SmellRenderer());
@@ -146,41 +149,26 @@ public class SmellDialog extends AbstractDialog {
             e.printStackTrace();
         }
 
-        //TODO Introdurre il DIFF
+        // Diff
+        String currentCode = selectedSmell.getMethod().getLegacyMethodBean().getTextContent();
+        String proposalCode = methodProposal.getProposedCode();
+        DocumentContent currentDocument = DiffContentFactory.getInstance().create(currentCode);
+        DocumentContent proposedDocument = DiffContentFactory.getInstance().create(proposalCode);
+        SimpleDiffRequest request = new SimpleDiffRequest("Diff Panel", currentDocument, proposedDocument, "Current Code", "Proposed Code");
+        DiffRequestPanel diffRequestPanel = DiffManager.getInstance().createRequestPanel(project, new Disposable() {
+            @Override
+            public void dispose() {
 
-
-        String actualCode = selectedSmell.getMethod().getLegacyMethodBean().getTextContent();
-        if (methodProposal != null) {
-            prepareArea(areaActualCode, actualCode, methodProposal.getCurrentHighlights());
-            String proposalCode = methodProposal.getProposedCode();
-            prepareArea(areaProposedCode, proposalCode, methodProposal.getProposedHighlights());
-        } else {
-            prepareArea(areaActualCode, actualCode, null);
-            prepareArea(areaProposedCode, "No proposal available", null);
-        }
-    }
-
-    //TODO Introdurre il DIFF
-    private void prepareArea(JTextArea area, String code, ArrayList<String> strings) {
-        try {
-            area.setText(code);
-            area.setCaretPosition(0);
-            Highlighter highlighter = area.getHighlighter();
-            highlighter.removeAllHighlights();
-            if (strings != null && strings.size() > 0) {
-                Random r = new Random();
-                int highlightEnd = 0;
-                for (String string : strings) {
-                    int highlightIndex = code.indexOf(string, highlightEnd);
-                    highlightEnd = highlightIndex + string.length();
-                    Color randomColor = new Color(0, 40 + r.nextInt(11) * 5, 200);
-                    highlighter.addHighlight(highlightIndex, highlightEnd, new DefaultHighlighter.DefaultHighlightPainter(randomColor));
-                }
             }
-        } catch (BadLocationException e) {
-            // When the index of the string to highlight is wrong
-            e.printStackTrace();
-        }
+        }, null);
+        diffRequestPanel.setRequest(request);
+        JComponent diffPanelComponent = diffRequestPanel.getComponent();
+        // Resize
+        int preferredWidth = panelList.getPreferredSize().width * 4;
+        int preferredHeight = panelList.getPreferredSize().height * 2;
+        diffPanelComponent.setPreferredSize(new Dimension(preferredWidth, preferredHeight));
+        panelDiff.removeAll();
+        panelDiff.add(diffPanelComponent, BorderLayout.CENTER);
     }
 
     private void onSelectItem() {
@@ -209,11 +197,11 @@ public class SmellDialog extends AbstractDialog {
     interface SmellCallback {
         void smellApply(SmellDialog smellDialog, MethodProposal methodProposal);
 
-        void smellBack(SmellDialog analysisDialog);
+        void smellBack(SmellDialog smellDialog);
 
-        void smellQuit(SmellDialog analysisDialog);
+        void smellQuit(SmellDialog smellDialog);
 
-        void smellUndo(SmellDialog analysisDialog);
+        void smellUndo(SmellDialog smellDialog);
     }
 
     private class SmellRenderer extends BasicComboBoxRenderer {
