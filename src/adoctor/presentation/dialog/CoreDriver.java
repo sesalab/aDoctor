@@ -1,19 +1,14 @@
 package adoctor.presentation.dialog;
 
-import adoctor.application.bean.proposal.MethodProposal;
 import adoctor.application.bean.smell.MethodSmell;
-import com.intellij.diff.DiffManager;
-import com.intellij.diff.DiffRequestPanel;
-import com.intellij.diff.requests.SimpleDiffRequest;
 import com.intellij.ide.SaveAndSyncHandlerImpl;
-import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
+import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
 import org.eclipse.text.edits.UndoEdit;
 
-import javax.swing.*;
 import java.util.ArrayList;
 import java.util.Stack;
 
@@ -118,9 +113,9 @@ public class CoreDriver implements StartDialog.StartCallback,
 
     /////////////SmellDialog//////////////
     @Override
-    public void smellApply(SmellDialog smellDialog, MethodProposal methodProposal) {
+    public void smellApply(SmellDialog smellDialog, MethodSmell targetSmell, Document proposedDocument) {
         smellDialog.dispose();
-        RefactoringDialog.show(this, methodProposal, selections);
+        RefactoringDialog.show(this, targetSmell, proposedDocument);
     }
 
     @Override
@@ -145,7 +140,7 @@ public class CoreDriver implements StartDialog.StartCallback,
 
     /////////////RefactoringDialog//////////////
     @Override
-    public void refactoringDone(RefactoringDialog refactoringDialog, UndoEdit undoEdit) {
+    public void refactoringDone(RefactoringDialog refactoringDialog, Boolean result) {
         refactoringDialog.dispose();
 
         // Refreshes the Editor in order to reflect the changes to the files
@@ -156,8 +151,7 @@ public class CoreDriver implements StartDialog.StartCallback,
             }
         }, ModalityState.NON_MODAL);
 
-        if (undoEdit != null) {
-            undoStack.push(undoEdit);
+        if (result) {
             SuccessDialog.show(this);
         } else {
             FailureDialog.show(this);

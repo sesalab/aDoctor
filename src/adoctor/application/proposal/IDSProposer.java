@@ -1,11 +1,11 @@
 package adoctor.application.proposal;
 
 import adoctor.application.ast.ASTUtilities;
-import adoctor.application.bean.proposal.IDSProposal;
-import adoctor.application.bean.proposal.MethodProposal;
 import adoctor.application.bean.smell.IDSSmell;
 import adoctor.application.bean.smell.MethodSmell;
 import org.eclipse.jdt.core.dom.*;
+import org.eclipse.jdt.core.dom.rewrite.ASTRewrite;
+import org.eclipse.jdt.core.dom.rewrite.ListRewrite;
 
 import java.util.AbstractMap;
 import java.util.ArrayList;
@@ -15,7 +15,7 @@ import java.util.List;
 public class IDSProposer extends MethodSmellProposer {
 
     @Override
-    public MethodProposal computeProposal(MethodSmell methodSmell) {
+    public ASTRewrite computeProposal(MethodSmell methodSmell) {
         if (methodSmell == null) {
             return null;
         }
@@ -67,10 +67,10 @@ public class IDSProposer extends MethodSmellProposer {
             if (invocation.getExpression() != null) {
                 if (variables.contains(invocation.getExpression().toString())) {
                     String methodName = invocation.getName().getIdentifier();
-                    if (methodName.equals(IDSProposal.REMOVE) && invocation.arguments().size() == 2
-                            || methodName.equals(IDSProposal.CONTAINS_KEY)
-                            || methodName.equals(IDSProposal.CONTAINS_VALUE)
-                            || methodName.equals(IDSProposal.IS_EMPTY)
+                    if (methodName.equals(IDSSmell.REMOVE) && invocation.arguments().size() == 2
+                            || methodName.equals(IDSSmell.CONTAINS_KEY)
+                            || methodName.equals(IDSSmell.CONTAINS_VALUE)
+                            || methodName.equals(IDSSmell.IS_EMPTY)
                         /*
                         || methodName.equals(IDSProposal.ENTRY_SET)
                         || methodName.equals(IDSProposal.KEY_SET)
@@ -88,10 +88,10 @@ public class IDSProposer extends MethodSmellProposer {
             Expression newExpr = null;
             switch (methodName) {
                 // remove(int, obj) --> remove(indexOfValue(obj))
-                case IDSProposal.REMOVE: {
+                case IDSSmell.REMOVE: {
                     MethodInvocation newInvocation = (MethodInvocation) ASTNode.copySubtree(targetAST, invocation);
                     MethodInvocation innerInvocation = (MethodInvocation) ASTNode.copySubtree(targetAST, invocation);
-                    innerInvocation.setName(targetAST.newSimpleName(IDSProposal.INDEX_OF_VALUE));
+                    innerInvocation.setName(targetAST.newSimpleName(IDSSmell.INDEX_OF_VALUE));
                     innerInvocation.arguments().remove(0);
                     newInvocation.arguments().clear();
                     newInvocation.arguments().add(innerInvocation);
@@ -99,9 +99,9 @@ public class IDSProposer extends MethodSmellProposer {
                     break;
                 }
                 // containsKey(int) --> map.indexOfKey(int) >= 0
-                case IDSProposal.CONTAINS_KEY: {
+                case IDSSmell.CONTAINS_KEY: {
                     MethodInvocation innerInvocation = (MethodInvocation) ASTNode.copySubtree(targetAST, invocation);
-                    innerInvocation.setName(targetAST.newSimpleName(IDSProposal.INDEX_OF_KEY));
+                    innerInvocation.setName(targetAST.newSimpleName(IDSSmell.INDEX_OF_KEY));
                     InfixExpression relationalExpr = targetAST.newInfixExpression();
                     relationalExpr.setLeftOperand(innerInvocation);
                     relationalExpr.setOperator(InfixExpression.Operator.GREATER_EQUALS);
@@ -110,9 +110,9 @@ public class IDSProposer extends MethodSmellProposer {
                     break;
                 }
                 // containsKey(obj) --> indexOfValue(obj) >= 0
-                case IDSProposal.CONTAINS_VALUE: {
+                case IDSSmell.CONTAINS_VALUE: {
                     MethodInvocation innerInvocation = (MethodInvocation) ASTNode.copySubtree(targetAST, invocation);
-                    innerInvocation.setName(targetAST.newSimpleName(IDSProposal.INDEX_OF_VALUE));
+                    innerInvocation.setName(targetAST.newSimpleName(IDSSmell.INDEX_OF_VALUE));
                     InfixExpression relationalExpr = targetAST.newInfixExpression();
                     relationalExpr.setLeftOperand(innerInvocation);
                     relationalExpr.setOperator(InfixExpression.Operator.GREATER_EQUALS);
@@ -121,9 +121,9 @@ public class IDSProposer extends MethodSmellProposer {
                     break;
                 }
                 // isEmpty() --> size() == 0
-                case IDSProposal.IS_EMPTY: {
+                case IDSSmell.IS_EMPTY: {
                     MethodInvocation innerInvocation = (MethodInvocation) ASTNode.copySubtree(targetAST, invocation);
-                    innerInvocation.setName(targetAST.newSimpleName(IDSProposal.SIZE));
+                    innerInvocation.setName(targetAST.newSimpleName(IDSSmell.SIZE));
                     InfixExpression relationalExpr = targetAST.newInfixExpression();
                     relationalExpr.setLeftOperand(innerInvocation);
                     relationalExpr.setOperator(InfixExpression.Operator.EQUALS);
@@ -154,45 +154,25 @@ public class IDSProposer extends MethodSmellProposer {
 
         // Proposal of import android.util.SparseArray if not present
         ImportDeclaration newImportDecl = targetAST.newImportDeclaration();
-        newImportDecl.setName(targetAST.newName((IDSProposal.IMPORT)));
+        newImportDecl.setName(targetAST.newName((IDSSmell.IMPORT)));
         CompilationUnit compilationUnit = (CompilationUnit) smellyMethodDecl.getRoot();
         List<ImportDeclaration> imports = compilationUnit.imports();
         for (ImportDeclaration anImport : imports) {
-            if (anImport.getName().toString().equals(IDSProposal.IMPORT)) {
+            if (anImport.getName().toString().equals(IDSSmell.IMPORT)) {
                 newImportDecl = null;
             }
         }
 
-        // Data useful for presentation
-        String actualCode = methodSmell.getMethod().getLegacyMethodBean().getTextContent();
-        String proposedCode = actualCode.replace(smellyVarDecl.toString(), newVarDecl.toString());
-        for (AbstractMap.SimpleEntry<MethodInvocation, Expression> entry : replacements) {
-            proposedCode = proposedCode.replace(entry.getKey().toString(), entry.getValue().toString());
+        // Accumulate the replacements
+        ASTRewrite astRewrite = ASTRewrite.create(targetAST);
+        astRewrite.replace(smellyVarDecl, newVarDecl, null);
+        for (AbstractMap.SimpleEntry<MethodInvocation, Expression> invocationReplacement : replacements) {
+            astRewrite.replace(invocationReplacement.getKey(), invocationReplacement.getValue(), null);
         }
         if (newImportDecl != null) {
-            proposedCode = newImportDecl.toString() + "\n" + proposedCode;
+            ListRewrite listRewrite = astRewrite.getListRewrite(compilationUnit, CompilationUnit.IMPORTS_PROPERTY);
+            listRewrite.insertLast(newImportDecl, null);
         }
-
-        ArrayList<String> currentHighlights = new ArrayList<>();
-        currentHighlights.add(smellyVarDecl.toString());
-        ArrayList<String> proposedHighlights = new ArrayList<>();
-        if (newImportDecl != null) {
-            proposedHighlights.add(newImportDecl.toString());
-        }
-        proposedHighlights.add(newVarDecl.toString());
-        for (AbstractMap.SimpleEntry<MethodInvocation, Expression> entry : replacements) {
-            currentHighlights.add(entry.getKey().toString());
-            proposedHighlights.add(entry.getValue().toString());
-        }
-
-        IDSProposal proposal = new IDSProposal();
-        proposal.setMethodSmell(methodSmell);
-        proposal.setProposedVarDecl(newVarDecl);
-        proposal.setInvocationReplacements(replacements);
-        proposal.setNewImportDecl(newImportDecl);
-        proposal.setProposedCode(proposedCode);
-        proposal.setCurrentHighlights(currentHighlights);
-        proposal.setProposedHighlights(proposedHighlights);
-        return proposal;
+        return astRewrite;
     }
 }

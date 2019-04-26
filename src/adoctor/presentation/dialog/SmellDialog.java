@@ -1,6 +1,5 @@
 package adoctor.presentation.dialog;
 
-import adoctor.application.bean.proposal.MethodProposal;
 import adoctor.application.bean.smell.MethodSmell;
 import adoctor.application.proposal.*;
 import com.intellij.diff.DiffContentFactory;
@@ -8,8 +7,14 @@ import com.intellij.diff.DiffManager;
 import com.intellij.diff.DiffRequestPanel;
 import com.intellij.diff.contents.DocumentContent;
 import com.intellij.diff.requests.SimpleDiffRequest;
+import com.intellij.diff.util.DiffUserDataKeys;
+import com.intellij.ide.highlighter.JavaClassFileType;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VirtualFile;
+import org.eclipse.jface.text.BadLocationException;
 
 import javax.swing.*;
 import javax.swing.plaf.basic.BasicComboBoxRenderer;
@@ -49,7 +54,8 @@ public class SmellDialog extends AbstractDialog {
     private Project project;
     private ArrayList<MethodSmell> methodSmells;
     private ProposalDriver proposalDriver;
-    private MethodProposal methodProposal;
+    private MethodSmell selectedSmell;
+    private Document proposedDocument;
 
     private JPanel contentPane;
     private JPanel panelList;
@@ -86,7 +92,8 @@ public class SmellDialog extends AbstractDialog {
         }
         this.proposalDriver = new ProposalDriver(methodSmellProposers);
         this.methodSmells = methodSmells;
-        this.methodProposal = null;
+        this.selectedSmell = null;
+        this.proposedDocument = null;
 
         buttonUndo.setVisible(undoExists);
 
@@ -132,7 +139,7 @@ public class SmellDialog extends AbstractDialog {
     }
 
     private void updateDetails() {
-        MethodSmell selectedSmell = methodSmells.get(boxSmell.getSelectedIndex());
+        selectedSmell = methodSmells.get(boxSmell.getSelectedIndex());
 
         // Updates the extended description
         String smellName = selectedSmell.getSmellName();
@@ -144,31 +151,40 @@ public class SmellDialog extends AbstractDialog {
 
         // Compute the proposal of the selected smell
         try {
-            methodProposal = proposalDriver.computeProposal(selectedSmell);
-        } catch (IOException e) {
+            // TODO SIstemare i warning
+            // Diff
+            proposedDocument = proposalDriver.computeProposal(selectedSmell);
+            if (proposedDocument == null) {
+                //TODO Gestire caso OPS aDoctor ha un problemino
+            } else {
+                VirtualFile vf = LocalFileSystem.getInstance().findFileByIoFile(selectedSmell.getMethod().getSourceFile());
+                DocumentContent currentDocumentContent = DiffContentFactory.getInstance().createDocument(project, vf);
+                DocumentContent proposedDocumentContent = DiffContentFactory.getInstance().create(proposedDocument.getText(),
+                        JavaClassFileType.INSTANCE);
+                SimpleDiffRequest request = new SimpleDiffRequest("Diff Panel", currentDocumentContent,
+                        proposedDocumentContent, "Current Code", "Proposed Code");
+
+                DiffRequestPanel diffRequestPanel = DiffManager.getInstance().createRequestPanel(project, new Disposable() {
+                    @Override
+                    public void dispose() {
+
+                    }
+                }, null);
+                diffRequestPanel.putContextHints(DiffUserDataKeys.FORCE_READ_ONLY, true);
+                diffRequestPanel.setRequest(request);
+                JComponent diffPanelComponent = diffRequestPanel.getComponent();
+
+                // Resize
+                int preferredWidth = panelList.getPreferredSize().width * 4;
+                int preferredHeight = panelList.getPreferredSize().height * 2;
+                diffPanelComponent.setPreferredSize(new Dimension(preferredWidth, preferredHeight));
+                panelDiff.removeAll();
+                panelDiff.add(diffPanelComponent, BorderLayout.CENTER);
+            }
+        } catch (IOException | BadLocationException e) {
+            //TODO Gestire caso OPS aDoctor ha un problemino
             e.printStackTrace();
         }
-
-        // Diff
-        String currentCode = selectedSmell.getMethod().getLegacyMethodBean().getTextContent();
-        String proposalCode = methodProposal.getProposedCode();
-        DocumentContent currentDocument = DiffContentFactory.getInstance().create(currentCode);
-        DocumentContent proposedDocument = DiffContentFactory.getInstance().create(proposalCode);
-        SimpleDiffRequest request = new SimpleDiffRequest("Diff Panel", currentDocument, proposedDocument, "Current Code", "Proposed Code");
-        DiffRequestPanel diffRequestPanel = DiffManager.getInstance().createRequestPanel(project, new Disposable() {
-            @Override
-            public void dispose() {
-
-            }
-        }, null);
-        diffRequestPanel.setRequest(request);
-        JComponent diffPanelComponent = diffRequestPanel.getComponent();
-        // Resize
-        int preferredWidth = panelList.getPreferredSize().width * 4;
-        int preferredHeight = panelList.getPreferredSize().height * 2;
-        diffPanelComponent.setPreferredSize(new Dimension(preferredWidth, preferredHeight));
-        panelDiff.removeAll();
-        panelDiff.add(diffPanelComponent, BorderLayout.CENTER);
     }
 
     private void onSelectItem() {
@@ -176,7 +192,7 @@ public class SmellDialog extends AbstractDialog {
     }
 
     private void onApply() {
-        smellCallback.smellApply(this, methodProposal);
+        smellCallback.smellApply(this, selectedSmell, proposedDocument);
     }
 
     private void onBack() {
@@ -195,7 +211,7 @@ public class SmellDialog extends AbstractDialog {
     }
 
     interface SmellCallback {
-        void smellApply(SmellDialog smellDialog, MethodProposal methodProposal);
+        void smellApply(SmellDialog smellDialog, MethodSmell targetSmell, Document proposedDocument);
 
         void smellBack(SmellDialog smellDialog);
 

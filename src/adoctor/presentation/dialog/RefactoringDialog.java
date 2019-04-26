@@ -1,15 +1,14 @@
 package adoctor.presentation.dialog;
 
-import adoctor.application.bean.proposal.MethodProposal;
-import adoctor.application.refactoring.*;
-import org.eclipse.jface.text.BadLocationException;
-import org.eclipse.text.edits.UndoEdit;
+import adoctor.application.bean.smell.MethodSmell;
+import adoctor.application.refactoring.RefactoringDriver;
+import com.intellij.openapi.editor.Document;
 
 import javax.swing.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.concurrent.ExecutionException;
 
 public class RefactoringDialog extends AbstractDialog {
@@ -21,37 +20,25 @@ public class RefactoringDialog extends AbstractDialog {
     private JPanel contentPane;
     private JLabel labelMethodFileName;
 
-    public static void show(RefactoringCallback refactoringCallback, MethodProposal methodProposal, boolean[] selections) {
-        RefactoringDialog refactoringDialog = new RefactoringDialog(refactoringCallback, methodProposal, selections);
+    private RefactoringDialog(RefactoringCallback refactoringCallback, MethodSmell targetSmell, Document proposedDocument) {
+        init(refactoringCallback, targetSmell, proposedDocument);
+    }
+
+    public static void show(RefactoringCallback refactoringCallback, MethodSmell targetSmell, Document proposedDocument) {
+        RefactoringDialog refactoringDialog = new RefactoringDialog(refactoringCallback, targetSmell, proposedDocument);
 
         refactoringDialog.startRefactoring();
 
         refactoringDialog.showInCenter();
     }
 
-    private RefactoringDialog(RefactoringCallback refactoringCallback, MethodProposal methodProposal, boolean[] selections) {
-        init(refactoringCallback, methodProposal, selections);
-    }
-
-    private void init(RefactoringCallback refactoringCallback, MethodProposal methodProposal, boolean[] selections) {
+    private void init(RefactoringCallback refactoringCallback, MethodSmell targetSmell, Document proposedDocument) {
         super.init(contentPane, TITLE, null);
 
         this.refactoringCallback = refactoringCallback;
-        ArrayList<MethodSmellRefactorer> methodSmellRefactorers = new ArrayList<>();
-        if (selections[0]) {
-            methodSmellRefactorers.add(new DWRefactorer());
-        }
-        if (selections[1]) {
-            methodSmellRefactorers.add(new ERBRefactorer());
-        }
-        if (selections[2]) {
-            methodSmellRefactorers.add(new IDSRefactorer());
-        }
-        this.refactoringDriver = new RefactoringDriver(methodProposal, methodSmellRefactorers);
-
-        String fileName = methodProposal.getMethodSmell().getMethod().getSourceFile().getName();
-        String methodName = methodProposal.getMethodSmell().getMethod().getLegacyMethodBean().getName();
-        labelMethodFileName.setText("the method " + methodName + " in file " + fileName);
+        File targetFile = targetSmell.getMethod().getSourceFile();
+        this.refactoringDriver = new RefactoringDriver(targetFile, proposedDocument);
+        labelMethodFileName.setText("in file " + targetFile.getName());
 
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
         addWindowListener(new WindowAdapter() {
@@ -62,12 +49,12 @@ public class RefactoringDialog extends AbstractDialog {
     }
 
     private void startRefactoring() {
-        SwingWorker<UndoEdit, Void> swingWorker = new SwingWorker<UndoEdit, Void>() {
+        SwingWorker<Boolean, Void> swingWorker = new SwingWorker<Boolean, Void>() {
             @Override
-            protected UndoEdit doInBackground() {
+            protected Boolean doInBackground() {
                 try {
                     return refactoringDriver.startRefactoring();
-                } catch (IOException | BadLocationException e) {
+                } catch (IOException e) {
                     e.printStackTrace();
                     return null;
                 }
@@ -75,14 +62,14 @@ public class RefactoringDialog extends AbstractDialog {
 
             @Override
             protected void done() {
-                UndoEdit undoEdit;
+                Boolean result;
                 try {
-                    undoEdit = get();
+                    result = get();
                 } catch (InterruptedException | ExecutionException e) {
                     e.printStackTrace();
-                    undoEdit = null;
+                    result = false;
                 }
-                refactoringCallback.refactoringDone(RefactoringDialog.this, undoEdit);
+                refactoringCallback.refactoringDone(RefactoringDialog.this, result);
             }
         };
         swingWorker.execute();
@@ -93,7 +80,7 @@ public class RefactoringDialog extends AbstractDialog {
     }
 
     interface RefactoringCallback {
-        void refactoringDone(RefactoringDialog refactoringDialog, UndoEdit undoEdit);
+        void refactoringDone(RefactoringDialog refactoringDialog, Boolean result);
 
         void refactoringQuit(RefactoringDialog refactoringDialog);
     }

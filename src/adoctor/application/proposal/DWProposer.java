@@ -1,19 +1,18 @@
 package adoctor.application.proposal;
 
 import adoctor.application.ast.ASTUtilities;
-import adoctor.application.bean.proposal.DWProposal;
 import adoctor.application.bean.smell.DWSmell;
 import adoctor.application.bean.smell.MethodSmell;
 import org.eclipse.jdt.core.dom.*;
+import org.eclipse.jdt.core.dom.rewrite.ASTRewrite;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @SuppressWarnings("unchecked")
 public class DWProposer extends MethodSmellProposer {
 
     @Override
-    public DWProposal computeProposal(MethodSmell methodSmell) {
+    public ASTRewrite computeProposal(MethodSmell methodSmell) {
         if (methodSmell == null) {
             return null;
         }
@@ -50,17 +49,9 @@ public class DWProposer extends MethodSmellProposer {
         List<Statement> statements = (List<Statement>) acquireBlock.statements();
         statements.add(releaseStat);
 
-        ArrayList<String> currentHighlights = new ArrayList<>();
-        currentHighlights.add(acquireStatement.toString());
-        ArrayList<String> proposedHighlights = new ArrayList<>();
-        proposedHighlights.add(releaseStat.toString());
-
-        DWProposal proposal = new DWProposal();
-        proposal.setMethodSmell(dwSmell);
-        proposal.setProposedMethodDecl(newMethodDecl);
-        proposal.setProposedCode(newMethodDecl.toString());
-        proposal.setCurrentHighlights(currentHighlights);
-        proposal.setProposedHighlights(proposedHighlights);
-        return proposal;
+        // Accumulate the replacements
+        ASTRewrite astRewrite = ASTRewrite.create(targetAST);
+        astRewrite.replace(smellyMethodDecl, newMethodDecl, null);
+        return astRewrite;
     }
 }

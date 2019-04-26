@@ -1,32 +1,32 @@
 package adoctor.application.refactoring;
 
-import adoctor.application.bean.proposal.MethodProposal;
-import org.eclipse.jface.text.BadLocationException;
-import org.eclipse.text.edits.UndoEdit;
+import com.intellij.openapi.editor.Document;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.io.PrintWriter;
 
 public class RefactoringDriver {
 
-    private MethodProposal methodProposal;
-    private ArrayList<MethodSmellRefactorer> methodSmellRefactorers;
+    private File targetFile;
+    private Document proposedDocument;
 
-    public RefactoringDriver(MethodProposal methodProposal, ArrayList<MethodSmellRefactorer> methodSmellRefactorers) {
-        this.methodProposal = methodProposal;
-        this.methodSmellRefactorers = methodSmellRefactorers;
+    public RefactoringDriver(File targetFile, Document proposedDocument) {
+        this.targetFile = targetFile;
+        this.proposedDocument = proposedDocument;
     }
 
-    public UndoEdit startRefactoring() throws IOException, BadLocationException {
-        if (methodSmellRefactorers == null) {
-            return null;
+    public boolean startRefactoring() throws IOException {
+        if (targetFile == null || proposedDocument == null) {
+            return false;
         }
-        for (MethodSmellRefactorer refactorer : methodSmellRefactorers) {
-            UndoEdit undoEdit = refactorer.applyRefactoring(methodProposal);
-            if (undoEdit != null) {
-                return undoEdit;
-            }
-        }
-        return null;
+        String text = proposedDocument.getText();
+        PrintWriter pw = new PrintWriter(new FileOutputStream(targetFile, false));
+        pw.print(text);
+        pw.flush(); // Important
+        //ApplicationManager.getApplication().invokeAndWait(thread);
+        //TransactionGuardImpl.getInstance().submitTransactionAndWait(thread);
+        return true;
     }
 }

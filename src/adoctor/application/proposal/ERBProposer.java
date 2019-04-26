@@ -1,19 +1,19 @@
 package adoctor.application.proposal;
 
 import adoctor.application.ast.ASTUtilities;
-import adoctor.application.bean.proposal.ERBProposal;
 import adoctor.application.bean.smell.ERBSmell;
 import adoctor.application.bean.smell.MethodSmell;
 import org.eclipse.jdt.core.dom.*;
+import org.eclipse.jdt.core.dom.rewrite.ASTRewrite;
+import org.eclipse.jdt.core.dom.rewrite.ListRewrite;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @SuppressWarnings("unchecked")
 public class ERBProposer extends MethodSmellProposer {
 
     @Override
-    public ERBProposal computeProposal(MethodSmell methodSmell) {
+    public ASTRewrite computeProposal(MethodSmell methodSmell) {
         if (methodSmell == null) {
             return null;
         }
@@ -89,24 +89,16 @@ public class ERBProposer extends MethodSmellProposer {
         List<Statement> onResumeStatements = (List<Statement>) newOnResume.getBody().statements();
         onResumeStatements.add(newRequestStatement);
 
-        // Highlights
-        ArrayList<String> currentHighlights = new ArrayList<>();
-        currentHighlights.add(requestStatement.toString());
-        ArrayList<String> proposedHighlights = new ArrayList<>();
-        if (foundOnResume) {
-            proposedHighlights.add(newRequestStatement.toString());
+        // Accumulate the replacements
+        ASTRewrite astRewrite = ASTRewrite.create(targetAST);
+        astRewrite.replace(smellyOnCreate, newOnCreate, null);
+        if (onResume == null) {
+            // Insert the onResume() after the onCreate(Bundle)
+            ListRewrite listRewrite = astRewrite.getListRewrite((TypeDeclaration) compilationUnit.types().get(0), TypeDeclaration.BODY_DECLARATIONS_PROPERTY);
+            listRewrite.insertAfter(newOnResume, newOnCreate, null);
         } else {
-            proposedHighlights.add(newOnResume.toString());
+            astRewrite.replace(onResume, newOnResume, null);
         }
-
-        ERBProposal proposal = new ERBProposal();
-        proposal.setMethodSmell(erbSmell);
-        proposal.setProposedOnCreate(newOnCreate);
-        proposal.setCurrentOnResume(onResume);
-        proposal.setProposedOnResume(newOnResume);
-        proposal.setProposedCode(newOnCreate.toString() + "\n" + newOnResume.toString());
-        proposal.setCurrentHighlights(currentHighlights);
-        proposal.setProposedHighlights(proposedHighlights);
-        return proposal;
+        return astRewrite;
     }
 }
