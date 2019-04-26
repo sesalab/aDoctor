@@ -10,6 +10,8 @@ import java.util.List;
 
 @SuppressWarnings("unchecked")
 public class IDSAnalyzer extends MethodSmellAnalyzer {
+    private static final String HASHMAP = "HashMap";
+    private static final String INTEGER = "Integer";
 
     @Override
     public MethodSmell analyzeMethod(Method method) {
@@ -57,7 +59,7 @@ public class IDSAnalyzer extends MethodSmellAnalyzer {
             return false;
         }
         SimpleType type = (SimpleType) parameterizedType.getType();
-        if (!type.getName().toString().equals(IDSSmell.HASHMAP)) {
+        if (!type.getName().toString().equals(HASHMAP)) {
             return false;
         }
         List<Type> typeParameters = parameterizedType.typeArguments();
@@ -65,6 +67,6 @@ public class IDSAnalyzer extends MethodSmellAnalyzer {
             return false;
         }
         SimpleType FirstParType = (SimpleType) typeParameters.get(0);
-        return FirstParType.getName().toString().equals(IDSSmell.INTEGER) && typeParameters.get(1).isSimpleType();
+        return FirstParType.getName().toString().equals(INTEGER) && typeParameters.get(1).isSimpleType();
     }
 }

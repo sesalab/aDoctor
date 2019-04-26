@@ -104,6 +104,7 @@ public class SmellDialog extends AbstractDialog {
         for (MethodSmell methodSmell : methodSmells) {
             boxSmell.addItem(methodSmell);
         }
+        //TODO Per IDS fa due fire. Perché?
         boxSmell.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -154,7 +155,6 @@ public class SmellDialog extends AbstractDialog {
 
         // Clear the main panel
         panelMain.removeAll();
-
         try {
             // Compute the proposal of the selected smell and then show the diff if no errors
             undo = proposalDriver.computeProposal(selectedSmell);
