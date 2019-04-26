@@ -1,13 +1,13 @@
 package adoctor.presentation.dialog;
 
 import adoctor.application.bean.smell.MethodSmell;
+import adoctor.application.proposal.undo.Undo;
 import com.intellij.ide.SaveAndSyncHandlerImpl;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
-import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
-import org.eclipse.text.edits.UndoEdit;
+import org.eclipse.jface.text.Document;
 
 import java.util.ArrayList;
 import java.util.Stack;
@@ -23,7 +23,7 @@ public class CoreDriver implements StartDialog.StartCallback,
         FailureDialog.FailureCallback {
 
     private Project project;
-    private Stack<UndoEdit> undoStack;
+    private Stack<Undo> undoStack;
     private boolean[] selections;
     private String targetPackage;
     private ArrayList<MethodSmell> methodSmells;
@@ -113,8 +113,10 @@ public class CoreDriver implements StartDialog.StartCallback,
 
     /////////////SmellDialog//////////////
     @Override
-    public void smellApply(SmellDialog smellDialog, MethodSmell targetSmell, Document proposedDocument) {
+    public void smellApply(SmellDialog smellDialog, MethodSmell targetSmell, Undo undo) {
         smellDialog.dispose();
+        undoStack.push(undo);
+        Document proposedDocument = undo.getDocument();
         RefactoringDialog.show(this, targetSmell, proposedDocument);
     }
 
@@ -154,6 +156,7 @@ public class CoreDriver implements StartDialog.StartCallback,
         if (result) {
             SuccessDialog.show(this);
         } else {
+            undoStack.pop();
             FailureDialog.show(this);
         }
 

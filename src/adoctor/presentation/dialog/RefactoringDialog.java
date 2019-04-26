@@ -2,7 +2,7 @@ package adoctor.presentation.dialog;
 
 import adoctor.application.bean.smell.MethodSmell;
 import adoctor.application.refactoring.RefactoringDriver;
-import com.intellij.openapi.editor.Document;
+import org.eclipse.jface.text.Document;
 
 import javax.swing.*;
 import java.awt.event.WindowAdapter;
@@ -12,7 +12,7 @@ import java.io.IOException;
 import java.util.concurrent.ExecutionException;
 
 public class RefactoringDialog extends AbstractDialog {
-    public static final String TITLE = "aDoctor - Refactoring";
+    private static final String TITLE = "aDoctor - Refactoring";
 
     private RefactoringCallback refactoringCallback;
     private RefactoringDriver refactoringDriver;

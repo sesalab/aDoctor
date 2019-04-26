@@ -1,6 +1,6 @@
 package adoctor.application.refactoring;
 
-import com.intellij.openapi.editor.Document;
+import org.eclipse.jface.text.Document;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -21,7 +21,7 @@ public class RefactoringDriver {
         if (targetFile == null || proposedDocument == null) {
             return false;
         }
-        String text = proposedDocument.getText();
+        String text = proposedDocument.get();
         PrintWriter pw = new PrintWriter(new FileOutputStream(targetFile, false));
         pw.print(text);
         pw.flush(); // Important

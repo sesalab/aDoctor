@@ -2,6 +2,7 @@ package adoctor.presentation.dialog;
 
 import adoctor.application.bean.smell.MethodSmell;
 import adoctor.application.proposal.*;
+import adoctor.application.proposal.undo.Undo;
 import com.intellij.diff.DiffContentFactory;
 import com.intellij.diff.DiffManager;
 import com.intellij.diff.DiffRequestPanel;
@@ -11,6 +12,7 @@ import com.intellij.diff.util.DiffUserDataKeys;
 import com.intellij.ide.highlighter.JavaClassFileType;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.editor.EditorFactory;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -42,7 +44,7 @@ public class SmellDialog extends AbstractDialog {
             "<html>" +
             "<body>" +
             "<div style=\"margin-left:4px; font-size:14px\">" +
-            "<div><b>Smell</b>: " + "%s" + "</div>" +
+            "<div style=\"font-size:16px\"><b>Smell</b>: " + "%s" + "</div>" +
             "<div style=\"margin-left:8px;\"><b>Description</b>: " + "%s" + "</div>" +
             "<div style=\"margin-left:8px;\"><b>Class</b>: " + "%s" + "</div>" +
             "<div style=\"margin-left:8px;\"><b>Method</b>: " + "%s" + "</div>" +
@@ -55,13 +57,14 @@ public class SmellDialog extends AbstractDialog {
     private ArrayList<MethodSmell> methodSmells;
     private ProposalDriver proposalDriver;
     private MethodSmell selectedSmell;
-    private Document proposedDocument;
+    private Undo undo;
 
     private JPanel contentPane;
     private JPanel panelList;
     private JComboBox<MethodSmell> boxSmell;
     private JTextPane paneDetails;
-    private JPanel panelDiff;
+    private JPanel panelMain;
+    private JLabel labelError;
     private JButton buttonApply;
     private JButton buttonBack;
     private JButton buttonUndo;
@@ -80,6 +83,7 @@ public class SmellDialog extends AbstractDialog {
 
         this.smellCallback = smellCallback;
         this.project = project;
+        this.methodSmells = methodSmells;
         ArrayList<MethodSmellProposer> methodSmellProposers = new ArrayList<>();
         if (selections[0]) {
             methodSmellProposers.add(new DWProposer());
@@ -90,15 +94,12 @@ public class SmellDialog extends AbstractDialog {
         if (selections[2]) {
             methodSmellProposers.add(new IDSProposer());
         }
-        this.proposalDriver = new ProposalDriver(methodSmellProposers);
-        this.methodSmells = methodSmells;
-        this.selectedSmell = null;
-        this.proposedDocument = null;
-
-        buttonUndo.setVisible(undoExists);
+        proposalDriver = new ProposalDriver(methodSmellProposers);
+        selectedSmell = null;
+        undo = null;
 
         // The smell list
-        this.boxSmell.setRenderer(new SmellRenderer());
+        boxSmell.setRenderer(new SmellRenderer());
         boxSmell.removeAllItems();
         for (MethodSmell methodSmell : methodSmells) {
             boxSmell.addItem(methodSmell);
@@ -123,6 +124,8 @@ public class SmellDialog extends AbstractDialog {
             }
         });
 
+        // The undo button
+        buttonUndo.setVisible(undoExists);
         buttonUndo.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -149,42 +152,49 @@ public class SmellDialog extends AbstractDialog {
         String text = String.format(extendedHTML, smellName, smellDescription, smellClass, smellMethod);
         paneDetails.setText(text);
 
-        // Compute the proposal of the selected smell
+        // Clear the main panel
+        panelMain.removeAll();
+
         try {
-            // TODO SIstemare i warning
-            // Diff
-            proposedDocument = proposalDriver.computeProposal(selectedSmell);
-            if (proposedDocument == null) {
-                //TODO Gestire caso OPS aDoctor ha un problemino
+            // Compute the proposal of the selected smell and then show the diff if no errors
+            undo = proposalDriver.computeProposal(selectedSmell);
+            VirtualFile vf = LocalFileSystem.getInstance().findFileByIoFile(selectedSmell.getMethod().getSourceFile());
+            if (undo == null || vf == null) {
+                panelMain.add(labelError, BorderLayout.CENTER);
             } else {
-                VirtualFile vf = LocalFileSystem.getInstance().findFileByIoFile(selectedSmell.getMethod().getSourceFile());
                 DocumentContent currentDocumentContent = DiffContentFactory.getInstance().createDocument(project, vf);
-                DocumentContent proposedDocumentContent = DiffContentFactory.getInstance().create(proposedDocument.getText(),
-                        JavaClassFileType.INSTANCE);
-                SimpleDiffRequest request = new SimpleDiffRequest("Diff Panel", currentDocumentContent,
-                        proposedDocumentContent, "Current Code", "Proposed Code");
+                if (currentDocumentContent == null) {
+                    panelMain.add(labelError, BorderLayout.CENTER);
+                } else {
+                    String validDocumentContent = undo.getDocument().get().replaceAll("(\r\n|\r)", "\n");
+                    Document proposedDocument = EditorFactory.getInstance().createDocument(validDocumentContent);
+                    DocumentContent proposedDocumentContent = DiffContentFactory.getInstance().create(proposedDocument.getText(),
+                            JavaClassFileType.INSTANCE);
+                    SimpleDiffRequest request = new SimpleDiffRequest("Diff Panel", currentDocumentContent,
+                            proposedDocumentContent, "Current Code", "Proposed Code");
 
-                DiffRequestPanel diffRequestPanel = DiffManager.getInstance().createRequestPanel(project, new Disposable() {
-                    @Override
-                    public void dispose() {
+                    // DiffPanel preparation
+                    DiffRequestPanel diffRequestPanel = DiffManager.getInstance().createRequestPanel(project, new Disposable() {
+                        @Override
+                        public void dispose() {
 
-                    }
-                }, null);
-                diffRequestPanel.putContextHints(DiffUserDataKeys.FORCE_READ_ONLY, true);
-                diffRequestPanel.setRequest(request);
-                JComponent diffPanelComponent = diffRequestPanel.getComponent();
-
-                // Resize
-                int preferredWidth = panelList.getPreferredSize().width * 4;
-                int preferredHeight = panelList.getPreferredSize().height * 2;
-                diffPanelComponent.setPreferredSize(new Dimension(preferredWidth, preferredHeight));
-                panelDiff.removeAll();
-                panelDiff.add(diffPanelComponent, BorderLayout.CENTER);
+                        }
+                    }, null);
+                    diffRequestPanel.putContextHints(DiffUserDataKeys.FORCE_READ_ONLY, true);
+                    diffRequestPanel.setRequest(request);
+                    JComponent panelDiffComponent = diffRequestPanel.getComponent();
+                    int preferredWidth = panelList.getPreferredSize().width * 4;
+                    int preferredHeight = panelList.getPreferredSize().height * 2;
+                    panelDiffComponent.setPreferredSize(new Dimension(preferredWidth, preferredHeight));
+                    panelMain.add(panelDiffComponent, BorderLayout.CENTER);
+                }
             }
         } catch (IOException | BadLocationException e) {
-            //TODO Gestire caso OPS aDoctor ha un problemino
+            panelMain.add(labelError, BorderLayout.CENTER);
             e.printStackTrace();
         }
+        pack();
+        setLocationRelativeTo(null);
     }
 
     private void onSelectItem() {
@@ -192,7 +202,7 @@ public class SmellDialog extends AbstractDialog {
     }
 
     private void onApply() {
-        smellCallback.smellApply(this, selectedSmell, proposedDocument);
+        smellCallback.smellApply(this, selectedSmell, undo);
     }
 
     private void onBack() {
@@ -211,7 +221,7 @@ public class SmellDialog extends AbstractDialog {
     }
 
     interface SmellCallback {
-        void smellApply(SmellDialog smellDialog, MethodSmell targetSmell, Document proposedDocument);
+        void smellApply(SmellDialog smellDialog, MethodSmell targetSmell, Undo undo);
 
         void smellBack(SmellDialog smellDialog);
 
