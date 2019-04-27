@@ -10,7 +10,7 @@ import java.util.List;
 
 @SuppressWarnings("unchecked")
 public class DWProposer extends MethodSmellProposer {
-
+    //TODO Review: it deletes comments maybe because it replaces the whole method instead of adding a new statement at the end of the same
     @Override
     public ASTRewrite computeProposal(MethodSmell methodSmell) {
         if (methodSmell == null) {

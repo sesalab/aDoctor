@@ -137,6 +137,16 @@ public class ASTUtilities {
         }
     }
 
+    public static List<MethodDeclaration> getMethodDeclarations(ASTNode node) {
+        if (node == null) {
+            return null;
+        } else {
+            ArrayList<MethodDeclaration> methodDeclarations = new ArrayList<>();
+            node.accept(new MethodDeclarationVisitor(methodDeclarations));
+            return methodDeclarations;
+        }
+    }
+
     public static String getCallerName(Statement statement, String methodName) {
         if (statement == null || methodName == null) {
             return null;

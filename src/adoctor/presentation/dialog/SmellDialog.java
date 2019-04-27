@@ -104,7 +104,6 @@ public class SmellDialog extends AbstractDialog {
         for (MethodSmell methodSmell : methodSmells) {
             boxSmell.addItem(methodSmell);
         }
-        //TODO Per IDS fa due fire. Perché?
         boxSmell.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
