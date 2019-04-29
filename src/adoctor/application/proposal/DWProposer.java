@@ -10,6 +10,9 @@ import java.util.List;
 
 @SuppressWarnings("unchecked")
 public class DWProposer extends MethodSmellProposer {
+    private static final String RELEASE = "release";
+
+    //TODO Modificare Proposer, rendendolo più intelligente
     //TODO Review: it deletes comments maybe because it replaces the whole method instead of adding a new statement at the end of the same
     @Override
     public ASTRewrite computeProposal(MethodSmell methodSmell) {
@@ -36,12 +39,12 @@ public class DWProposer extends MethodSmellProposer {
         Expression acquireExpression = acquireExpressionStatement.getExpression();
         MethodInvocation acquireMethodInvocation = (MethodInvocation) acquireExpression;
         releaseMethodInvocation.setExpression((Expression) ASTNode.copySubtree(targetAST, acquireMethodInvocation.getExpression()));
-        releaseMethodInvocation.setName(targetAST.newSimpleName(DWSmell.RELEASE_NAME));
+        releaseMethodInvocation.setName(targetAST.newSimpleName(RELEASE));
         ExpressionStatement releaseStat = targetAST.newExpressionStatement(releaseMethodInvocation);
 
         // Add the new statement at the end of the block but in the new MethodDeclaration
         MethodDeclaration newMethodDecl = (MethodDeclaration) ASTNode.copySubtree(targetAST, smellyMethodDecl);
-        //TODO Volendo acquireBlock è ottenibile facendo due volte getParent() del newMethodDecl
+        //TODO Volendo acquireBlock è ottenibile facendo due volte getParent() del newMethodDecl. Riusare il trucco di scalare i parent
         Block acquireBlock = ASTUtilities.getBlockFromContent(newMethodDecl, dwSmell.getAcquireBlock().toString());
         if (acquireBlock == null) {
             return null;

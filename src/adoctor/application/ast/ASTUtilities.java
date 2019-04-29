@@ -150,22 +150,21 @@ public class ASTUtilities {
     public static String getCallerName(Statement statement, String methodName) {
         if (statement == null || methodName == null) {
             return null;
-        } else {
-            if (statement instanceof ExpressionStatement) {
-                ExpressionStatement expressionStatement = (ExpressionStatement) statement;
-                Expression expression = expressionStatement.getExpression();
-                if (expression instanceof MethodInvocation) {
-                    MethodInvocation methodInvocation = (MethodInvocation) expression;
-                    // If there is an explicit caller
-                    if (methodInvocation.getExpression() != null) {
-                        if (methodInvocation.getName().toString().equals(methodName)) {
-                            return methodInvocation.getExpression().toString();
-                        }
+        }
+        if (statement instanceof ExpressionStatement) {
+            ExpressionStatement expressionStatement = (ExpressionStatement) statement;
+            Expression expression = expressionStatement.getExpression();
+            if (expression instanceof MethodInvocation) {
+                MethodInvocation methodInvocation = (MethodInvocation) expression;
+                // If there is an explicit caller
+                if (methodInvocation.getExpression() != null) {
+                    if (methodInvocation.getName().toString().equals(methodName)) {
+                        return methodInvocation.getExpression().toString();
                     }
                 }
             }
-            return null;
         }
+        return null;
     }
 
     public static List<Expression> getArguments(Statement statement) {
