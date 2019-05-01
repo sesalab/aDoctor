@@ -1,7 +1,6 @@
 package adoctor.application.bean.smell;
 
-import org.eclipse.jdt.core.dom.Block;
-import org.eclipse.jdt.core.dom.Statement;
+import org.eclipse.jdt.core.dom.Expression;
 
 public class DWSmell extends MethodSmell {
     private static final String NAME = "Durable Wakelock";
@@ -9,8 +8,7 @@ public class DWSmell extends MethodSmell {
             "PowerManager.WakeLock instance that calls an acquire() without setting a timeout or without calling the " +
             "corresponding release()";
 
-    private Block acquireBlock;
-    private Statement acquireStatement;
+    private Expression acquireExpression;
 
     public DWSmell() {
         super();
@@ -18,19 +16,11 @@ public class DWSmell extends MethodSmell {
         setSmellDescription(DESCRIPTION);
     }
 
-    public Block getAcquireBlock() {
-        return acquireBlock;
+    public Expression getAcquireExpression() {
+        return acquireExpression;
     }
 
-    public void setAcquireBlock(Block acquireBlock) {
-        this.acquireBlock = acquireBlock;
-    }
-
-    public Statement getAcquireStatement() {
-        return acquireStatement;
-    }
-
-    public void setAcquireStatement(Statement acquireStatement) {
-        this.acquireStatement = acquireStatement;
+    public void setAcquireExpression(Expression acquireExpression) {
+        this.acquireExpression = acquireExpression;
     }
 }

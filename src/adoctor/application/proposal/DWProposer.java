@@ -5,15 +5,11 @@ import adoctor.application.bean.smell.DWSmell;
 import adoctor.application.bean.smell.MethodSmell;
 import org.eclipse.jdt.core.dom.*;
 import org.eclipse.jdt.core.dom.rewrite.ASTRewrite;
+import org.eclipse.jdt.core.dom.rewrite.ListRewrite;
 
-import java.util.List;
-
-@SuppressWarnings("unchecked")
 public class DWProposer extends MethodSmellProposer {
     private static final String RELEASE = "release";
 
-    //TODO Modificare Proposer, rendendolo più intelligente
-    //TODO Review: it deletes comments maybe because it replaces the whole method instead of adding a new statement at the end of the same
     @Override
     public ASTRewrite computeProposal(MethodSmell methodSmell) {
         if (methodSmell == null) {
@@ -27,34 +23,27 @@ public class DWProposer extends MethodSmellProposer {
         if (smellyMethodDecl == null) {
             return null;
         }
-        Statement acquireStatement = dwSmell.getAcquireStatement();
-        if (acquireStatement == null) {
+        Expression acquireExpr = dwSmell.getAcquireExpression();
+        if (acquireExpr == null) {
             return null;
         }
         AST targetAST = smellyMethodDecl.getAST();
 
         // Creates the release() statement
-        MethodInvocation releaseMethodInvocation = targetAST.newMethodInvocation();
-        ExpressionStatement acquireExpressionStatement = (ExpressionStatement) acquireStatement;
-        Expression acquireExpression = acquireExpressionStatement.getExpression();
-        MethodInvocation acquireMethodInvocation = (MethodInvocation) acquireExpression;
-        releaseMethodInvocation.setExpression((Expression) ASTNode.copySubtree(targetAST, acquireMethodInvocation.getExpression()));
-        releaseMethodInvocation.setName(targetAST.newSimpleName(RELEASE));
-        ExpressionStatement releaseStat = targetAST.newExpressionStatement(releaseMethodInvocation);
+        ExpressionStatement releaseStat = createReleaseStatement(targetAST, acquireExpr);
 
-        // Add the new statement at the end of the block but in the new MethodDeclaration
-        MethodDeclaration newMethodDecl = (MethodDeclaration) ASTNode.copySubtree(targetAST, smellyMethodDecl);
-        //TODO Volendo acquireBlock è ottenibile facendo due volte getParent() del newMethodDecl. Riusare il trucco di scalare i parent
-        Block acquireBlock = ASTUtilities.getBlockFromContent(newMethodDecl, dwSmell.getAcquireBlock().toString());
-        if (acquireBlock == null) {
-            return null;
-        }
-        List<Statement> statements = (List<Statement>) acquireBlock.statements();
-        statements.add(releaseStat);
-
-        // Accumulate the replacements
+        // Add the release at the end of the acquire's block
+        Block acquireBlock = ASTUtilities.getParentBlock(acquireExpr);
         ASTRewrite astRewrite = ASTRewrite.create(targetAST);
-        astRewrite.replace(smellyMethodDecl, newMethodDecl, null);
+        ListRewrite listRewrite = astRewrite.getListRewrite(acquireBlock, Block.STATEMENTS_PROPERTY);
+        listRewrite.insertLast(releaseStat, null);
         return astRewrite;
+    }
+
+    private ExpressionStatement createReleaseStatement(AST ast, Expression acquireExpr) {
+        MethodInvocation releaseMethodInvocation = ast.newMethodInvocation();
+        releaseMethodInvocation.setExpression((Expression) ASTNode.copySubtree(ast, acquireExpr));
+        releaseMethodInvocation.setName(ast.newSimpleName(RELEASE));
+        return ast.newExpressionStatement(releaseMethodInvocation);
     }
 }

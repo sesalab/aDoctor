@@ -2,7 +2,6 @@ package adoctor.application.ast;
 
 import adoctor.application.ast.visitor.*;
 import org.eclipse.jdt.core.dom.*;
-import parser.CodeParser;
 import parser.MethodVisitor;
 import process.FileUtilities;
 
@@ -15,9 +14,18 @@ import java.util.List;
 public class ASTUtilities {
 
     public static CompilationUnit getCompilationUnit(File sourceFile) throws IOException {
+        /*
         CodeParser codeParser = new CodeParser();
         String javaFileContent = FileUtilities.readFile(sourceFile.getAbsolutePath());
         return codeParser.createParser(javaFileContent);
+         */
+        ASTParser parser = ASTParser.newParser(AST.JLS11);
+        parser.setKind(ASTParser.K_COMPILATION_UNIT);
+        String javaFileContent = FileUtilities.readFile(sourceFile.getAbsolutePath());
+        parser.setSource(javaFileContent.toCharArray());
+        parser.setEnvironment(null, null, null, true);
+        parser.setResolveBindings(true);
+        return (CompilationUnit) parser.createAST(null);
     }
 
     public static MethodDeclaration getMethodDeclarationFromName(CompilationUnit compilationUnit, String methodName) {
@@ -84,43 +92,6 @@ public class ASTUtilities {
         }
     }
 
-    public static FieldDeclaration getFieldDeclarationFromName(CompilationUnit compilationUnit, String variableName) {
-        // Fetch all FieldDeclaration of the class
-        TypeDeclaration typeDeclaration = (TypeDeclaration) compilationUnit.types().get(0);
-        ArrayList<FieldDeclaration> fieldDeclarationList = new ArrayList<>();
-        typeDeclaration.accept(new FieldDeclarationVisitor(fieldDeclarationList));
-        for (FieldDeclaration fieldDeclaration : fieldDeclarationList) {
-            List fragments = fieldDeclaration.fragments();
-            if (fragments != null) {
-                for (Object fragment : fragments) {
-                    VariableDeclarationFragment variableDeclarationFragment = (VariableDeclarationFragment) fragment;
-                    if (variableDeclarationFragment.getName().toString().equals(variableName)) {
-                        return fieldDeclaration;
-                    }
-                }
-            }
-        }
-        return null;
-    }
-
-    public static VariableDeclarationStatement getVariableDeclarationStatementFromName(MethodDeclaration methodDeclaration, String variableName) {
-        // Fetch all VariableDeclarationStatement of the method
-        ArrayList<VariableDeclarationStatement> variableDeclarationStatementList = new ArrayList<>();
-        methodDeclaration.accept(new VariableDeclarationStatementVisitor(variableDeclarationStatementList));
-        for (VariableDeclarationStatement variableDeclarationStatement : variableDeclarationStatementList) {
-            List fragments = variableDeclarationStatement.fragments();
-            if (fragments != null) {
-                for (Object fragment : fragments) {
-                    VariableDeclarationFragment variableDeclarationFragment = (VariableDeclarationFragment) fragment;
-                    if (variableDeclarationFragment.getName().toString().equals(variableName)) {
-                        return variableDeclarationStatement;
-                    }
-                }
-            }
-        }
-        return null;
-    }
-
     public static ExpressionStatement getExpressionStatementFromContent(MethodDeclaration methodDeclaration, String statementContent) {
         // Fetch all ExpressionStatments
         ArrayList<ExpressionStatement> statementList = new ArrayList<>();
@@ -167,30 +138,6 @@ public class ASTUtilities {
         return null;
     }
 
-    public static List<Expression> getArguments(Statement statement) {
-        if (statement != null) {
-            if (statement instanceof ExpressionStatement) {
-                ExpressionStatement expressionStatement = (ExpressionStatement) statement;
-                Expression expression = expressionStatement.getExpression();
-                if (expression instanceof MethodInvocation) {
-                    MethodInvocation methodInvocation = (MethodInvocation) expression;
-                    return (List<Expression>) methodInvocation.arguments();
-                }
-            }
-        }
-        return null;
-    }
-
-    public static List<FieldDeclaration> getFieldDeclarations(ASTNode node) {
-        if (node == null) {
-            return null;
-        } else {
-            ArrayList<FieldDeclaration> fieldDeclarations = new ArrayList<>();
-            node.accept(new FieldDeclarationVisitor(fieldDeclarations));
-            return fieldDeclarations;
-        }
-    }
-
     public static ArrayList<Block> getBlocks(ASTNode node) {
         if (node == null) {
             return null;
@@ -221,6 +168,16 @@ public class ASTUtilities {
         }
     }
 
+    public static List<FieldDeclaration> getFieldDeclarations(ASTNode node) {
+        if (node == null) {
+            return null;
+        } else {
+            ArrayList<FieldDeclaration> fieldDeclarations = new ArrayList<>();
+            node.accept(new FieldDeclarationVisitor(fieldDeclarations));
+            return fieldDeclarations;
+        }
+    }
+
     public static List<ClassInstanceCreation> getClassInstanceCreations(ASTNode node) {
         if (node == null) {
             return null;
@@ -241,14 +198,12 @@ public class ASTUtilities {
         }
     }
 
-    public static List<ImportDeclaration> getImportDeclaration(ASTNode node) {
-        if (node == null) {
-            return null;
-        } else {
-            ArrayList<ImportDeclaration> importDeclarations = new ArrayList<>();
-            node.accept(new ImportDeclarationVisitor(importDeclarations));
-            return importDeclarations;
+    public static Block getParentBlock(ASTNode node) {
+        ASTNode parent = node;
+        while (!(parent instanceof Block)) {
+            parent = parent.getParent();
         }
+        return (Block) parent;
     }
 }
 
