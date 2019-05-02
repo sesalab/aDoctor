@@ -5,14 +5,13 @@ import adoctor.application.bean.Method;
 import adoctor.application.bean.smell.ERBSmell;
 import org.eclipse.jdt.core.dom.*;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 @SuppressWarnings("unchecked")
 public class ERBAnalyzer extends MethodSmellAnalyzer {
 
+    // TODO Adopt a solution similar to DWAnalyzer. The same for ERBProposer and ERBSmell
     // Warning: Source code with method-level compile error and accents might give problems in the methodDeclaration fetch
     @Override
     public ERBSmell analyzeMethod(Method method) {

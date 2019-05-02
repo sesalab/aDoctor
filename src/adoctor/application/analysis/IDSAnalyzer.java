@@ -25,8 +25,11 @@ public class IDSAnalyzer extends MethodSmellAnalyzer {
 
         // Local variables
         List<VariableDeclarationStatement> variableDeclarationStatements = ASTUtilities.getVariableDeclarationStatements(methodDecl);
+        if (variableDeclarationStatements == null) {
+            return null;
+        }
         for (VariableDeclarationStatement varDecl : variableDeclarationStatements) {
-            if (isHashMapIntegerObject(varDecl.getType())) {
+            if (hasHashMapIntegerObjectType(varDecl.getType())) {
                 IDSSmell smell = new IDSSmell();
                 smell.setMethod(method);
                 smell.setSmellyVarDecl(varDecl);
@@ -34,23 +37,21 @@ public class IDSAnalyzer extends MethodSmellAnalyzer {
             }
         }
 
-        // TODO E' bene che le var di istanza siano gestite in analisi a lv di classe
-        //  Fare questo per ciascun metodo è computazionalmente inutile
+        // This code should be transferred to Class level IDSAnalyzer for better performances
         /*
         List<FieldDeclaration> fieldDeclarations = ASTUtilities.getFieldDeclarations((CompilationUnit) methodDeclaration.getRoot());
         for (FieldDeclaration fieldDecl : fieldDeclarations) {
             System.out.println(fieldDecl);
-            if (isHashMapIntegerObject(fieldDecl.getType())) {
+            if (hasHashMapIntegerObjectType(fieldDecl.getType())) {
                 System.out.println("Ho smell di istanza");
 
             }
         }
         */
         return null;
-
     }
 
-    private boolean isHashMapIntegerObject(Type typeNode) {
+    private boolean hasHashMapIntegerObjectType(Type typeNode) {
         if (!typeNode.isParameterizedType()) {
             return false;
         }

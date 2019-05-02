@@ -35,6 +35,7 @@ public class StartDialog extends AbstractDialog {
         init(startCallback, project);
     }
 
+    // TODO Change some graphics of the StartDialog: better smell and package selection
     private void init(StartCallback startCallback, Project project) {
         super.init(contentPane, TITLE, buttonStart);
 
@@ -89,7 +90,6 @@ public class StartDialog extends AbstractDialog {
         */
     }
 
-    // TODO Rendere più carina la grafica della selezione del package
     private void onSelectModule() {
         PackageChooserDialog pcd = new PackageChooserDialog("Select target package", project);
         pcd.show();
@@ -99,6 +99,7 @@ public class StartDialog extends AbstractDialog {
     }
 
     private void onStart() {
+        //TODO Implement Internal Setter
         boolean[] selections = new boolean[3];
         selections[0] = checkBoxDW.isSelected();
         selections[1] = checkBoxERB.isSelected();

@@ -133,10 +133,7 @@ public class CoreDriver implements StartDialog.StartCallback,
 
     @Override
     public void smellUndo(SmellDialog smellDialog) {
-        //TODO Fai robe con l'undo
-        // 1.Segui lo stesso pattern di quando chiami RefactoringDialog, solo che chiami UndoDialog
-        // 2.Essa deve fare cose analoghe a RefactoringDialog
-        // 3.Al termine, rilancia di nuovo l'analisi con launchAnalysis()
+        //TODO Implement UNDO
         System.out.println("E qui faccio l'undo");
     }
 

@@ -45,7 +45,7 @@ public class IDSProposer extends MethodSmellProposer {
     private static final String ZERO = "0";
     private static final String I = "i";
 
-
+    //TODO Pull up some more methods
     @Override
     public ASTRewrite computeProposal(MethodSmell methodSmell) {
         if (methodSmell == null) {
@@ -87,39 +87,9 @@ public class IDSProposer extends MethodSmellProposer {
                 creation.setType(newConstructor);
             }
         }
-        // List of involved reference variables
-        List<SimpleName> identifiers = ASTUtilities.getSimpleNames(newVarDecl);
-        List<String> variables = new ArrayList<>();
-        if (identifiers != null) {
-            for (SimpleName identifier : identifiers) {
-                if (identifier.isDeclaration()) {
-                    variables.add(identifier.getIdentifier());
-                }
-            }
-        }
-        // List of involved method invocations
-        List<MethodInvocation> allInvocations = ASTUtilities.getMethodInvocations(smellyVarDecl.getParent());
-        List<MethodInvocation> involvedInvocations = new ArrayList<>();
-        if (allInvocations != null) {
-            for (MethodInvocation invocation : allInvocations) {
-                if (invocation.getExpression() != null) {
-                    if (variables.contains(invocation.getExpression().toString())) {
-                        String methodName = invocation.getName().getIdentifier();
-                        if (methodName.equals(REMOVE) && invocation.arguments().size() == 2
-                                || methodName.equals(CONTAINS_KEY)
-                                || methodName.equals(CONTAINS_VALUE)
-                                || methodName.equals(IS_EMPTY)
-                                || methodName.equals(ENTRY_SET)
-                                /*
-                        || methodName.equals(IDSSmell.KEY_SET)
-                        || methodName.equals(IDSSmell.VALUES)
-                        || methodName.equals(IDSSmell.PUT_ALL)*/) {
-                            involvedInvocations.add(invocation);
-                        }
-                    }
-                }
-            }
-        }
+
+        // Fetch the list of involved method invocations
+        List<MethodInvocation> involvedInvocations = getInvolvedInvocations(smellyVarDecl);
 
         // Creation of list of statements replacements (mainly MethodInvocations, but not only)
         // and some method additions
@@ -130,46 +100,22 @@ public class IDSProposer extends MethodSmellProposer {
             switch (invocation.getName().getIdentifier()) {
                 // remove(int, obj) --> remove(indexOfValue(obj))
                 case REMOVE: {
-                    MethodInvocation newInvocation = (MethodInvocation) ASTNode.copySubtree(targetAST, invocation);
-                    MethodInvocation innerInvocation = (MethodInvocation) ASTNode.copySubtree(targetAST, invocation);
-                    innerInvocation.setName(targetAST.newSimpleName(INDEX_OF_VALUE));
-                    innerInvocation.arguments().remove(0);
-                    newInvocation.arguments().clear();
-                    newInvocation.arguments().add(innerInvocation);
-                    newExpr = newInvocation;
+                    newExpr = refactorRemove(targetAST, invocation);
                     break;
                 }
                 // containsKey(int) --> map.indexOfKey(int) >= 0
                 case CONTAINS_KEY: {
-                    MethodInvocation innerInvocation = (MethodInvocation) ASTNode.copySubtree(targetAST, invocation);
-                    innerInvocation.setName(targetAST.newSimpleName(INDEX_OF_KEY));
-                    InfixExpression relationalExpr = targetAST.newInfixExpression();
-                    relationalExpr.setLeftOperand(innerInvocation);
-                    relationalExpr.setOperator(InfixExpression.Operator.GREATER_EQUALS);
-                    relationalExpr.setRightOperand(targetAST.newNumberLiteral(ZERO));
-                    newExpr = relationalExpr;
+                    newExpr = refactorContainsKey(targetAST, invocation);
                     break;
                 }
-                // containsKey(obj) --> indexOfValue(obj) >= 0
+                // containsValue(obj) --> indexOfValue(obj) >= 0
                 case CONTAINS_VALUE: {
-                    MethodInvocation innerInvocation = (MethodInvocation) ASTNode.copySubtree(targetAST, invocation);
-                    innerInvocation.setName(targetAST.newSimpleName(INDEX_OF_VALUE));
-                    InfixExpression relationalExpr = targetAST.newInfixExpression();
-                    relationalExpr.setLeftOperand(innerInvocation);
-                    relationalExpr.setOperator(InfixExpression.Operator.GREATER_EQUALS);
-                    relationalExpr.setRightOperand(targetAST.newNumberLiteral(ZERO));
-                    newExpr = relationalExpr;
+                    newExpr = refactorContainsValue(targetAST, invocation);
                     break;
                 }
                 // isEmpty() --> size() == 0
                 case IS_EMPTY: {
-                    MethodInvocation innerInvocation = (MethodInvocation) ASTNode.copySubtree(targetAST, invocation);
-                    innerInvocation.setName(targetAST.newSimpleName(SIZE));
-                    InfixExpression relationalExpr = targetAST.newInfixExpression();
-                    relationalExpr.setLeftOperand(innerInvocation);
-                    relationalExpr.setOperator(InfixExpression.Operator.EQUALS);
-                    relationalExpr.setRightOperand(targetAST.newNumberLiteral(ZERO));
-                    newExpr = relationalExpr;
+                    newExpr = refactorIsEmpty(targetAST, invocation);
                     break;
                 }
                 // entrySet() --> Method call to a private method that does a for each on the array and builds a
@@ -185,19 +131,16 @@ public class IDSProposer extends MethodSmellProposer {
                     }
                     if (!found) {
                         if (!existsGetEntrySet((CompilationUnit) invocation.getRoot())) {
-                            MethodDeclaration newMethod = createGetEntrySet(targetAST, newType);
+                            MethodDeclaration newMethod = createGetEntrySetMethod(targetAST, newType);
                             methodAdditions.add(newMethod);
                         }
                     }
 
                     // entrySet() replaced by getEntrySet()
-                    MethodInvocation getEntrySetCall = targetAST.newMethodInvocation();
-                    getEntrySetCall.setName(targetAST.newSimpleName(GET_ENTRY_SET));
-                    getEntrySetCall.arguments().add(ASTNode.copySubtree(targetAST, invocation.getExpression()));
-                    newExpr = getEntrySetCall;
+                    newExpr = refactorEntrySet(targetAST, invocation);
                     break;
                 }
-                //TODO Keep going with these?
+                //TODO Should these be implemented? Is it necessary?
                 /*
                 // keySet() -->
                 case IDSSmell.KEY_SET: {
@@ -264,6 +207,92 @@ public class IDSProposer extends MethodSmellProposer {
         return astRewrite;
     }
 
+    private List<MethodInvocation> getInvolvedInvocations(VariableDeclarationStatement smellyVarDecl) {
+        // List of involved reference variables
+        List<SimpleName> identifiers = ASTUtilities.getSimpleNames(smellyVarDecl);
+        List<String> variables = new ArrayList<>();
+        if (identifiers != null) {
+            for (SimpleName identifier : identifiers) {
+                if (identifier.isDeclaration()) {
+                    variables.add(identifier.getIdentifier());
+                }
+            }
+        }
+        // List of involved method invocations
+        List<MethodInvocation> allInvocations = ASTUtilities.getMethodInvocations(smellyVarDecl.getParent());
+        List<MethodInvocation> involvedInvocations = new ArrayList<>();
+        if (allInvocations != null) {
+            for (MethodInvocation invocation : allInvocations) {
+                if (invocation.getExpression() != null) {
+                    if (variables.contains(invocation.getExpression().toString())) {
+                        String methodName = invocation.getName().getIdentifier();
+                        if (methodName.equals(REMOVE) && invocation.arguments().size() == 2
+                                || methodName.equals(CONTAINS_KEY)
+                                || methodName.equals(CONTAINS_VALUE)
+                                || methodName.equals(IS_EMPTY)
+                                || methodName.equals(ENTRY_SET)
+                                /*
+                        || methodName.equals(IDSSmell.KEY_SET)
+                        || methodName.equals(IDSSmell.VALUES)
+                        || methodName.equals(IDSSmell.PUT_ALL)*/) {
+                            involvedInvocations.add(invocation);
+                        }
+                    }
+                }
+            }
+        }
+        return involvedInvocations;
+    }
+
+    private MethodInvocation refactorRemove(AST ast, MethodInvocation invocation) {
+        MethodInvocation newInvocation = (MethodInvocation) ASTNode.copySubtree(ast, invocation);
+        MethodInvocation innerInvocation = (MethodInvocation) ASTNode.copySubtree(ast, invocation);
+        innerInvocation.setName(ast.newSimpleName(INDEX_OF_VALUE));
+        innerInvocation.arguments().remove(0);
+        newInvocation.arguments().clear();
+        newInvocation.arguments().add(innerInvocation);
+        return newInvocation;
+    }
+
+    private InfixExpression refactorContainsKey(AST ast, MethodInvocation invocation) {
+        MethodInvocation innerInvocation = (MethodInvocation) ASTNode.copySubtree(ast, invocation);
+        innerInvocation.setName(ast.newSimpleName(INDEX_OF_KEY));
+        InfixExpression relationalExpr = ast.newInfixExpression();
+        relationalExpr.setLeftOperand(innerInvocation);
+        relationalExpr.setOperator(InfixExpression.Operator.GREATER_EQUALS);
+        relationalExpr.setRightOperand(ast.newNumberLiteral(ZERO));
+        return relationalExpr;
+    }
+
+    private Expression refactorContainsValue(AST targetAST, MethodInvocation invocation) {
+        Expression newExpr;
+        MethodInvocation innerInvocation = (MethodInvocation) ASTNode.copySubtree(targetAST, invocation);
+        innerInvocation.setName(targetAST.newSimpleName(INDEX_OF_VALUE));
+        InfixExpression relationalExpr = targetAST.newInfixExpression();
+        relationalExpr.setLeftOperand(innerInvocation);
+        relationalExpr.setOperator(InfixExpression.Operator.GREATER_EQUALS);
+        relationalExpr.setRightOperand(targetAST.newNumberLiteral(ZERO));
+        newExpr = relationalExpr;
+        return newExpr;
+    }
+
+    private InfixExpression refactorIsEmpty(AST targetAST, MethodInvocation invocation) {
+        MethodInvocation innerInvocation = (MethodInvocation) ASTNode.copySubtree(targetAST, invocation);
+        innerInvocation.setName(targetAST.newSimpleName(SIZE));
+        InfixExpression relationalExpr = targetAST.newInfixExpression();
+        relationalExpr.setLeftOperand(innerInvocation);
+        relationalExpr.setOperator(InfixExpression.Operator.EQUALS);
+        relationalExpr.setRightOperand(targetAST.newNumberLiteral(ZERO));
+        return relationalExpr;
+    }
+
+    private MethodInvocation refactorEntrySet(AST targetAST, MethodInvocation invocation) {
+        MethodInvocation getEntrySetCall = targetAST.newMethodInvocation();
+        getEntrySetCall.setName(targetAST.newSimpleName(GET_ENTRY_SET));
+        getEntrySetCall.arguments().add(ASTNode.copySubtree(targetAST, invocation.getExpression()));
+        return getEntrySetCall;
+    }
+
     private boolean existsGetEntrySet(CompilationUnit compilationUnit) {
         List<MethodDeclaration> methodDeclarations = ASTUtilities.getMethodDeclarations(compilationUnit);
         boolean found = false;
@@ -301,6 +330,7 @@ public class IDSProposer extends MethodSmellProposer {
     }
 
     /*
+    This is the structure of the method that this method adds
         private Set<Map.Entry<Integer, Object>> getEntrySet(SparseArray<Object> array) {
             Set<Map.Entry<Integer, Object>> entrySet = new TreeSet<>();
             for (int i = 0; i < array.size(); i++) {
@@ -312,7 +342,8 @@ public class IDSProposer extends MethodSmellProposer {
             return entrySet;
         }
     */
-    private MethodDeclaration createGetEntrySet(AST ast, ParameterizedType sparseArrayType) {
+    //TODO Pull up some methods
+    private MethodDeclaration createGetEntrySetMethod(AST ast, ParameterizedType sparseArrayType) {
         // Return type: Set<Map.Entry<Integer, Object>>
         SimpleType mapType = ast.newSimpleType(ast.newSimpleName(MAP));
         QualifiedType mapEntryType = ast.newQualifiedType(mapType, ast

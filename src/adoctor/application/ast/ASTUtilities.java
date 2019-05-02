@@ -10,7 +10,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-@SuppressWarnings("unchecked")
 public class ASTUtilities {
 
     public static CompilationUnit getCompilationUnit(File sourceFile) throws IOException {
@@ -90,6 +89,25 @@ public class ASTUtilities {
         } else {
             return null;
         }
+    }
+
+    public static FieldDeclaration getFieldDeclarationFromName(CompilationUnit compilationUnit, String variableName) {
+        // Fetch all FieldDeclaration of the class
+        TypeDeclaration typeDeclaration = (TypeDeclaration) compilationUnit.types().get(0);
+        ArrayList<FieldDeclaration> fieldDeclarationList = new ArrayList<>();
+        typeDeclaration.accept(new FieldDeclarationVisitor(fieldDeclarationList));
+        for (FieldDeclaration fieldDeclaration : fieldDeclarationList) {
+            List fragments = fieldDeclaration.fragments();
+            if (fragments != null) {
+                for (Object fragment : fragments) {
+                    VariableDeclarationFragment variableDeclarationFragment = (VariableDeclarationFragment) fragment;
+                    if (variableDeclarationFragment.getName().toString().equals(variableName)) {
+                        return fieldDeclaration;
+                    }
+                }
+            }
+        }
+        return null;
     }
 
     public static ExpressionStatement getExpressionStatementFromContent(MethodDeclaration methodDeclaration, String statementContent) {
