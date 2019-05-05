@@ -1,4 +1,4 @@
-package adoctor.application.proposal;
+package adoctor.application.proposal.proposers;
 
 import adoctor.application.ast.ASTUtilities;
 import adoctor.application.bean.smell.ERBSmell;

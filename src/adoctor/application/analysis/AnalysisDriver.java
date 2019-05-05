@@ -1,5 +1,6 @@
 package adoctor.application.analysis;
 
+import adoctor.application.analysis.analyzers.MethodSmellAnalyzer;
 import adoctor.application.ast.ASTUtilities;
 import adoctor.application.bean.Method;
 import adoctor.application.bean.smell.MethodSmell;
@@ -128,14 +129,6 @@ public class AnalysisDriver {
         }
     }
 
-    /**
-     * Builds an ArrayList with all code bean found in the whole project
-     * returns null iff there are no smells
-     *
-     * @param projectPackages
-     * @param sourceFileMap
-     * @return
-     */
     private ArrayList<MethodSmell> analyze(ArrayList<PackageBean> projectPackages, HashMap<String, File> sourceFileMap) throws IOException {
         ArrayList<MethodSmell> methodSmells = new ArrayList<>();
         if (methodSmellAnalyzers == null || methodSmellAnalyzers.size() <= 0

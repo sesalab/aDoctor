@@ -5,7 +5,7 @@ import org.eclipse.jdt.core.dom.VariableDeclarationStatement;
 public class IDSSmell extends MethodSmell {
     private static final String NAME = "Inefficient Data Structure";
     private static final String DESCRIPTION = "Inefficient Data Structure is present when a HashMap<Integer, Object> " +
-            "is used. This affects performances with the autoboxing problem.";
+            "is used. This affects performances due to intensive autoboxing usage.";
 
     private VariableDeclarationStatement smellyVarDecl;
 

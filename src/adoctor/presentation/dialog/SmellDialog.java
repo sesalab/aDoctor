@@ -1,7 +1,8 @@
 package adoctor.presentation.dialog;
 
 import adoctor.application.bean.smell.MethodSmell;
-import adoctor.application.proposal.*;
+import adoctor.application.proposal.ProposalDriver;
+import adoctor.application.proposal.proposers.*;
 import adoctor.application.proposal.undo.Undo;
 import com.intellij.diff.DiffContentFactory;
 import com.intellij.diff.DiffManager;
@@ -93,6 +94,9 @@ public class SmellDialog extends AbstractDialog {
         }
         if (selections[2]) {
             methodSmellProposers.add(new IDSProposer());
+        }
+        if (selections[3]) {
+            methodSmellProposers.add(new ISProposer());
         }
         proposalDriver = new ProposalDriver(methodSmellProposers);
         selectedSmell = null;

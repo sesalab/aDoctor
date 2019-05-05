@@ -1,4 +1,4 @@
-package adoctor.application.analysis;
+package adoctor.application.analysis.analyzers;
 
 import adoctor.application.ast.ASTUtilities;
 import adoctor.application.bean.Method;
@@ -10,8 +10,7 @@ import java.util.List;
 
 @SuppressWarnings("unchecked")
 public class ERBAnalyzer extends MethodSmellAnalyzer {
-
-    // TODO Adopt a solution similar to DWAnalyzer. The same for ERBProposer and ERBSmell
+    // TODO Review this code, adopt a solution similar to DWAnalyzer. The same for ERBProposer and ERBSmell
     // Warning: Source code with method-level compile error and accents might give problems in the methodDeclaration fetch
     @Override
     public ERBSmell analyzeMethod(Method method) {

@@ -1,4 +1,4 @@
-package adoctor.application.proposal;
+package adoctor.application.proposal.proposers;
 
 import adoctor.application.bean.smell.MethodSmell;
 import org.eclipse.jdt.core.dom.rewrite.ASTRewrite;

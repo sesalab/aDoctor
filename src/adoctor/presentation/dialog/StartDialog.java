@@ -19,6 +19,8 @@ public class StartDialog extends AbstractDialog {
     private JCheckBox checkBoxDW;
     private JCheckBox checkBoxERB;
     private JCheckBox checkBoxIDS;
+    private JCheckBox checkBoxIS;
+
     private JButton buttonSelect;
     private JButton buttonStart;
     private JButton buttonQuit;
@@ -46,6 +48,7 @@ public class StartDialog extends AbstractDialog {
         checkBoxDW.setSelected(true);
         checkBoxERB.setSelected(true);
         checkBoxIDS.setSelected(true);
+        checkBoxIS.setSelected(true);
 
         buttonSelect.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -99,12 +102,12 @@ public class StartDialog extends AbstractDialog {
     }
 
     private void onStart() {
-        //TODO Implement Internal Setter
-        boolean[] selections = new boolean[3];
+        boolean[] selections = new boolean[4];
         selections[0] = checkBoxDW.isSelected();
         selections[1] = checkBoxERB.isSelected();
         selections[2] = checkBoxIDS.isSelected();
-        if (!selections[0] && !selections[1] && !selections[2]) {
+        selections[3] = checkBoxIS.isSelected();
+        if (!selections[0] && !selections[1] && !selections[2] && !selections[3]) {
             JOptionPane.showMessageDialog(this, "Select at least one smell!", "Error", JOptionPane.ERROR_MESSAGE, null);
         } else {
             startCallback.startAnalysis(this, selections, labelPackage.getText());

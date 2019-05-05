@@ -1,4 +1,4 @@
-package adoctor.application.analysis;
+package adoctor.application.analysis.analyzers;
 
 import adoctor.application.ast.ASTUtilities;
 import adoctor.application.bean.Method;

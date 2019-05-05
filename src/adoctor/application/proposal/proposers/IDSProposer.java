@@ -1,4 +1,4 @@
-package adoctor.application.proposal;
+package adoctor.application.proposal.proposers;
 
 import adoctor.application.ast.ASTUtilities;
 import adoctor.application.bean.smell.IDSSmell;
@@ -45,7 +45,7 @@ public class IDSProposer extends MethodSmellProposer {
     private static final String ZERO = "0";
     private static final String I = "i";
 
-    //TODO Pull up some more methods
+    //TODO Extract some more methods
     @Override
     public ASTRewrite computeProposal(MethodSmell methodSmell) {
         if (methodSmell == null) {
@@ -342,7 +342,7 @@ public class IDSProposer extends MethodSmellProposer {
             return entrySet;
         }
     */
-    //TODO Pull up some methods
+    //TODO Extract some methods
     private MethodDeclaration createGetEntrySetMethod(AST ast, ParameterizedType sparseArrayType) {
         // Return type: Set<Map.Entry<Integer, Object>>
         SimpleType mapType = ast.newSimpleType(ast.newSimpleName(MAP));

@@ -1,6 +1,7 @@
 package adoctor.application.proposal;
 
 import adoctor.application.bean.smell.MethodSmell;
+import adoctor.application.proposal.proposers.MethodSmellProposer;
 import adoctor.application.proposal.undo.Undo;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.dom.rewrite.ASTRewrite;
