@@ -45,7 +45,7 @@
                 </constraints>
                 <properties>
                   <font/>
-                  <text value="to the method ... in file ..."/>
+                  <text value="to the pClassBean ... in file ..."/>
                 </properties>
               </component>
               <component id="257a" class="javax.swing.JLabel">

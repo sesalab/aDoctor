@@ -1,6 +1,6 @@
 package adoctor.presentation.dialog;
 
-import adoctor.application.bean.smell.MethodSmell;
+import adoctor.application.bean.smell.ClassSmell;
 import adoctor.application.proposal.ProposalDriver;
 import adoctor.application.proposal.proposers.*;
 import adoctor.application.proposal.undo.Undo;
@@ -55,14 +55,14 @@ public class SmellDialog extends AbstractDialog {
 
     private SmellCallback smellCallback;
     private Project project;
-    private ArrayList<MethodSmell> methodSmells;
+    private ArrayList<ClassSmell> classSmells;
     private ProposalDriver proposalDriver;
-    private MethodSmell selectedSmell;
+    private ClassSmell selectedSmell;
     private Undo undo;
 
     private JPanel contentPane;
     private JPanel panelList;
-    private JComboBox<MethodSmell> boxSmell;
+    private JComboBox<ClassSmell> boxSmell;
     private JTextPane paneDetails;
     private JPanel panelMain;
     private JLabel labelError;
@@ -70,43 +70,43 @@ public class SmellDialog extends AbstractDialog {
     private JButton buttonBack;
     private JButton buttonUndo;
 
-    public static void show(SmellCallback smellCallback, Project project, ArrayList<MethodSmell> smellMethodList, boolean[] selections, boolean undoExists) {
+    private SmellDialog(SmellCallback smellCallback, Project project, ArrayList<ClassSmell> classSmells, boolean[] selections, boolean undoExists) {
+        init(smellCallback, project, classSmells, selections, undoExists);
+    }
+
+    public static void show(SmellCallback smellCallback, Project project, ArrayList<ClassSmell> smellMethodList, boolean[] selections, boolean undoExists) {
         SmellDialog smellDialog = new SmellDialog(smellCallback, project, smellMethodList, selections, undoExists);
         smellDialog.showInCenter();
     }
 
-    private SmellDialog(SmellCallback smellCallback, Project project, ArrayList<MethodSmell> methodSmells, boolean[] selections, boolean undoExists) {
-        init(smellCallback, project, methodSmells, selections, undoExists);
-    }
-
-    private void init(SmellCallback smellCallback, Project project, ArrayList<MethodSmell> methodSmells, boolean[] selections, boolean undoExists) {
+    private void init(SmellCallback smellCallback, Project project, ArrayList<ClassSmell> classSmells, boolean[] selections, boolean undoExists) {
         super.init(contentPane, TITLE, buttonApply);
 
         this.smellCallback = smellCallback;
         this.project = project;
-        this.methodSmells = methodSmells;
-        ArrayList<MethodSmellProposer> methodSmellProposers = new ArrayList<>();
+        this.classSmells = classSmells;
+        ArrayList<ClassSmellProposer> classSmellProposers = new ArrayList<>();
         if (selections[0]) {
-            methodSmellProposers.add(new DWProposer());
+            classSmellProposers.add(new DWProposer());
         }
         if (selections[1]) {
-            methodSmellProposers.add(new ERBProposer());
+            classSmellProposers.add(new ERBProposer());
         }
         if (selections[2]) {
-            methodSmellProposers.add(new IDSProposer());
+            classSmellProposers.add(new IDSProposer());
         }
         if (selections[3]) {
-            methodSmellProposers.add(new ISProposer());
+            classSmellProposers.add(new ISProposer());
         }
-        proposalDriver = new ProposalDriver(methodSmellProposers);
+        proposalDriver = new ProposalDriver(classSmellProposers);
         selectedSmell = null;
         undo = null;
 
         // The smell list
         boxSmell.setRenderer(new SmellRenderer());
         boxSmell.removeAllItems();
-        for (MethodSmell methodSmell : methodSmells) {
-            boxSmell.addItem(methodSmell);
+        for (ClassSmell classSmell : classSmells) {
+            boxSmell.addItem(classSmell);
         }
         boxSmell.addActionListener(new ActionListener() {
             @Override
@@ -146,13 +146,13 @@ public class SmellDialog extends AbstractDialog {
     }
 
     private void updateDetails() {
-        selectedSmell = methodSmells.get(boxSmell.getSelectedIndex());
+        selectedSmell = classSmells.get(boxSmell.getSelectedIndex());
 
         // Updates the extended description
-        String smellName = selectedSmell.getSmellName();
-        String smellClass = selectedSmell.getMethod().getLegacyMethodBean().getBelongingClass().getName();
-        String smellDescription = selectedSmell.getSmellDescription();
-        String smellMethod = selectedSmell.getMethod().getLegacyMethodBean().getName();
+        String smellName = selectedSmell.getName();
+        String smellClass = selectedSmell.getClassBean().getLegacyClassBean().getName();
+        String smellDescription = selectedSmell.getDescription();
+        String smellMethod = selectedSmell.getClassBean().getLegacyClassBean().getName();
         String text = String.format(extendedHTML, smellName, smellDescription, smellClass, smellMethod);
         paneDetails.setText(text);
 
@@ -161,7 +161,7 @@ public class SmellDialog extends AbstractDialog {
         try {
             // Compute the proposal of the selected smell and then show the diff if no errors
             undo = proposalDriver.computeProposal(selectedSmell);
-            VirtualFile vf = LocalFileSystem.getInstance().findFileByIoFile(selectedSmell.getMethod().getSourceFile());
+            VirtualFile vf = LocalFileSystem.getInstance().findFileByIoFile(selectedSmell.getClassBean().getSourceFile());
             if (undo == null || vf == null) {
                 panelMain.add(labelError, BorderLayout.CENTER);
             } else {
@@ -224,7 +224,7 @@ public class SmellDialog extends AbstractDialog {
     }
 
     interface SmellCallback {
-        void smellApply(SmellDialog smellDialog, MethodSmell targetSmell, Undo undo);
+        void smellApply(SmellDialog smellDialog, ClassSmell targetSmell, Undo undo);
 
         void smellBack(SmellDialog smellDialog);
 
@@ -238,7 +238,7 @@ public class SmellDialog extends AbstractDialog {
         public Component getListCellRendererComponent(JList list, Object value, int index,
                                                       boolean isSelected, boolean cellHasFocus) {
             JLabel label = new JLabel();
-            MethodSmell methodSmell = (MethodSmell) value;
+            ClassSmell classSmell = (ClassSmell) value;
             label.setOpaque(true);
             if (isSelected) {
                 label.setBackground(list.getSelectionBackground());
@@ -248,8 +248,8 @@ public class SmellDialog extends AbstractDialog {
                 label.setForeground(list.getForeground());
             }
 
-            String smellName = methodSmell.getSmellName();
-            String smellClass = methodSmell.getMethod().getLegacyMethodBean().getBelongingClass().getName();
+            String smellName = classSmell.getName();
+            String smellClass = classSmell.getClassBean().getLegacyClassBean().getName();
             String text = String.format(baseHTML, smellName, smellClass);
             label.setText(text);
             return label;

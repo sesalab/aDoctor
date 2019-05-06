@@ -2,7 +2,7 @@ package adoctor.presentation.dialog;
 
 import adoctor.application.analysis.AnalysisDriver;
 import adoctor.application.analysis.analyzers.*;
-import adoctor.application.bean.smell.MethodSmell;
+import adoctor.application.bean.smell.ClassSmell;
 import com.intellij.openapi.project.Project;
 
 import javax.swing.*;
@@ -37,20 +37,20 @@ public class AnalysisDialog extends AbstractDialog {
         super.init(contentPane, TITLE, buttonAbort);
 
         this.analysisCallback = analysisCallback;
-        ArrayList<MethodSmellAnalyzer> methodSmellAnalyzers = new ArrayList<>();
+        ArrayList<ClassSmellAnalyzer> classSmellAnalyzers = new ArrayList<>();
         if (selections[0]) {
-            methodSmellAnalyzers.add(new DWAnalyzer());
+            classSmellAnalyzers.add(new DWAnalyzer());
         }
         if (selections[1]) {
-            methodSmellAnalyzers.add(new ERBAnalyzer());
+            classSmellAnalyzers.add(new ERBAnalyzer());
         }
         if (selections[2]) {
-            methodSmellAnalyzers.add(new IDSAnalyzer());
+            classSmellAnalyzers.add(new IDSAnalyzer());
         }
         if (selections[3]) {
-            methodSmellAnalyzers.add(new ISAnalyzer());
+            classSmellAnalyzers.add(new ISAnalyzer());
         }
-        this.analysisDriver = new AnalysisDriver(project, methodSmellAnalyzers, targetPackage);
+        this.analysisDriver = new AnalysisDriver(project, classSmellAnalyzers, targetPackage);
 
         buttonAbort.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -68,9 +68,9 @@ public class AnalysisDialog extends AbstractDialog {
 
     // Control logic managed by a worker thread
     private void startAnalysis() {
-        SwingWorker<ArrayList<MethodSmell>, Void> swingWorker = new SwingWorker<ArrayList<MethodSmell>, Void>() {
+        SwingWorker<ArrayList<ClassSmell>, Void> swingWorker = new SwingWorker<ArrayList<ClassSmell>, Void>() {
             @Override
-            protected ArrayList<MethodSmell> doInBackground() {
+            protected ArrayList<ClassSmell> doInBackground() {
                 try {
                     return analysisDriver.startAnalysis();
                 } catch (InterruptedException e) {
@@ -82,8 +82,8 @@ public class AnalysisDialog extends AbstractDialog {
             @Override
             protected void done() {
                 try {
-                    ArrayList<MethodSmell> methodSmells = get();
-                    analysisCallback.analysisDone(AnalysisDialog.this, methodSmells);
+                    ArrayList<ClassSmell> classSmells = get();
+                    analysisCallback.analysisDone(AnalysisDialog.this, classSmells);
                 } catch (InterruptedException | ExecutionException e) {
                     e.printStackTrace();
                 }
@@ -100,6 +100,6 @@ public class AnalysisDialog extends AbstractDialog {
     interface AnalysisCallback {
         void analysisAbort(AnalysisDialog analysisDialog);
 
-        void analysisDone(AnalysisDialog analysisDialog, ArrayList<MethodSmell> methodSmells);
+        void analysisDone(AnalysisDialog analysisDialog, ArrayList<ClassSmell> classSmells);
     }
 }

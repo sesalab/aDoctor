@@ -1,6 +1,6 @@
 package adoctor.presentation.dialog;
 
-import adoctor.application.bean.smell.MethodSmell;
+import adoctor.application.bean.smell.ClassSmell;
 import adoctor.application.proposal.undo.Undo;
 import com.intellij.ide.SaveAndSyncHandlerImpl;
 import com.intellij.openapi.application.ApplicationManager;
@@ -26,7 +26,7 @@ public class CoreDriver implements StartDialog.StartCallback,
     private Stack<Undo> undoStack;
     private boolean[] selections;
     private String targetPackage;
-    private ArrayList<MethodSmell> methodSmells;
+    private ArrayList<ClassSmell> classSmells;
 
     public CoreDriver(Project project) {
         this.project = project;
@@ -82,13 +82,13 @@ public class CoreDriver implements StartDialog.StartCallback,
     }
 
     @Override
-    public void analysisDone(AnalysisDialog analysisDialog, ArrayList<MethodSmell> methodSmells) {
-        this.methodSmells = methodSmells;
+    public void analysisDone(AnalysisDialog analysisDialog, ArrayList<ClassSmell> classSmells) {
+        this.classSmells = classSmells;
         analysisDialog.dispose();
-        if (methodSmells == null || methodSmells.size() == 0) {
+        if (classSmells == null || classSmells.size() == 0) {
             NoSmellDialog.show(this);
         } else {
-            SmellDialog.show(this, project, methodSmells, selections, !undoStack.isEmpty());
+            SmellDialog.show(this, project, classSmells, selections, !undoStack.isEmpty());
         }
     }
 
@@ -113,7 +113,7 @@ public class CoreDriver implements StartDialog.StartCallback,
 
     /////////////SmellDialog//////////////
     @Override
-    public void smellApply(SmellDialog smellDialog, MethodSmell targetSmell, Undo undo) {
+    public void smellApply(SmellDialog smellDialog, ClassSmell targetSmell, Undo undo) {
         smellDialog.dispose();
         undoStack.push(undo);
         Document proposedDocument = undo.getDocument();
@@ -133,7 +133,7 @@ public class CoreDriver implements StartDialog.StartCallback,
 
     @Override
     public void smellUndo(SmellDialog smellDialog) {
-        //TODO Implement UNDO
+        //TODO Low Implement UNDO
         System.out.println("E qui faccio l'undo");
     }
 
@@ -196,7 +196,7 @@ public class CoreDriver implements StartDialog.StartCallback,
     @Override
     public void failureBack(FailureDialog failureDialog) {
         failureDialog.dispose();
-        SmellDialog.show(this, project, methodSmells, selections, !undoStack.isEmpty());
+        SmellDialog.show(this, project, classSmells, selections, !undoStack.isEmpty());
     }
 
     @Override

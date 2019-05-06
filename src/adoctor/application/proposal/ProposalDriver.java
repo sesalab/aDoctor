@@ -1,7 +1,7 @@
 package adoctor.application.proposal;
 
-import adoctor.application.bean.smell.MethodSmell;
-import adoctor.application.proposal.proposers.MethodSmellProposer;
+import adoctor.application.bean.smell.ClassSmell;
+import adoctor.application.proposal.proposers.ClassSmellProposer;
 import adoctor.application.proposal.undo.Undo;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.dom.rewrite.ASTRewrite;
@@ -16,21 +16,21 @@ import java.util.ArrayList;
 
 public class ProposalDriver {
 
-    private ArrayList<MethodSmellProposer> methodSmellProposers;
+    private ArrayList<ClassSmellProposer> classSmellProposers;
 
-    public ProposalDriver(ArrayList<MethodSmellProposer> methodSmellProposers) {
-        this.methodSmellProposers = methodSmellProposers;
+    public ProposalDriver(ArrayList<ClassSmellProposer> classSmellProposers) {
+        this.classSmellProposers = classSmellProposers;
     }
 
-    public Undo computeProposal(MethodSmell methodSmell) throws IOException, BadLocationException {
-        if (methodSmellProposers == null) {
+    public Undo computeProposal(ClassSmell classSmell) throws IOException, BadLocationException {
+        if (classSmellProposers == null) {
             return null;
         }
-        for (MethodSmellProposer proposer : methodSmellProposers) {
-            ASTRewrite astRewrite = proposer.computeProposal(methodSmell);
+        for (ClassSmellProposer proposer : classSmellProposers) {
+            ASTRewrite astRewrite = proposer.computeProposal(classSmell);
             if (astRewrite != null) {
                 // Overwrite the document
-                File sourceFile = methodSmell.getMethod().getSourceFile();
+                File sourceFile = classSmell.getClassBean().getSourceFile();
                 org.eclipse.jface.text.Document document = new org.eclipse.jface.text.Document(FileUtilities.readFile(sourceFile.getAbsolutePath()));
                 TextEdit edits = astRewrite.rewriteAST(document, JavaCore.getDefaultOptions()); // With JavaCore Options we keep the code format settings, so the \n
                 UndoEdit undoEdit = edits.apply(document, TextEdit.CREATE_UNDO | TextEdit.UPDATE_REGIONS);

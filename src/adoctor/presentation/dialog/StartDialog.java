@@ -37,7 +37,7 @@ public class StartDialog extends AbstractDialog {
         init(startCallback, project);
     }
 
-    // TODO Change some graphics of the StartDialog: better smell and package selection
+    // TODO Medium Change some graphics of the StartDialog: better smell and package selection
     private void init(StartCallback startCallback, Project project) {
         super.init(contentPane, TITLE, buttonStart);
 

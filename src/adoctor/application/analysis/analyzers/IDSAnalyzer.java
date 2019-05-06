@@ -1,53 +1,51 @@
 package adoctor.application.analysis.analyzers;
 
 import adoctor.application.ast.ASTUtilities;
-import adoctor.application.bean.Method;
+import adoctor.application.bean.ClassBean;
+import adoctor.application.bean.smell.ClassSmell;
 import adoctor.application.bean.smell.IDSSmell;
-import adoctor.application.bean.smell.MethodSmell;
 import org.eclipse.jdt.core.dom.*;
 
 import java.util.List;
 
 @SuppressWarnings("unchecked")
-public class IDSAnalyzer extends MethodSmellAnalyzer {
+public class IDSAnalyzer extends ClassSmellAnalyzer {
     private static final String HASHMAP = "HashMap";
     private static final String INTEGER = "Integer";
 
     @Override
-    public MethodSmell analyzeMethod(Method method) {
-        if (method == null) {
+    public ClassSmell analyze(ClassBean classBean) {
+        if (classBean == null) {
             return null;
         }
-        MethodDeclaration methodDecl = method.getMethodDecl();
-        if (methodDecl == null) {
-            return null;
-        }
-
-        // Local variables
-        List<VariableDeclarationStatement> variableDeclarationStatements = ASTUtilities.getVariableDeclarationStatements(methodDecl);
-        if (variableDeclarationStatements == null) {
-            return null;
-        }
-        for (VariableDeclarationStatement varDecl : variableDeclarationStatements) {
-            if (hasHashMapIntegerObjectType(varDecl.getType())) {
-                IDSSmell smell = new IDSSmell();
-                smell.setMethod(method);
-                smell.setSmellyVarDecl(varDecl);
-                return smell;
+        MethodDeclaration[] methods = classBean.getTypeDeclaration().getMethods();
+        for (MethodDeclaration methodDecl : methods) {
+            // Local variables
+            List<VariableDeclarationStatement> variableDeclarationStatements = ASTUtilities.getVariableDeclarationStatements(methodDecl);
+            if (variableDeclarationStatements == null) {
+                return null;
             }
-        }
-
-        // This code should be transferred to Class level IDSAnalyzer for better performances
-        /*
-        List<FieldDeclaration> fieldDeclarations = ASTUtilities.getFieldDeclarations((CompilationUnit) methodDeclaration.getRoot());
-        for (FieldDeclaration fieldDecl : fieldDeclarations) {
-            System.out.println(fieldDecl);
-            if (hasHashMapIntegerObjectType(fieldDecl.getType())) {
-                System.out.println("Ho smell di istanza");
-
+            for (VariableDeclarationStatement varDecl : variableDeclarationStatements) {
+                if (hasHashMapIntegerObjectType(varDecl.getType())) {
+                    IDSSmell smell = new IDSSmell();
+                    smell.setClassBean(classBean);
+                    smell.setSmellyVarDecl(varDecl);
+                    return smell;
+                }
             }
+
+            // TODO High This code should be enabled for a fine graine check
+            /*
+            List<FieldDeclaration> fieldDeclarations = ASTUtilities.getFieldDeclarations((CompilationUnit) methodDeclaration.getRoot());
+            for (FieldDeclaration fieldDecl : fieldDeclarations) {
+                System.out.println(fieldDecl);
+                if (hasHashMapIntegerObjectType(fieldDecl.getType())) {
+                    System.out.println("Ho smell di istanza");
+
+                }
+            }
+            */
         }
-        */
         return null;
     }
 

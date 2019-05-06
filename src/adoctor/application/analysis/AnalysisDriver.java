@@ -1,11 +1,9 @@
 package adoctor.application.analysis;
 
-import adoctor.application.analysis.analyzers.MethodSmellAnalyzer;
+import adoctor.application.analysis.analyzers.ClassSmellAnalyzer;
 import adoctor.application.ast.ASTUtilities;
-import adoctor.application.bean.Method;
-import adoctor.application.bean.smell.MethodSmell;
-import beans.ClassBean;
-import beans.MethodBean;
+import adoctor.application.bean.ClassBean;
+import adoctor.application.bean.smell.ClassSmell;
 import beans.PackageBean;
 import com.intellij.openapi.project.Project;
 import org.eclipse.jdt.core.dom.CompilationUnit;
@@ -20,14 +18,14 @@ import java.util.regex.Pattern;
 public class AnalysisDriver {
 
     private Project project;
-    private ArrayList<MethodSmellAnalyzer> methodSmellAnalyzers;
+    private ArrayList<ClassSmellAnalyzer> classSmellAnalyzers;
     private String targetPackage;
     private AnalysisHelper analysisHelper;
     private AnalysisThread analysisThread;
 
-    public AnalysisDriver(Project project, ArrayList<MethodSmellAnalyzer> methodSmellAnalyzers, String targetPackage) {
+    public AnalysisDriver(Project project, ArrayList<ClassSmellAnalyzer> classSmellAnalyzers, String targetPackage) {
         this.project = project;
-        this.methodSmellAnalyzers = methodSmellAnalyzers;
+        this.classSmellAnalyzers = classSmellAnalyzers;
         this.targetPackage = targetPackage;
         this.analysisHelper = new AnalysisHelper();
     }
@@ -40,15 +38,15 @@ public class AnalysisDriver {
         this.project = project;
     }
 
-    public ArrayList<MethodSmellAnalyzer> getMethodSmellAnalyzers() {
-        return methodSmellAnalyzers;
+    public ArrayList<ClassSmellAnalyzer> getClassSmellAnalyzers() {
+        return classSmellAnalyzers;
     }
 
-    public void setMethodSmellAnalyzers(ArrayList<MethodSmellAnalyzer> methodSmellAnalyzers) {
-        this.methodSmellAnalyzers = methodSmellAnalyzers;
+    public void setClassSmellAnalyzers(ArrayList<ClassSmellAnalyzer> classSmellAnalyzers) {
+        this.classSmellAnalyzers = classSmellAnalyzers;
     }
 
-    public ArrayList<MethodSmell> startAnalysis() throws InterruptedException {
+    public ArrayList<ClassSmell> startAnalysis() throws InterruptedException {
         this.analysisThread = new AnalysisThread(this);
         analysisThread.start();
         synchronized (analysisThread) {
@@ -61,9 +59,48 @@ public class AnalysisDriver {
         analysisThread.stop = true;
     }
 
+    private ArrayList<ClassSmell> analyze(ArrayList<PackageBean> projectPackages, HashMap<String, File> sourceFileMap) throws IOException {
+        ArrayList<ClassSmell> classSmells = new ArrayList<>();
+        if (classSmellAnalyzers == null || classSmellAnalyzers.size() <= 0
+                || projectPackages == null || projectPackages.size() <= 0
+                || sourceFileMap == null || sourceFileMap.size() <= 0) {
+            return classSmells;
+        }
+        // Builds the correct list of packages
+        ArrayList<PackageBean> packages = new ArrayList<>();
+        for (PackageBean packageBean : projectPackages) {
+            Pattern pattern = Pattern.compile("^" + targetPackage + "\\..*");
+            if (packageBean.getName().equals(targetPackage) || packageBean.getName().matches(pattern.pattern())) {
+                packages.add(packageBean);
+            }
+        }
+        if (packages.isEmpty()) {
+            packages = projectPackages;
+        }
+
+        for (PackageBean packageBean : packages) {
+            for (beans.ClassBean legacyClassBean : packageBean.getClasses()) {
+                String classFullName = packageBean.getName() + "." + legacyClassBean.getName();
+                File sourceFile = sourceFileMap.get(classFullName);
+                ClassBean classBean = new ClassBean();
+                classBean.setSourceFile(sourceFile);
+                CompilationUnit compilationUnit = ASTUtilities.getCompilationUnit(sourceFile);
+                classBean.setTypeDeclaration(ASTUtilities.getTypeDeclarationByName(compilationUnit, legacyClassBean.getName()));
+                classBean.setLegacyClassBean(legacyClassBean); //Not so important
+                for (ClassSmellAnalyzer analyzer : classSmellAnalyzers) {
+                    ClassSmell classSmell = analyzer.analyze(classBean);
+                    if (classSmell != null) {
+                        classSmells.add(classSmell);
+                    }
+                }
+            }
+        }
+        return classSmells;
+    }
+
     private static class AnalysisThread extends Thread {
         private AnalysisDriver analysisDriver;
-        private volatile ArrayList<MethodSmell> result;
+        private volatile ArrayList<ClassSmell> result;
         private volatile boolean stop;
 
         private AnalysisThread(AnalysisDriver analysisDriver) {
@@ -81,7 +118,7 @@ public class AnalysisDriver {
             }
         }
 
-        private ArrayList<MethodSmell> runAnalysis() {
+        private ArrayList<ClassSmell> runAnalysis() {
             try {
                 if (stop) {
                     return null;
@@ -127,47 +164,6 @@ public class AnalysisDriver {
                 return null;
             }
         }
-    }
-
-    private ArrayList<MethodSmell> analyze(ArrayList<PackageBean> projectPackages, HashMap<String, File> sourceFileMap) throws IOException {
-        ArrayList<MethodSmell> methodSmells = new ArrayList<>();
-        if (methodSmellAnalyzers == null || methodSmellAnalyzers.size() <= 0
-                || projectPackages == null || projectPackages.size() <= 0
-                || sourceFileMap == null || sourceFileMap.size() <= 0) {
-            return methodSmells;
-        }
-        // Builds the correct list of packages
-        ArrayList<PackageBean> packages = new ArrayList<>();
-        for (PackageBean packageBean : projectPackages) {
-            Pattern pattern = Pattern.compile("^" + targetPackage + "\\..*");
-            if (packageBean.getName().equals(targetPackage) || packageBean.getName().matches(pattern.pattern())) {
-                packages.add(packageBean);
-            }
-        }
-        if (packages.isEmpty()) {
-            packages = projectPackages;
-        }
-
-        for (PackageBean packageBean : packages) {
-            for (ClassBean classBean : packageBean.getClasses()) {
-                String classFullName = packageBean.getName() + "." + classBean.getName();
-                File sourceFile = sourceFileMap.get(classFullName);
-                for (MethodBean methodBean : classBean.getMethods()) {
-                    Method method = new Method();
-                    method.setSourceFile(sourceFile);
-                    CompilationUnit compilationUnit = ASTUtilities.getCompilationUnit(sourceFile);
-                    method.setMethodDecl(ASTUtilities.getMethodDeclarationFromContent(compilationUnit, methodBean.getTextContent()));
-                    method.setLegacyMethodBean(methodBean); //Not so important
-                    for (MethodSmellAnalyzer analyzer : methodSmellAnalyzers) {
-                        MethodSmell methodSmell = analyzer.analyzeMethod(method);
-                        if (methodSmell != null) {
-                            methodSmells.add(methodSmell);
-                        }
-                    }
-                }
-            }
-        }
-        return methodSmells;
     }
 
     private ArrayList<PackageBean> buildPackageList() throws IOException {

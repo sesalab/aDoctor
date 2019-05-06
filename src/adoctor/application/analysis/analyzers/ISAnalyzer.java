@@ -1,9 +1,9 @@
 package adoctor.application.analysis.analyzers;
 
 import adoctor.application.ast.ASTUtilities;
-import adoctor.application.bean.Method;
+import adoctor.application.bean.ClassBean;
+import adoctor.application.bean.smell.ClassSmell;
 import adoctor.application.bean.smell.ISSmell;
-import adoctor.application.bean.smell.MethodSmell;
 import javafx.util.Pair;
 import org.eclipse.jdt.core.dom.*;
 
@@ -11,44 +11,40 @@ import java.util.ArrayList;
 import java.util.List;
 
 @SuppressWarnings("unchecked")
-public class ISAnalyzer extends MethodSmellAnalyzer {
-    //TODO Rimuovere il livello di metodo di tutti gli analizzatori e promuoverli tutti a livello di classe?
-    // Cosa implica questo cambiemento?
+public class ISAnalyzer extends ClassSmellAnalyzer {
     @Override
-    public MethodSmell analyzeMethod(Method method) {
-        if (method == null) {
+    public ClassSmell analyze(ClassBean classBean) {
+        if (classBean == null) {
             return null;
         }
-        MethodDeclaration methodDecl = method.getMethodDecl();
-        if (methodDecl == null) {
-            return null;
-        }
+        MethodDeclaration[] methods = classBean.getTypeDeclaration().getMethods();
+        for (MethodDeclaration methodDecl : methods) {
+            CompilationUnit cUnit = (CompilationUnit) methodDecl.getRoot();
+            TypeDeclaration typeDecl = (TypeDeclaration) cUnit.types().get(0);
+            // Fetch all instance variables names
+            List<Pair<Type, String>> instanceVars = getInstanceVariables(typeDecl);
 
-        CompilationUnit cUnit = (CompilationUnit) methodDecl.getRoot();
-        TypeDeclaration typeDecl = (TypeDeclaration) cUnit.types().get(0);
-        // Fetch all instance variables names
-        List<Pair<Type, String>> instanceVars = getInstanceVariables(typeDecl);
+            // Fetch all setters
+            List<Pair<MethodDeclaration, String>> setters = getSetters(typeDecl, instanceVars);
 
-        // Fetch all setters
-        List<Pair<MethodDeclaration, String>> setters = getSetters(typeDecl, instanceVars);
-
-        // Look for an invocation to a setter
-        List<MethodInvocation> invocations = ASTUtilities.getMethodInvocations(methodDecl);
-        if (invocations == null) {
-            return null;
-        }
-        for (MethodInvocation invocation : invocations) {
-            for (Pair<MethodDeclaration, String> setter : setters) {
-                String setterName = setter.getKey().getName().getIdentifier();
-                String invocationName = invocation.getName().getIdentifier();
-                if (setterName.equals(invocationName)) {
-                    List callArgs = invocation.arguments();
-                    if (callArgs != null && callArgs.size() == 1) {
-                        ISSmell isSmell = new ISSmell();
-                        isSmell.setMethod(method);
-                        isSmell.setSmellyCall(invocation);
-                        isSmell.setSmellySetter(setter);
-                        return isSmell;
+            // Look for an invocation to a setter
+            List<MethodInvocation> invocations = ASTUtilities.getMethodInvocations(methodDecl);
+            if (invocations == null) {
+                return null;
+            }
+            for (MethodInvocation invocation : invocations) {
+                for (Pair<MethodDeclaration, String> setter : setters) {
+                    String setterName = setter.getKey().getName().getIdentifier();
+                    String invocationName = invocation.getName().getIdentifier();
+                    if (setterName.equals(invocationName)) {
+                        List callArgs = invocation.arguments();
+                        if (callArgs != null && callArgs.size() == 1) {
+                            ISSmell isSmell = new ISSmell();
+                            isSmell.setClassBean(classBean);
+                            isSmell.setSmellyCall(invocation);
+                            isSmell.setSmellySetter(setter);
+                            return isSmell;
+                        }
                     }
                 }
             }

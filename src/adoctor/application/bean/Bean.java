@@ -1,15 +1,5 @@
 package adoctor.application.bean;
 
-import java.io.File;
+abstract class Bean {
 
-public abstract class Bean {
-    private File sourceFile;
-
-    public File getSourceFile() {
-        return sourceFile;
-    }
-
-    public void setSourceFile(File sourceFile) {
-        this.sourceFile = sourceFile;
-    }
 }

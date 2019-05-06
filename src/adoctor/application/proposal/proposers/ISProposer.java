@@ -1,32 +1,28 @@
 package adoctor.application.proposal.proposers;
 
+import adoctor.application.bean.smell.ClassSmell;
 import adoctor.application.bean.smell.ISSmell;
-import adoctor.application.bean.smell.MethodSmell;
 import javafx.util.Pair;
 import org.eclipse.jdt.core.dom.*;
 import org.eclipse.jdt.core.dom.rewrite.ASTRewrite;
 
 @SuppressWarnings("Duplicates")
-public class ISProposer extends MethodSmellProposer {
+public class ISProposer extends ClassSmellProposer {
     @Override
-    public ASTRewrite computeProposal(MethodSmell methodSmell) {
-        if (methodSmell == null) {
+    public ASTRewrite computeProposal(ClassSmell classSmell) {
+        if (classSmell == null) {
             return null;
         }
-        if (!(methodSmell instanceof ISSmell)) {
+        if (!(classSmell instanceof ISSmell)) {
             return null;
         }
-        ISSmell isSmell = (ISSmell) methodSmell;
-        MethodDeclaration smellyMethodDecl = isSmell.getMethod().getMethodDecl();
-        if (smellyMethodDecl == null) {
-            return null;
-        }
+        ISSmell isSmell = (ISSmell) classSmell;
         MethodInvocation smellyCall = isSmell.getSmellyCall();
         Pair<MethodDeclaration, String> smellySetter = isSmell.getSmellySetter();
         if (smellyCall == null || smellySetter == null) {
             return null;
         }
-        AST targetAST = smellyMethodDecl.getAST();
+        AST targetAST = smellyCall.getAST();
 
         ASTRewrite astRewrite = ASTRewrite.create(targetAST);
         Assignment newAssignment = targetAST.newAssignment();

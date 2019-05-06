@@ -1,8 +1,8 @@
 package adoctor.application.proposal.proposers;
 
 import adoctor.application.ast.ASTUtilities;
+import adoctor.application.bean.smell.ClassSmell;
 import adoctor.application.bean.smell.ERBSmell;
-import adoctor.application.bean.smell.MethodSmell;
 import org.eclipse.jdt.core.dom.*;
 import org.eclipse.jdt.core.dom.rewrite.ASTRewrite;
 import org.eclipse.jdt.core.dom.rewrite.ListRewrite;
@@ -10,18 +10,18 @@ import org.eclipse.jdt.core.dom.rewrite.ListRewrite;
 import java.util.List;
 
 @SuppressWarnings("unchecked")
-public class ERBProposer extends MethodSmellProposer {
-
+public class ERBProposer extends ClassSmellProposer {
+    //TODO Medium Review this code according to changes to ERBAnalyzer
     @Override
-    public ASTRewrite computeProposal(MethodSmell methodSmell) {
-        if (methodSmell == null) {
+    public ASTRewrite computeProposal(ClassSmell classSmell) {
+        if (classSmell == null) {
             return null;
         }
-        if (!(methodSmell instanceof ERBSmell)) {
+        if (!(classSmell instanceof ERBSmell)) {
             return null;
         }
-        ERBSmell erbSmell = (ERBSmell) methodSmell;
-        MethodDeclaration smellyOnCreate = erbSmell.getMethod().getMethodDecl();
+        ERBSmell erbSmell = (ERBSmell) classSmell;
+        MethodDeclaration smellyOnCreate = erbSmell.getOnCreate();
         if (smellyOnCreate == null) {
             return null;
         }

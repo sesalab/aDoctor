@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+@SuppressWarnings("unchecked")
 public class ASTUtilities {
 
     public static CompilationUnit getCompilationUnit(File sourceFile) throws IOException {
@@ -27,6 +28,16 @@ public class ASTUtilities {
         return (CompilationUnit) parser.createAST(null);
     }
 
+    public static TypeDeclaration getTypeDeclarationByName(CompilationUnit compilationUnit, String className) {
+        List<TypeDeclaration> types = (List<TypeDeclaration>) compilationUnit.types();
+        for (TypeDeclaration type : types) {
+            if (type.getName().getIdentifier().equals(className)) {
+                return type;
+            }
+        }
+        return null;
+    }
+
     public static MethodDeclaration getMethodDeclarationFromName(CompilationUnit compilationUnit, String methodName) {
         TypeDeclaration typeDeclaration = (TypeDeclaration) compilationUnit.types().get(0);
         ArrayList<MethodDeclaration> methodDeclarationList = new ArrayList<>();
@@ -39,30 +50,6 @@ public class ASTUtilities {
         boolean found = false;
         while (i < methodDeclarationListSize && !found) {
             if (methodDeclarationList.get(i).getName().toString().equals(methodName)) {
-                found = true;
-            } else {
-                i++;
-            }
-        }
-        if (found) {
-            return methodDeclarationList.get(i);
-        } else {
-            return null;
-        }
-    }
-
-    public static MethodDeclaration getMethodDeclarationFromContent(CompilationUnit compilationUnit, String methodContent) {
-        TypeDeclaration typeDeclaration = (TypeDeclaration) compilationUnit.types().get(0);
-        ArrayList<MethodDeclaration> methodDeclarationList = new ArrayList<>();
-        // Fetch all MethodDeclarations of the class with an AST visitor of aDoctor
-        typeDeclaration.accept(new MethodVisitor(methodDeclarationList));
-
-        // Fetch the correct MethodDeclaration through a comparison with the content of the MethodBean parameter
-        int i = 0;
-        int methodDeclarationListSize = methodDeclarationList.size();
-        boolean found = false;
-        while (i < methodDeclarationListSize && !found) {
-            if (methodDeclarationList.get(i).toString().equals(methodContent)) {
                 found = true;
             } else {
                 i++;

@@ -1,8 +1,8 @@
 package adoctor.application.proposal.proposers;
 
 import adoctor.application.ast.ASTUtilities;
+import adoctor.application.bean.smell.ClassSmell;
 import adoctor.application.bean.smell.IDSSmell;
-import adoctor.application.bean.smell.MethodSmell;
 import org.eclipse.jdt.core.dom.*;
 import org.eclipse.jdt.core.dom.rewrite.ASTRewrite;
 import org.eclipse.jdt.core.dom.rewrite.ListRewrite;
@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @SuppressWarnings({"unchecked", "Duplicates"})
-public class IDSProposer extends MethodSmellProposer {
+public class IDSProposer extends ClassSmellProposer {
     private static final String SPARSE_ARRAY = "SparseArray";
     private static final String MAP = "Map";
     private static final String ABSTRACT_MAP = "AbstractMap";
@@ -45,25 +45,21 @@ public class IDSProposer extends MethodSmellProposer {
     private static final String ZERO = "0";
     private static final String I = "i";
 
-    //TODO Extract some more methods
+    //TODO Low Extract some more methods
     @Override
-    public ASTRewrite computeProposal(MethodSmell methodSmell) {
-        if (methodSmell == null) {
+    public ASTRewrite computeProposal(ClassSmell classSmell) {
+        if (classSmell == null) {
             return null;
         }
-        if (!(methodSmell instanceof IDSSmell)) {
+        if (!(classSmell instanceof IDSSmell)) {
             return null;
         }
-        IDSSmell idsSmell = (IDSSmell) methodSmell;
-        MethodDeclaration smellyMethodDecl = idsSmell.getMethod().getMethodDecl();
-        if (smellyMethodDecl == null) {
-            return null;
-        }
+        IDSSmell idsSmell = (IDSSmell) classSmell;
         VariableDeclarationStatement smellyVarDecl = idsSmell.getSmellyVarDecl();
         if (smellyVarDecl == null) {
             return null;
         }
-        AST targetAST = smellyMethodDecl.getAST();
+        AST targetAST = smellyVarDecl.getAST();
 
         // Changes of Declaration of SparseArray<SecondType> to HashMap<Integer, SecondType>
         ParameterizedType newType = targetAST.newParameterizedType(targetAST.newSimpleType(targetAST.newSimpleName(
@@ -140,7 +136,7 @@ public class IDSProposer extends MethodSmellProposer {
                     newExpr = refactorEntrySet(targetAST, invocation);
                     break;
                 }
-                //TODO Should these be implemented? Is it necessary?
+                //TODO Low Should these be implemented? Is it necessary?
                 /*
                 // keySet() -->
                 case IDSSmell.KEY_SET: {
@@ -171,7 +167,7 @@ public class IDSProposer extends MethodSmellProposer {
         importProposals.add(javaUtilImport);
         // Check if import proposal are valid
         List<ImportDeclaration> importAdditions = new ArrayList<>();
-        List<ImportDeclaration> currentImports = ((CompilationUnit) smellyMethodDecl.getRoot()).imports();
+        List<ImportDeclaration> currentImports = ((CompilationUnit) smellyVarDecl.getRoot()).imports();
         for (ImportDeclaration importProposal : importProposals) {
             String importName = importProposal.getName().getFullyQualifiedName();
             boolean found = false;
@@ -195,13 +191,13 @@ public class IDSProposer extends MethodSmellProposer {
         }
         // Addition of all new methods
         for (MethodDeclaration methodAddition : methodAdditions) {
-            TypeDeclaration typeDecl = (TypeDeclaration) ((CompilationUnit) smellyMethodDecl.getRoot()).types().get(0);
+            TypeDeclaration typeDecl = (TypeDeclaration) ((CompilationUnit) smellyVarDecl.getRoot()).types().get(0);
             ListRewrite listRewrite = astRewrite.getListRewrite(typeDecl, TypeDeclaration.BODY_DECLARATIONS_PROPERTY);
             listRewrite.insertLast(methodAddition, null);
         }
         // Addition of all new imports
         for (ImportDeclaration importAddition : importAdditions) {
-            ListRewrite listRewrite = astRewrite.getListRewrite(smellyMethodDecl.getRoot(), CompilationUnit.IMPORTS_PROPERTY);
+            ListRewrite listRewrite = astRewrite.getListRewrite(smellyVarDecl.getRoot(), CompilationUnit.IMPORTS_PROPERTY);
             listRewrite.insertLast(importAddition, null);
         }
         return astRewrite;
@@ -303,7 +299,7 @@ public class IDSProposer extends MethodSmellProposer {
                 if (methodDeclaration.getName().getIdentifier().equals(GET_ENTRY_SET)) {
                     found = true;
                 }
-                //TODO Fine graine check: check if there is a method with same signature and return its name rather than boolean
+                //TODO Low Fine graine check: check if there is a method with same signature and return its name rather than boolean
                 /*
                 if (methodDeclaration.getReturnType2().isParameterizedType()) {
                     ParameterizedType retType = (ParameterizedType) methodDeclaration.getReturnType2();
@@ -342,7 +338,7 @@ public class IDSProposer extends MethodSmellProposer {
             return entrySet;
         }
     */
-    //TODO Extract some methods
+    //TODO Low Extract some methods
     private MethodDeclaration createGetEntrySetMethod(AST ast, ParameterizedType sparseArrayType) {
         // Return type: Set<Map.Entry<Integer, Object>>
         SimpleType mapType = ast.newSimpleType(ast.newSimpleName(MAP));
