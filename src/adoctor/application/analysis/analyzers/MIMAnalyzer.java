@@ -11,7 +11,7 @@ import java.util.List;
 
 @SuppressWarnings("unchecked")
 public class MIMAnalyzer extends ClassSmellAnalyzer {
-    private List<SimpleName> internalMethods;
+    //private List<SimpleName> internalMethods;
     private List<SimpleName> internalVars;
 
     @Override
@@ -20,32 +20,45 @@ public class MIMAnalyzer extends ClassSmellAnalyzer {
             return null;
         }
         TypeDeclaration typeDecl = classBean.getTypeDeclaration();
+        System.out.println("Analisi classe: " + typeDecl.getName());
 
+        MethodDeclaration[] methodDecls = typeDecl.getMethods();
+
+        /*
         // Instance methods names
         internalMethods = new ArrayList<>();
-        MethodDeclaration[] methodDecls = typeDecl.getMethods();
         for (MethodDeclaration methodDecl : methodDecls) {
             if (!Modifier.isStatic(methodDecl.getModifiers())) {
                 internalMethods.add(methodDecl.getName());
             }
         }
+         */
 
         // Instance variable names
         internalVars = new ArrayList<>();
         FieldDeclaration[] fieldDecls = typeDecl.getFields();
         for (FieldDeclaration fieldDecl : fieldDecls) {
-            List<SimpleName> fieldNames = ASTUtilities.getSimpleNames(fieldDecl);
-            if (fieldNames != null) {
-                internalVars.addAll(fieldNames);
+            if (!Modifier.isStatic(fieldDecl.getModifiers())) {
+                List<VariableDeclarationFragment> varFrags = (List<VariableDeclarationFragment>) fieldDecl.fragments();
+                for (VariableDeclarationFragment varFrag : varFrags) {
+                    List<SimpleName> varNames = ASTUtilities.getSimpleNames(varFrag);
+                    if (varNames != null) {
+                        internalVars.addAll(varNames);
+                    }
+                }
             }
+        }
+        for (SimpleName internalVar : internalVars) {
+            System.out.println(internalVar);
         }
 
         for (MethodDeclaration methodDecl : methodDecls) {
+            System.out.println("\tAnalisi metodo: " + methodDecl.getName());
             if (hasMIM(methodDecl)) {
                 MIMSmell smell = new MIMSmell();
                 smell.setSmellyMethod(methodDecl);
                 smell.setClassBean(classBean);
-                System.out.println("Smell trovato nella classe " + typeDecl.getName() + ", nel metodo: " + methodDecl.getName());
+                System.out.println("\tSmell trovato");
                 return smell;
             }
         }
@@ -104,11 +117,7 @@ public class MIMAnalyzer extends ClassSmellAnalyzer {
                 if (methodInvocation.getExpression() == null) {
                     String methodName = methodInvocation.getName().getIdentifier();
                     //TODO Low Try to use the bindings to enable a finer check: if the called method belongs to a superclass
-                    System.out.println("\tL'uso di " + methodName + " rende il metodo NON MIM");
-                    /*IMethodBinding iMethodBinding = methodDecl.resolveBinding();
-                    System.out.println(iMethodBinding.getDeclaringClass().getBinaryName());*/
                     return true;
-
                 }
             }
         }
@@ -123,9 +132,19 @@ public class MIMAnalyzer extends ClassSmellAnalyzer {
                 if (name.isDeclaration()) {
                     declaredNames.add(name);
                 } else {
-                    if (!declaredNames.contains(name) && internalVars.contains(name)) {
-                        System.out.println("L'uso di " + name + " rende il metodo NON MIM");
-                        return true;
+                    boolean found = false;
+                    for (int i = 0; i < declaredNames.size() && !found; i++) {
+                        SimpleName declaredName = declaredNames.get(i);
+                        found = declaredName.getIdentifier().equals(name.getIdentifier());
+                    }
+                    if (!found) {
+                        for (int i = 0; i < internalVars.size() && !found; i++) {
+                            SimpleName internalVar = internalVars.get(i);
+                            found = internalVar.getIdentifier().equals(name.getIdentifier());
+                        }
+                        if (found) {
+                            return true;
+                        }
                     }
                 }
 

@@ -7,6 +7,8 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.ProjectRootManager;
+import com.intellij.openapi.vfs.VirtualFile;
 import org.eclipse.jface.text.Document;
 
 import java.util.ArrayList;
@@ -23,6 +25,7 @@ public class CoreDriver implements StartDialog.StartCallback,
         FailureDialog.FailureCallback {
 
     private Project project;
+    private String[] pathEntries;
     private Stack<Undo> undoStack;
     private boolean[] selections;
     private String targetPackage;
@@ -44,7 +47,16 @@ public class CoreDriver implements StartDialog.StartCallback,
         SaveAndSyncHandlerImpl.getInstance().refreshOpenFiles();
         //ProjectManagerEx.getInstanceEx().blockReloadingProjectOnExternalChanges();
 
-        AnalysisDialog.show(this, project, selections, targetPackage);
+        ProjectRootManager projectRootManager = ProjectRootManager.getInstance(project);
+        //VirtualFile[] files = projectRootManager.getContentSourceRoots();
+        VirtualFile[] files = projectRootManager.getContentRoots();
+        pathEntries = new String[files.length];
+        for (int i = 0; i < files.length; i++) {
+            VirtualFile file = files[i];
+            pathEntries[i] = file.getPath();
+        }
+
+        AnalysisDialog.show(this, project.getBasePath(), pathEntries, selections, targetPackage);
     }
 
     ////////////////StartDialog///////////////
@@ -101,7 +113,7 @@ public class CoreDriver implements StartDialog.StartCallback,
     @Override
     public void abortedRestart(AbortedDialog abortedDialog) {
         abortedDialog.dispose();
-        AnalysisDialog.show(this, project, selections, targetPackage);
+        AnalysisDialog.show(this, project.getBasePath(), pathEntries, selections, targetPackage);
     }
 
 

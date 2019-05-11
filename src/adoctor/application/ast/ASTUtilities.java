@@ -13,17 +13,20 @@ import java.util.List;
 @SuppressWarnings("unchecked")
 public class ASTUtilities {
 
-    public static CompilationUnit getCompilationUnit(File sourceFile) throws IOException {
+    public static CompilationUnit getCompilationUnit(String[] pathEntries, File sourceFile) throws IOException {
         /*
         CodeParser codeParser = new CodeParser();
         String javaFileContent = FileUtilities.readFile(sourceFile.getAbsolutePath());
         return codeParser.createParser(javaFileContent);
          */
+        //IProject[] projects = ResourcesPlugin.getWorkspace().getRoot().getProjects();
+
         ASTParser parser = ASTParser.newParser(AST.JLS11);
         parser.setKind(ASTParser.K_COMPILATION_UNIT);
         String javaFileContent = FileUtilities.readFile(sourceFile.getAbsolutePath());
         parser.setSource(javaFileContent.toCharArray());
-        parser.setEnvironment(null, null, null, true);
+        parser.setEnvironment(pathEntries, pathEntries, null, true);
+        parser.setUnitName(sourceFile.getAbsolutePath());
         parser.setResolveBindings(true);
         return (CompilationUnit) parser.createAST(null);
     }

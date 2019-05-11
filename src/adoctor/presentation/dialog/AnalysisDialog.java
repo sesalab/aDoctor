@@ -3,7 +3,6 @@ package adoctor.presentation.dialog;
 import adoctor.application.analysis.AnalysisDriver;
 import adoctor.application.analysis.analyzers.*;
 import adoctor.application.smell.ClassSmell;
-import com.intellij.openapi.project.Project;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
@@ -22,18 +21,18 @@ public class AnalysisDialog extends AbstractDialog {
     private JPanel contentPane;
     private JButton buttonAbort;
 
-    public static void show(AnalysisCallback analysisCallback, Project project, boolean[] selections, String targetPackage) {
-        AnalysisDialog analysisDialog = new AnalysisDialog(analysisCallback, project, selections, targetPackage);
+    private AnalysisDialog(AnalysisCallback analysisCallback, String projectBasePath, String[] pathEntries, boolean[] selections, String targetPackage) {
+        init(analysisCallback, projectBasePath, pathEntries, selections, targetPackage);
+    }
+
+    public static void show(AnalysisCallback analysisCallback, String projectBasePath, String[] pathEntries, boolean[] selections, String targetPackage) {
+        AnalysisDialog analysisDialog = new AnalysisDialog(analysisCallback, projectBasePath, pathEntries, selections, targetPackage);
         analysisDialog.startAnalysis();
 
         analysisDialog.showInCenter();
     }
 
-    private AnalysisDialog(AnalysisCallback analysisCallback, Project project, boolean[] selections, String targetPackage) {
-        init(analysisCallback, project, selections, targetPackage);
-    }
-
-    private void init(AnalysisCallback analysisCallback, Project project, boolean[] selections, String targetPackage) {
+    private void init(AnalysisCallback analysisCallback, String projectBasePath, String[] pathEntries, boolean[] selections, String targetPackage) {
         super.init(contentPane, TITLE, buttonAbort);
 
         this.analysisCallback = analysisCallback;
@@ -53,7 +52,7 @@ public class AnalysisDialog extends AbstractDialog {
         if (selections[4]) {
             classSmellAnalyzers.add(new MIMAnalyzer());
         }
-        this.analysisDriver = new AnalysisDriver(project, classSmellAnalyzers, targetPackage);
+        this.analysisDriver = new AnalysisDriver(projectBasePath, pathEntries, classSmellAnalyzers, targetPackage);
 
         buttonAbort.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {

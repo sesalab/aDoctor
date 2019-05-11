@@ -5,7 +5,6 @@ import adoctor.application.ast.ASTUtilities;
 import adoctor.application.bean.ClassBean;
 import adoctor.application.smell.ClassSmell;
 import beans.PackageBean;
-import com.intellij.openapi.project.Project;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 
 import java.io.File;
@@ -17,14 +16,16 @@ import java.util.regex.Pattern;
 @SuppressWarnings("SynchronizeOnNonFinalField")
 public class AnalysisDriver {
 
-    private Project project;
+    private String projectBasePath;
+    private String[] pathEntries;
     private ArrayList<ClassSmellAnalyzer> classSmellAnalyzers;
     private String targetPackage;
     private AnalysisHelper analysisHelper;
     private AnalysisThread analysisThread;
 
-    public AnalysisDriver(Project project, ArrayList<ClassSmellAnalyzer> classSmellAnalyzers, String targetPackage) {
-        this.project = project;
+    public AnalysisDriver(String projectBasePath, String[] pathEntries, ArrayList<ClassSmellAnalyzer> classSmellAnalyzers, String targetPackage) {
+        this.projectBasePath = projectBasePath;
+        this.pathEntries = pathEntries;
         this.classSmellAnalyzers = classSmellAnalyzers;
         this.targetPackage = targetPackage;
         this.analysisHelper = new AnalysisHelper();
@@ -68,7 +69,7 @@ public class AnalysisDriver {
                 File sourceFile = sourceFileMap.get(classFullName);
                 ClassBean classBean = new ClassBean();
                 classBean.setSourceFile(sourceFile);
-                CompilationUnit compilationUnit = ASTUtilities.getCompilationUnit(sourceFile);
+                CompilationUnit compilationUnit = ASTUtilities.getCompilationUnit(pathEntries, sourceFile);
                 classBean.setTypeDeclaration(ASTUtilities.getTypeDeclarationByName(compilationUnit, legacyClassBean.getName()));
                 classBean.setLegacyClassBean(legacyClassBean); //Not so important
                 for (ClassSmellAnalyzer analyzer : classSmellAnalyzers) {
@@ -151,11 +152,11 @@ public class AnalysisDriver {
     }
 
     private ArrayList<PackageBean> buildPackageList() throws IOException {
-        return analysisHelper.buildPackageList(project);
+        return analysisHelper.buildPackageList(projectBasePath);
     }
 
     private ArrayList<File> getAllJavaFiles() {
-        return analysisHelper.getAllJavaFiles(project);
+        return analysisHelper.getAllJavaFiles(projectBasePath);
     }
 
     private HashMap<String, File> buildSourceFileMap(ArrayList<File> javaFilesList) throws IOException {
