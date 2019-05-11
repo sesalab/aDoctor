@@ -1,8 +1,8 @@
 package adoctor.application.proposal.proposers;
 
 import adoctor.application.ast.ASTUtilities;
-import adoctor.application.bean.smell.ClassSmell;
-import adoctor.application.bean.smell.IDSSmell;
+import adoctor.application.smell.ClassSmell;
+import adoctor.application.smell.IDSSmell;
 import org.eclipse.jdt.core.dom.*;
 import org.eclipse.jdt.core.dom.rewrite.ASTRewrite;
 import org.eclipse.jdt.core.dom.rewrite.ListRewrite;
@@ -45,7 +45,8 @@ public class IDSProposer extends ClassSmellProposer {
     private static final String ZERO = "0";
     private static final String I = "i";
 
-    //TODO Low Extract some more methods
+    //TODO Medium Rearrange some independent parts of the code and extract some more methods.
+    //TODO High Change SimpleEntry to Pair
     @Override
     public ASTRewrite computeProposal(ClassSmell classSmell) {
         if (classSmell == null) {

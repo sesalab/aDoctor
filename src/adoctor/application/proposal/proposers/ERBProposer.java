@@ -1,8 +1,8 @@
 package adoctor.application.proposal.proposers;
 
 import adoctor.application.ast.ASTUtilities;
-import adoctor.application.bean.smell.ClassSmell;
-import adoctor.application.bean.smell.ERBSmell;
+import adoctor.application.smell.ClassSmell;
+import adoctor.application.smell.ERBSmell;
 import org.eclipse.jdt.core.dom.*;
 import org.eclipse.jdt.core.dom.rewrite.ASTRewrite;
 import org.eclipse.jdt.core.dom.rewrite.ListRewrite;

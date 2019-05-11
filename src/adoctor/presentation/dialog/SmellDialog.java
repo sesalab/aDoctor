@@ -1,9 +1,9 @@
 package adoctor.presentation.dialog;
 
-import adoctor.application.bean.smell.ClassSmell;
 import adoctor.application.proposal.ProposalDriver;
 import adoctor.application.proposal.proposers.*;
 import adoctor.application.proposal.undo.Undo;
+import adoctor.application.smell.ClassSmell;
 import com.intellij.diff.DiffContentFactory;
 import com.intellij.diff.DiffManager;
 import com.intellij.diff.DiffRequestPanel;
@@ -97,6 +97,9 @@ public class SmellDialog extends AbstractDialog {
         }
         if (selections[3]) {
             classSmellProposers.add(new ISProposer());
+        }
+        if (selections[4]) {
+            classSmellProposers.add(new MIMProposer());
         }
         proposalDriver = new ProposalDriver(classSmellProposers);
         selectedSmell = null;

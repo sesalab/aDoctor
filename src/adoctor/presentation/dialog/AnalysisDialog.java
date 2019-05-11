@@ -2,7 +2,7 @@ package adoctor.presentation.dialog;
 
 import adoctor.application.analysis.AnalysisDriver;
 import adoctor.application.analysis.analyzers.*;
-import adoctor.application.bean.smell.ClassSmell;
+import adoctor.application.smell.ClassSmell;
 import com.intellij.openapi.project.Project;
 
 import javax.swing.*;
@@ -49,6 +49,9 @@ public class AnalysisDialog extends AbstractDialog {
         }
         if (selections[3]) {
             classSmellAnalyzers.add(new ISAnalyzer());
+        }
+        if (selections[4]) {
+            classSmellAnalyzers.add(new MIMAnalyzer());
         }
         this.analysisDriver = new AnalysisDriver(project, classSmellAnalyzers, targetPackage);
 

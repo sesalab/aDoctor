@@ -3,7 +3,7 @@ package adoctor.application.analysis;
 import adoctor.application.analysis.analyzers.ClassSmellAnalyzer;
 import adoctor.application.ast.ASTUtilities;
 import adoctor.application.bean.ClassBean;
-import adoctor.application.bean.smell.ClassSmell;
+import adoctor.application.smell.ClassSmell;
 import beans.PackageBean;
 import com.intellij.openapi.project.Project;
 import org.eclipse.jdt.core.dom.CompilationUnit;
@@ -28,22 +28,6 @@ public class AnalysisDriver {
         this.classSmellAnalyzers = classSmellAnalyzers;
         this.targetPackage = targetPackage;
         this.analysisHelper = new AnalysisHelper();
-    }
-
-    public Project getProject() {
-        return project;
-    }
-
-    public void setProject(Project project) {
-        this.project = project;
-    }
-
-    public ArrayList<ClassSmellAnalyzer> getClassSmellAnalyzers() {
-        return classSmellAnalyzers;
-    }
-
-    public void setClassSmellAnalyzers(ArrayList<ClassSmellAnalyzer> classSmellAnalyzers) {
-        this.classSmellAnalyzers = classSmellAnalyzers;
     }
 
     public ArrayList<ClassSmell> startAnalysis() throws InterruptedException {

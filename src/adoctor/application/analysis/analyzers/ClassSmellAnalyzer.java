@@ -1,7 +1,7 @@
 package adoctor.application.analysis.analyzers;
 
 import adoctor.application.bean.ClassBean;
-import adoctor.application.bean.smell.ClassSmell;
+import adoctor.application.smell.ClassSmell;
 
 public abstract class ClassSmellAnalyzer {
 

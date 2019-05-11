@@ -1,8 +1,8 @@
 package adoctor.application.proposal;
 
-import adoctor.application.bean.smell.ClassSmell;
 import adoctor.application.proposal.proposers.ClassSmellProposer;
 import adoctor.application.proposal.undo.Undo;
+import adoctor.application.smell.ClassSmell;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.dom.rewrite.ASTRewrite;
 import org.eclipse.jface.text.BadLocationException;

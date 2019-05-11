@@ -1,4 +1,4 @@
-package adoctor.application.bean.smell;
+package adoctor.application.smell;
 
 abstract class Smell {
     private String name;

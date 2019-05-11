@@ -2,8 +2,8 @@ package adoctor.application.analysis.analyzers;
 
 import adoctor.application.ast.ASTUtilities;
 import adoctor.application.bean.ClassBean;
-import adoctor.application.bean.smell.ClassSmell;
-import adoctor.application.bean.smell.IDSSmell;
+import adoctor.application.smell.ClassSmell;
+import adoctor.application.smell.IDSSmell;
 import org.eclipse.jdt.core.dom.*;
 
 import java.util.List;
@@ -13,6 +13,7 @@ public class IDSAnalyzer extends ClassSmellAnalyzer {
     private static final String HASHMAP = "HashMap";
     private static final String INTEGER = "Integer";
 
+    // TODO Low There should be the instance variable check. How to manage it?
     @Override
     public ClassSmell analyze(ClassBean classBean) {
         if (classBean == null) {
@@ -34,7 +35,6 @@ public class IDSAnalyzer extends ClassSmellAnalyzer {
                 }
             }
 
-            // TODO High This code should be enabled for a fine graine check
             /*
             List<FieldDeclaration> fieldDeclarations = ASTUtilities.getFieldDeclarations((CompilationUnit) methodDeclaration.getRoot());
             for (FieldDeclaration fieldDecl : fieldDeclarations) {

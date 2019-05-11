@@ -203,6 +203,36 @@ public class ASTUtilities {
         }
     }
 
+    public static List<ThisExpression> getThisExpressions(ASTNode node) {
+        if (node == null) {
+            return null;
+        } else {
+            ArrayList<ThisExpression> thisExpressions = new ArrayList<>();
+            node.accept(new ThisExpressionVisitor(thisExpressions));
+            return thisExpressions;
+        }
+    }
+
+    public static List<SuperMethodInvocation> getSuperMethodInvocations(ASTNode node) {
+        if (node == null) {
+            return null;
+        } else {
+            ArrayList<SuperMethodInvocation> superMethodInvocations = new ArrayList<>();
+            node.accept(new SuperMethodInvocationVisitor(superMethodInvocations));
+            return superMethodInvocations;
+        }
+    }
+
+    public static List<SuperFieldAccess> getSuperFieldAccess(ASTNode node) {
+        if (node == null) {
+            return null;
+        } else {
+            ArrayList<SuperFieldAccess> superFieldAccesses = new ArrayList<>();
+            node.accept(new SuperFieldAccessVisitor(superFieldAccesses));
+            return superFieldAccesses;
+        }
+    }
+
     public static Block getParentBlock(ASTNode node) {
         ASTNode parent = node;
         while (!(parent instanceof Block)) {

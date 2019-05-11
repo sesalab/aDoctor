@@ -2,7 +2,7 @@ package adoctor.application.analysis.analyzers;
 
 import adoctor.application.ast.ASTUtilities;
 import adoctor.application.bean.ClassBean;
-import adoctor.application.bean.smell.DWSmell;
+import adoctor.application.smell.DWSmell;
 import org.eclipse.jdt.core.dom.*;
 
 import java.util.List;
@@ -19,8 +19,7 @@ public class DWAnalyzer extends ClassSmellAnalyzer {
         }
         MethodDeclaration[] methods = classBean.getTypeDeclaration().getMethods();
         for (MethodDeclaration methodDecl : methods) {
-            Block methodBlock = methodDecl.getBody();
-            List<MethodInvocation> methodInvocations = ASTUtilities.getMethodInvocations(methodBlock);
+            List<MethodInvocation> methodInvocations = ASTUtilities.getMethodInvocations(methodDecl);
             if (methodInvocations == null) {
                 return null;
             }

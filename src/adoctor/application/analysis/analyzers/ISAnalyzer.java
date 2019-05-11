@@ -2,8 +2,8 @@ package adoctor.application.analysis.analyzers;
 
 import adoctor.application.ast.ASTUtilities;
 import adoctor.application.bean.ClassBean;
-import adoctor.application.bean.smell.ClassSmell;
-import adoctor.application.bean.smell.ISSmell;
+import adoctor.application.smell.ClassSmell;
+import adoctor.application.smell.ISSmell;
 import javafx.util.Pair;
 import org.eclipse.jdt.core.dom.*;
 
@@ -17,33 +17,34 @@ public class ISAnalyzer extends ClassSmellAnalyzer {
         if (classBean == null) {
             return null;
         }
-        MethodDeclaration[] methods = classBean.getTypeDeclaration().getMethods();
+        TypeDeclaration typeDecl = classBean.getTypeDeclaration();
+        // Fetch all instance variables names
+        List<Pair<Type, String>> instanceVars = getInstanceVariables(typeDecl);
+
+        // Fetch all setters
+        List<Pair<MethodDeclaration, String>> setters = getSetters(typeDecl, instanceVars);
+
+        MethodDeclaration[] methods = typeDecl.getMethods();
         for (MethodDeclaration methodDecl : methods) {
-            CompilationUnit cUnit = (CompilationUnit) methodDecl.getRoot();
-            TypeDeclaration typeDecl = (TypeDeclaration) cUnit.types().get(0);
-            // Fetch all instance variables names
-            List<Pair<Type, String>> instanceVars = getInstanceVariables(typeDecl);
-
-            // Fetch all setters
-            List<Pair<MethodDeclaration, String>> setters = getSetters(typeDecl, instanceVars);
-
-            // Look for an invocation to a setter
-            List<MethodInvocation> invocations = ASTUtilities.getMethodInvocations(methodDecl);
-            if (invocations == null) {
-                return null;
-            }
-            for (MethodInvocation invocation : invocations) {
-                for (Pair<MethodDeclaration, String> setter : setters) {
-                    String setterName = setter.getKey().getName().getIdentifier();
-                    String invocationName = invocation.getName().getIdentifier();
-                    if (setterName.equals(invocationName)) {
-                        List callArgs = invocation.arguments();
-                        if (callArgs != null && callArgs.size() == 1) {
-                            ISSmell isSmell = new ISSmell();
-                            isSmell.setClassBean(classBean);
-                            isSmell.setSmellyCall(invocation);
-                            isSmell.setSmellySetter(setter);
-                            return isSmell;
+            if (!Modifier.isStatic(methodDecl.getModifiers())) {
+                // Look for an invocation to a setter
+                List<MethodInvocation> invocations = ASTUtilities.getMethodInvocations(methodDecl);
+                if (invocations == null) {
+                    return null;
+                }
+                for (MethodInvocation invocation : invocations) {
+                    for (Pair<MethodDeclaration, String> setter : setters) {
+                        String setterName = setter.getKey().getName().getIdentifier();
+                        String invocationName = invocation.getName().getIdentifier();
+                        if (setterName.equals(invocationName)) {
+                            List callArgs = invocation.arguments();
+                            if (callArgs != null && callArgs.size() == 1) {
+                                ISSmell isSmell = new ISSmell();
+                                isSmell.setClassBean(classBean);
+                                isSmell.setSmellyCall(invocation);
+                                isSmell.setSmellySetter(setter);
+                                return isSmell;
+                            }
                         }
                     }
                 }

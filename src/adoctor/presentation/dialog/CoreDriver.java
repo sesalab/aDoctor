@@ -1,7 +1,7 @@
 package adoctor.presentation.dialog;
 
-import adoctor.application.bean.smell.ClassSmell;
 import adoctor.application.proposal.undo.Undo;
+import adoctor.application.smell.ClassSmell;
 import com.intellij.ide.SaveAndSyncHandlerImpl;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;

@@ -1,7 +1,7 @@
 package adoctor.presentation.dialog;
 
-import adoctor.application.bean.smell.ClassSmell;
 import adoctor.application.refactoring.RefactoringDriver;
+import adoctor.application.smell.ClassSmell;
 import org.eclipse.jface.text.Document;
 
 import javax.swing.*;
