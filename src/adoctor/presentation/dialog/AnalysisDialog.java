@@ -1,6 +1,7 @@
 package adoctor.presentation.dialog;
 
 import adoctor.application.analysis.AnalysisDriver;
+import adoctor.application.analysis.StopAnalysisException;
 import adoctor.application.analysis.analyzers.*;
 import adoctor.application.smell.ClassSmell;
 
@@ -23,15 +24,15 @@ public class AnalysisDialog extends AbstractDialog {
     private JPanel contentPane;
     private JButton buttonAbort;
 
-    private AnalysisDialog(AnalysisCallback analysisCallback, List<File> projectFiles, String[] pathEntries, boolean[] selections, String targetPackage) {
-        init(analysisCallback, projectFiles, pathEntries, selections, targetPackage);
-    }
-
     public static void show(AnalysisCallback analysisCallback, List<File> projectFiles, String[] pathEntries, boolean[] selections, String targetPackage) {
         AnalysisDialog analysisDialog = new AnalysisDialog(analysisCallback, projectFiles, pathEntries, selections, targetPackage);
         analysisDialog.startAnalysis();
 
         analysisDialog.showInCenter();
+    }
+
+    private AnalysisDialog(AnalysisCallback analysisCallback, List<File> projectFiles, String[] pathEntries, boolean[] selections, String targetPackage) {
+        init(analysisCallback, projectFiles, pathEntries, selections, targetPackage);
     }
 
     private void init(AnalysisCallback analysisCallback, List<File> projectFiles, String[] pathEntries, boolean[] selections, String targetPackage) {
@@ -73,21 +74,29 @@ public class AnalysisDialog extends AbstractDialog {
     // Control logic managed by a worker thread
     private void startAnalysis() {
         SwingWorker<List<ClassSmell>, Void> swingWorker = new SwingWorker<List<ClassSmell>, Void>() {
+            private StopAnalysisException stopAnalysisException;
+
             @Override
             protected List<ClassSmell> doInBackground() {
                 try {
                     return analysisDriver.startAnalysis();
                 } catch (InterruptedException e) {
                     e.printStackTrace();
-                    return null;
+                } catch (StopAnalysisException e) {
+                    stopAnalysisException = e;
                 }
+                return null;
             }
 
             @Override
             protected void done() {
                 try {
-                    List<ClassSmell> classSmells = get();
-                    analysisCallback.analysisDone(AnalysisDialog.this, classSmells);
+                    if(stopAnalysisException == null) {
+                        List<ClassSmell> classSmells = get();
+                        analysisCallback.analysisDone(AnalysisDialog.this, classSmells);
+                    } else {
+                        analysisCallback.analysisAbort(AnalysisDialog.this);
+                    }
                 } catch (InterruptedException | ExecutionException e) {
                     e.printStackTrace();
                 }
@@ -96,9 +105,9 @@ public class AnalysisDialog extends AbstractDialog {
         swingWorker.execute();
     }
 
+
     private void onAbort() {
         analysisDriver.abortAnalysis();
-        analysisCallback.analysisAbort(this);
     }
 
     interface AnalysisCallback {

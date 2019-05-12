@@ -5,7 +5,7 @@ import adoctor.application.smell.ClassSmell;
 
 public abstract class ClassSmellAnalyzer {
 
-    //TODO Medium Return more than one smell per kind?
+    //TODO Medium Return more than one smell per class?
     public abstract ClassSmell analyze(ClassBean classBean);
 
 }
