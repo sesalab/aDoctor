@@ -7,7 +7,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
 public class FailureDialog extends AbstractDialog {
-    public static final String TITLE = "aDoctor - Failure";
+    private static final String TITLE = "aDoctor - Failure";
 
     private FailureCallback failureCallback;
 
@@ -22,13 +22,12 @@ public class FailureDialog extends AbstractDialog {
     }
 
     private FailureDialog(FailureCallback failureCallback) {
-        init(failureCallback);
+        this.failureCallback = failureCallback;
+        init();
     }
 
-    private void init(FailureCallback failureCallback) {
+    private void init() {
         super.init(contentPane, TITLE, buttonBack);
-
-        this.failureCallback = failureCallback;
 
         buttonBack.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {

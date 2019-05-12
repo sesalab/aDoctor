@@ -32,13 +32,13 @@ public class AnalysisDialog extends AbstractDialog {
     }
 
     private AnalysisDialog(AnalysisCallback analysisCallback, List<File> projectFiles, String[] pathEntries, boolean[] selections, String targetPackage) {
-        init(analysisCallback, projectFiles, pathEntries, selections, targetPackage);
+        this.analysisCallback = analysisCallback;
+        init(projectFiles, pathEntries, selections, targetPackage);
     }
 
-    private void init(AnalysisCallback analysisCallback, List<File> projectFiles, String[] pathEntries, boolean[] selections, String targetPackage) {
+    private void init(List<File> projectFiles, String[] pathEntries, boolean[] selections, String targetPackage) {
         super.init(contentPane, TITLE, buttonAbort);
 
-        this.analysisCallback = analysisCallback;
         ArrayList<ClassSmellAnalyzer> classSmellAnalyzers = new ArrayList<>();
         if (selections[0]) {
             classSmellAnalyzers.add(new DWAnalyzer());
@@ -55,7 +55,7 @@ public class AnalysisDialog extends AbstractDialog {
         if (selections[4]) {
             classSmellAnalyzers.add(new MIMAnalyzer());
         }
-        this.analysisDriver = new AnalysisDriver(projectFiles, pathEntries, classSmellAnalyzers, targetPackage);
+        analysisDriver = new AnalysisDriver(projectFiles, pathEntries, classSmellAnalyzers, targetPackage);
 
         buttonAbort.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {

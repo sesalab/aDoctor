@@ -20,7 +20,6 @@ public class MIMAnalyzer extends ClassSmellAnalyzer {
             return null;
         }
         TypeDeclaration typeDecl = classBean.getTypeDeclaration();
-
         MethodDeclaration[] methodDecls = typeDecl.getMethods();
 
         /*
@@ -31,7 +30,7 @@ public class MIMAnalyzer extends ClassSmellAnalyzer {
                 internalMethods.add(methodDecl.getName());
             }
         }
-         */
+        */
 
         // Instance variable names
         internalVars = new ArrayList<>();
@@ -49,12 +48,10 @@ public class MIMAnalyzer extends ClassSmellAnalyzer {
         }
 
         for (MethodDeclaration methodDecl : methodDecls) {
-            System.out.println("\tAnalisi metodo: " + methodDecl.getName());
             if (hasMIM(methodDecl)) {
                 MIMSmell smell = new MIMSmell();
                 smell.setSmellyMethod(methodDecl);
                 smell.setClassBean(classBean);
-                System.out.println("\tSmell trovato");
                 return smell;
             }
         }

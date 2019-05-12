@@ -7,7 +7,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
 public class SuccessDialog extends AbstractDialog {
-    public static final String TITLE = "aDoctor - Success";
+    private static final String TITLE = "aDoctor - Success";
 
     private SuccessCallback successCallback;
 
@@ -17,18 +17,16 @@ public class SuccessDialog extends AbstractDialog {
 
     public static void show(SuccessCallback successCallback) {
         SuccessDialog successDialog = new SuccessDialog(successCallback);
-
         successDialog.showInCenter();
     }
 
     private SuccessDialog(SuccessCallback successCallback) {
-        init(successCallback);
+        this.successCallback = successCallback;
+        init();
     }
 
-    private void init(SuccessCallback successCallback) {
+    private void init() {
         super.init(contentPane, TITLE, buttonAnalyze);
-
-        this.successCallback = successCallback;
 
         buttonAnalyze.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {

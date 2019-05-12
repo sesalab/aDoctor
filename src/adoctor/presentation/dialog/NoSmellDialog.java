@@ -21,13 +21,12 @@ public class NoSmellDialog extends AbstractDialog {
     }
 
     private NoSmellDialog(NoSmellCallback noSmellCallback) {
-        init(noSmellCallback);
+        this.noSmellCallback = noSmellCallback;
+        init();
     }
 
-    private void init(NoSmellCallback noSmellCallback) {
+    private void init() {
         super.init(contentPane, TITLE, buttonQuit);
-
-        this.noSmellCallback = noSmellCallback;
 
         buttonQuit.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {

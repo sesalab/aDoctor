@@ -30,20 +30,18 @@ public class StartDialog extends AbstractDialog {
 
     public static void show(StartCallback startCallback, Project project) {
         StartDialog startDialog = new StartDialog(startCallback, project);
-
         startDialog.showInCenter();
     }
 
     private StartDialog(StartCallback startCallback, Project project) {
-        init(startCallback, project);
+        this.startCallback = startCallback;
+        this.project = project;
+        init();
     }
 
     // TODO Medium Change some graphics of the StartDialog: better smell and package selection
-    private void init(StartCallback startCallback, Project project) {
+    private void init() {
         super.init(contentPane, TITLE, buttonStart);
-
-        this.startCallback = startCallback;
-        this.project = project;
 
         labelPackage.setText("");
         checkBoxDW.setSelected(true);

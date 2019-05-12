@@ -7,23 +7,17 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
 public class AboutDialog extends AbstractDialog {
-    public static final String TITLE = "aDoctor - About";
-    public static final String ABOUT = "" +
+    private static final String TITLE = "aDoctor - About";
+    private static final String ABOUT = "" +
             "<html> " +
             "<div style=\"text-align:center\">" +
             "This version of aDoctor is a code smell identification and refactoring plugin developed<br>" +
             "by Emanuele Iannone at Università degli Studi di Salerno.<br>" +
             "Please, feel free to report any bugs or suggestions at emaiannone@hotmail.it<br>" +
-            "All icons used in this plugin are made by " +
-            "<a href=\"https://www.flaticon.com/authors/good-ware\" title=\"Good Ware\">Good Ware</a> " +
-            "from <a href=\"https://www.flaticon.com/\" title=\"Flaticon\">www.flaticon.com</a> is " +
-            "licensed by <a href=\"http://creativecommons.org/licenses/by/3.0/\" " +
-            "title=\"Creative Commons BY 3.0\" target=\"_blank\">CC 3.0 BY</a>" +
             "</div>" +
             "</html>";
 
     private AboutCallback aboutCallback;
-
     private JPanel contentPane;
     private JButton buttonBack;
     private JLabel labelAbout;
@@ -35,13 +29,12 @@ public class AboutDialog extends AbstractDialog {
     }
 
     private AboutDialog(AboutCallback aboutCallback) {
-        init(aboutCallback);
+        this.aboutCallback = aboutCallback;
+        init();
     }
 
-    private void init(AboutCallback aboutCallback) {
+    private void init() {
         super.init(contentPane, TITLE, buttonBack);
-
-        this.aboutCallback = aboutCallback;
 
         labelAbout.setText(ABOUT);
 

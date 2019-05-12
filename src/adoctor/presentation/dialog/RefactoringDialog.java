@@ -20,10 +20,6 @@ public class RefactoringDialog extends AbstractDialog {
     private JPanel contentPane;
     private JLabel labelMethodFileName;
 
-    private RefactoringDialog(RefactoringCallback refactoringCallback, ClassSmell targetSmell, Document proposedDocument) {
-        init(refactoringCallback, targetSmell, proposedDocument);
-    }
-
     public static void show(RefactoringCallback refactoringCallback, ClassSmell targetSmell, Document proposedDocument) {
         RefactoringDialog refactoringDialog = new RefactoringDialog(refactoringCallback, targetSmell, proposedDocument);
 
@@ -32,10 +28,14 @@ public class RefactoringDialog extends AbstractDialog {
         refactoringDialog.showInCenter();
     }
 
-    private void init(RefactoringCallback refactoringCallback, ClassSmell targetSmell, Document proposedDocument) {
+    private RefactoringDialog(RefactoringCallback refactoringCallback, ClassSmell targetSmell, Document proposedDocument) {
+        this.refactoringCallback = refactoringCallback;
+        init(targetSmell, proposedDocument);
+    }
+
+    private void init(ClassSmell targetSmell, Document proposedDocument) {
         super.init(contentPane, TITLE, null);
 
-        this.refactoringCallback = refactoringCallback;
         File targetFile = targetSmell.getClassBean().getSourceFile();
         this.refactoringDriver = new RefactoringDriver(targetFile, proposedDocument);
         labelMethodFileName.setText("in file " + targetFile.getName());

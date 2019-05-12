@@ -22,13 +22,12 @@ public class AbortedDialog extends AbstractDialog {
     }
 
     private AbortedDialog(AbortedCallback abortedCallback) {
-        init(abortedCallback);
+        this.abortedCallback = abortedCallback;
+        init();
     }
 
-    private void init(AbortedCallback abortedCallback) {
+    private void init() {
         super.init(contentPane, TITLE, buttonAnalyze);
-
-        this.abortedCallback = abortedCallback;
 
         buttonAnalyze.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {

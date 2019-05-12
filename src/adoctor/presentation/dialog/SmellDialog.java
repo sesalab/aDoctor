@@ -9,8 +9,9 @@ import com.intellij.diff.DiffManager;
 import com.intellij.diff.DiffRequestPanel;
 import com.intellij.diff.contents.DocumentContent;
 import com.intellij.diff.requests.SimpleDiffRequest;
-import com.intellij.diff.util.DiffUserDataKeys;
+import com.intellij.diff.util.DiffUserDataKeysEx;
 import com.intellij.ide.highlighter.JavaClassFileType;
+import com.intellij.lang.java.JavaLanguage;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.EditorFactory;
@@ -49,7 +50,6 @@ public class SmellDialog extends AbstractDialog {
             "<div style=\"font-size:16px\"><b>Smell</b>: " + "%s" + "</div>" +
             "<div style=\"margin-left:8px;\"><b>Description</b>: " + "%s" + "</div>" +
             "<div style=\"margin-left:8px;\"><b>Class</b>: " + "%s" + "</div>" +
-            "<div style=\"margin-left:8px;\"><b>Method</b>: " + "%s" + "</div>" +
             "</div>" +
             "</body>" +
             "</html>";
@@ -71,21 +71,21 @@ public class SmellDialog extends AbstractDialog {
     private JButton buttonBack;
     private JButton buttonUndo;
 
-    private SmellDialog(SmellCallback smellCallback, Project project, List<ClassSmell> classSmells, boolean[] selections, boolean undoExists) {
-        init(smellCallback, project, classSmells, selections, undoExists);
-    }
-
     public static void show(SmellCallback smellCallback, Project project, List<ClassSmell> smellMethodList, boolean[] selections, boolean undoExists) {
         SmellDialog smellDialog = new SmellDialog(smellCallback, project, smellMethodList, selections, undoExists);
         smellDialog.showInCenter();
     }
 
-    private void init(SmellCallback smellCallback, Project project, List<ClassSmell> classSmells, boolean[] selections, boolean undoExists) {
-        super.init(contentPane, TITLE, buttonApply);
-
+    private SmellDialog(SmellCallback smellCallback, Project project, List<ClassSmell> classSmells, boolean[] selections, boolean undoExists) {
         this.smellCallback = smellCallback;
         this.project = project;
         this.classSmells = classSmells;
+        init(selections, undoExists);
+    }
+
+    private void init(boolean[] selections, boolean undoExists) {
+        super.init(contentPane, TITLE, buttonApply);
+
         ArrayList<ClassSmellProposer> classSmellProposers = new ArrayList<>();
         if (selections[0]) {
             classSmellProposers.add(new DWProposer());
@@ -109,6 +109,7 @@ public class SmellDialog extends AbstractDialog {
         // The smell list
         boxSmell.setRenderer(new SmellRenderer());
         boxSmell.removeAllItems();
+        //TODO Medium Rearrange in a certain way?
         for (ClassSmell classSmell : classSmells) {
             boxSmell.addItem(classSmell);
         }
@@ -156,9 +157,7 @@ public class SmellDialog extends AbstractDialog {
         String smellName = selectedSmell.getName();
         String smellClass = selectedSmell.getClassBean().getTypeDeclaration().getName().toString();
         String smellDescription = selectedSmell.getDescription();
-        //TODO High Fix: it does not show where the problem is. But is it necessary?
-        String smellMethod = selectedSmell.getClassBean().getTypeDeclaration().getName().toString();
-        String text = String.format(extendedHTML, smellName, smellDescription, smellClass, smellMethod);
+        String text = String.format(extendedHTML, smellName, smellDescription, smellClass);
         paneDetails.setText(text);
 
         // Clear the main panel
@@ -166,43 +165,51 @@ public class SmellDialog extends AbstractDialog {
         try {
             // Compute the proposal of the selected smell and then show the diff if no errors
             undo = proposalDriver.computeProposal(selectedSmell);
-            VirtualFile vf = LocalFileSystem.getInstance().findFileByIoFile(selectedSmell.getClassBean().getSourceFile());
-            if (undo == null || vf == null) {
+            // Prepare the Diff panel
+            DiffRequestPanel diffRequestPanel = createDiffRequestPanel(undo);
+            if (diffRequestPanel == null) {
                 panelMain.add(labelError, BorderLayout.CENTER);
             } else {
-                DocumentContent currentDocumentContent = DiffContentFactory.getInstance().createDocument(project, vf);
-                if (currentDocumentContent == null) {
-                    panelMain.add(labelError, BorderLayout.CENTER);
-                } else {
-                    String validDocumentContent = undo.getDocument().get().replaceAll("(\r\n|\r)", "\n");
-                    Document proposedDocument = EditorFactory.getInstance().createDocument(validDocumentContent);
-                    DocumentContent proposedDocumentContent = DiffContentFactory.getInstance().create(proposedDocument.getText(),
-                            JavaClassFileType.INSTANCE);
-                    SimpleDiffRequest request = new SimpleDiffRequest("Diff Panel", currentDocumentContent,
-                            proposedDocumentContent, "Current Code", "Proposed Code");
-
-                    // DiffPanel preparation
-                    DiffRequestPanel diffRequestPanel = DiffManager.getInstance().createRequestPanel(project, new Disposable() {
-                        @Override
-                        public void dispose() {
-
-                        }
-                    }, null);
-                    diffRequestPanel.putContextHints(DiffUserDataKeys.FORCE_READ_ONLY, true);
-                    diffRequestPanel.setRequest(request);
-                    JComponent panelDiffComponent = diffRequestPanel.getComponent();
-                    int preferredWidth = panelList.getPreferredSize().width * 4;
-                    int preferredHeight = panelList.getPreferredSize().height * 2;
-                    panelDiffComponent.setPreferredSize(new Dimension(preferredWidth, preferredHeight));
-                    panelMain.add(panelDiffComponent, BorderLayout.CENTER);
-                }
+                JComponent panelDiffComponent = diffRequestPanel.getComponent();
+                int preferredWidth = panelList.getPreferredSize().width * 4;
+                int preferredHeight = panelList.getPreferredSize().height * 2;
+                panelDiffComponent.setPreferredSize(new Dimension(preferredWidth, preferredHeight));
+                panelMain.add(panelDiffComponent, BorderLayout.CENTER);
             }
         } catch (IOException | BadLocationException e) {
             panelMain.add(labelError, BorderLayout.CENTER);
-            e.printStackTrace();
         }
         pack();
         setLocationRelativeTo(null);
+    }
+
+    private DiffRequestPanel createDiffRequestPanel(Undo undo) {
+        VirtualFile vf = LocalFileSystem.getInstance().findFileByIoFile(selectedSmell.getClassBean().getSourceFile());
+        if (undo == null || vf == null) {
+            return null;
+        }
+        DocumentContent currentDocumentContent = DiffContentFactory.getInstance().createDocument(project, vf);
+        if (currentDocumentContent == null) {
+            return null;
+        }
+        String validDocumentContent = undo.getDocument().get().replaceAll("(\r\n|\r)", "\n");
+        Document proposedDocument = EditorFactory.getInstance().createDocument(validDocumentContent);
+        DocumentContent proposedDocumentContent = DiffContentFactory.getInstance().create(proposedDocument.getText(),
+                JavaClassFileType.INSTANCE);
+        SimpleDiffRequest request = new SimpleDiffRequest("Diff Panel", currentDocumentContent,
+                proposedDocumentContent, "Current Code", "Proposed Code");
+
+        // DiffPanel preparation
+        DiffRequestPanel diffRequestPanel = DiffManager.getInstance().createRequestPanel(project, new Disposable() {
+            @Override
+            public void dispose() {
+
+            }
+        }, null);
+        diffRequestPanel.putContextHints(DiffUserDataKeysEx.LANGUAGE, JavaLanguage.INSTANCE);
+        diffRequestPanel.putContextHints(DiffUserDataKeysEx.FORCE_READ_ONLY, true);
+        diffRequestPanel.setRequest(request);
+        return diffRequestPanel;
     }
 
     private void onSelectItem() {

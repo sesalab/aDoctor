@@ -3,14 +3,16 @@ package adoctor.application.ast;
 import adoctor.application.ast.visitor.*;
 import org.eclipse.jdt.core.dom.*;
 import parser.MethodVisitor;
-import process.FileUtilities;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
-@SuppressWarnings("unchecked")
+@SuppressWarnings("Duplicates")
 public class ASTUtilities {
 
     public static CompilationUnit getCompilationUnit(File sourceFile, String[] pathEntries) throws IOException {
@@ -20,10 +22,11 @@ public class ASTUtilities {
         return codeParser.createParser(javaFileContent);
          */
         //IProject[] projects = ResourcesPlugin.getWorkspace().getRoot().getProjects();
+        //String javaFileContent = FileUtilities.readFile(sourceFile.getAbsolutePath());
 
         ASTParser parser = ASTParser.newParser(AST.JLS11);
         parser.setKind(ASTParser.K_COMPILATION_UNIT);
-        String javaFileContent = FileUtilities.readFile(sourceFile.getAbsolutePath());
+        String javaFileContent = new String(Files.readAllBytes(Paths.get(sourceFile.getAbsolutePath())), StandardCharsets.UTF_8);
         parser.setSource(javaFileContent.toCharArray());
         parser.setEnvironment(pathEntries, pathEntries, null, true);
         parser.setUnitName(sourceFile.getAbsolutePath());
