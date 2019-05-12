@@ -9,11 +9,13 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.File;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 public class AnalysisDialog extends AbstractDialog {
-    public static final String TITLE = "aDoctor - Analysis";
+    private static final String TITLE = "aDoctor - Analysis";
 
     private AnalysisCallback analysisCallback;
     private AnalysisDriver analysisDriver;
@@ -21,18 +23,18 @@ public class AnalysisDialog extends AbstractDialog {
     private JPanel contentPane;
     private JButton buttonAbort;
 
-    private AnalysisDialog(AnalysisCallback analysisCallback, String projectBasePath, String[] pathEntries, boolean[] selections, String targetPackage) {
-        init(analysisCallback, projectBasePath, pathEntries, selections, targetPackage);
+    private AnalysisDialog(AnalysisCallback analysisCallback, List<File> projectFiles, String[] pathEntries, boolean[] selections, String targetPackage) {
+        init(analysisCallback, projectFiles, pathEntries, selections, targetPackage);
     }
 
-    public static void show(AnalysisCallback analysisCallback, String projectBasePath, String[] pathEntries, boolean[] selections, String targetPackage) {
-        AnalysisDialog analysisDialog = new AnalysisDialog(analysisCallback, projectBasePath, pathEntries, selections, targetPackage);
+    public static void show(AnalysisCallback analysisCallback, List<File> projectFiles, String[] pathEntries, boolean[] selections, String targetPackage) {
+        AnalysisDialog analysisDialog = new AnalysisDialog(analysisCallback, projectFiles, pathEntries, selections, targetPackage);
         analysisDialog.startAnalysis();
 
         analysisDialog.showInCenter();
     }
 
-    private void init(AnalysisCallback analysisCallback, String projectBasePath, String[] pathEntries, boolean[] selections, String targetPackage) {
+    private void init(AnalysisCallback analysisCallback, List<File> projectFiles, String[] pathEntries, boolean[] selections, String targetPackage) {
         super.init(contentPane, TITLE, buttonAbort);
 
         this.analysisCallback = analysisCallback;
@@ -52,7 +54,7 @@ public class AnalysisDialog extends AbstractDialog {
         if (selections[4]) {
             classSmellAnalyzers.add(new MIMAnalyzer());
         }
-        this.analysisDriver = new AnalysisDriver(projectBasePath, pathEntries, classSmellAnalyzers, targetPackage);
+        this.analysisDriver = new AnalysisDriver(projectFiles, pathEntries, classSmellAnalyzers, targetPackage);
 
         buttonAbort.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -70,9 +72,9 @@ public class AnalysisDialog extends AbstractDialog {
 
     // Control logic managed by a worker thread
     private void startAnalysis() {
-        SwingWorker<ArrayList<ClassSmell>, Void> swingWorker = new SwingWorker<ArrayList<ClassSmell>, Void>() {
+        SwingWorker<List<ClassSmell>, Void> swingWorker = new SwingWorker<List<ClassSmell>, Void>() {
             @Override
-            protected ArrayList<ClassSmell> doInBackground() {
+            protected List<ClassSmell> doInBackground() {
                 try {
                     return analysisDriver.startAnalysis();
                 } catch (InterruptedException e) {
@@ -84,7 +86,7 @@ public class AnalysisDialog extends AbstractDialog {
             @Override
             protected void done() {
                 try {
-                    ArrayList<ClassSmell> classSmells = get();
+                    List<ClassSmell> classSmells = get();
                     analysisCallback.analysisDone(AnalysisDialog.this, classSmells);
                 } catch (InterruptedException | ExecutionException e) {
                     e.printStackTrace();
@@ -102,6 +104,6 @@ public class AnalysisDialog extends AbstractDialog {
     interface AnalysisCallback {
         void analysisAbort(AnalysisDialog analysisDialog);
 
-        void analysisDone(AnalysisDialog analysisDialog, ArrayList<ClassSmell> classSmells);
+        void analysisDone(AnalysisDialog analysisDialog, List<ClassSmell> classSmells);
     }
 }

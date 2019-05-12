@@ -7,7 +7,6 @@ import java.io.File;
 public class ClassBean extends Bean {
     private File sourceFile;
     private TypeDeclaration typeDeclaration;
-    private beans.ClassBean legacyClassBean;
 
     public File getSourceFile() {
         return sourceFile;
@@ -23,14 +22,6 @@ public class ClassBean extends Bean {
 
     public void setTypeDeclaration(TypeDeclaration typeDeclaration) {
         this.typeDeclaration = typeDeclaration;
-    }
-
-    public beans.ClassBean getLegacyClassBean() {
-        return legacyClassBean;
-    }
-
-    public void setLegacyClassBean(beans.ClassBean legacyClassBean) {
-        this.legacyClassBean = legacyClassBean;
     }
 
 }

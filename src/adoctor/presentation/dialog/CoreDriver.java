@@ -3,15 +3,21 @@ package adoctor.presentation.dialog;
 import adoctor.application.proposal.undo.Undo;
 import adoctor.application.smell.ClassSmell;
 import com.intellij.ide.SaveAndSyncHandlerImpl;
+import com.intellij.ide.highlighter.JavaFileType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.search.FileTypeIndex;
+import com.intellij.psi.search.GlobalSearchScope;
 import org.eclipse.jface.text.Document;
 
+import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.Stack;
 
 public class CoreDriver implements StartDialog.StartCallback,
@@ -25,11 +31,12 @@ public class CoreDriver implements StartDialog.StartCallback,
         FailureDialog.FailureCallback {
 
     private Project project;
+    private List<File> projectFiles;
     private String[] pathEntries;
     private Stack<Undo> undoStack;
     private boolean[] selections;
     private String targetPackage;
-    private ArrayList<ClassSmell> classSmells;
+    private List<ClassSmell> classSmells;
 
     public CoreDriver(Project project) {
         this.project = project;
@@ -47,16 +54,22 @@ public class CoreDriver implements StartDialog.StartCallback,
         SaveAndSyncHandlerImpl.getInstance().refreshOpenFiles();
         //ProjectManagerEx.getInstanceEx().blockReloadingProjectOnExternalChanges();
 
+        // Get all path entries
         ProjectRootManager projectRootManager = ProjectRootManager.getInstance(project);
-        //VirtualFile[] files = projectRootManager.getContentSourceRoots();
-        VirtualFile[] files = projectRootManager.getContentRoots();
-        pathEntries = new String[files.length];
-        for (int i = 0; i < files.length; i++) {
-            VirtualFile file = files[i];
-            pathEntries[i] = file.getPath();
+        VirtualFile[] paths = projectRootManager.getContentSourceRoots();
+        pathEntries = new String[paths.length];
+        for (int i = 0; i < pathEntries.length; i++) {
+            pathEntries[i] = paths[i].getPath();
         }
 
-        AnalysisDialog.show(this, project.getBasePath(), pathEntries, selections, targetPackage);
+        // Fetch all project files
+        Collection<VirtualFile> virtualFiles = FileTypeIndex.getFiles(JavaFileType.INSTANCE, GlobalSearchScope.projectScope(project));
+        projectFiles = new ArrayList<>();
+        for (VirtualFile virtualFile : virtualFiles) {
+            projectFiles.add(new File(virtualFile.getPath()));
+        }
+
+        AnalysisDialog.show(this, projectFiles, pathEntries, selections, targetPackage);
     }
 
     ////////////////StartDialog///////////////
@@ -94,7 +107,7 @@ public class CoreDriver implements StartDialog.StartCallback,
     }
 
     @Override
-    public void analysisDone(AnalysisDialog analysisDialog, ArrayList<ClassSmell> classSmells) {
+    public void analysisDone(AnalysisDialog analysisDialog, List<ClassSmell> classSmells) {
         this.classSmells = classSmells;
         analysisDialog.dispose();
         if (classSmells == null || classSmells.size() == 0) {
@@ -113,7 +126,7 @@ public class CoreDriver implements StartDialog.StartCallback,
     @Override
     public void abortedRestart(AbortedDialog abortedDialog) {
         abortedDialog.dispose();
-        AnalysisDialog.show(this, project.getBasePath(), pathEntries, selections, targetPackage);
+        AnalysisDialog.show(this, projectFiles, pathEntries, selections, targetPackage);
     }
 
 

@@ -13,7 +13,7 @@ import java.util.List;
 @SuppressWarnings("unchecked")
 public class ASTUtilities {
 
-    public static CompilationUnit getCompilationUnit(String[] pathEntries, File sourceFile) throws IOException {
+    public static CompilationUnit getCompilationUnit(File sourceFile, String[] pathEntries) throws IOException {
         /*
         CodeParser codeParser = new CodeParser();
         String javaFileContent = FileUtilities.readFile(sourceFile.getAbsolutePath());
@@ -29,16 +29,6 @@ public class ASTUtilities {
         parser.setUnitName(sourceFile.getAbsolutePath());
         parser.setResolveBindings(true);
         return (CompilationUnit) parser.createAST(null);
-    }
-
-    public static TypeDeclaration getTypeDeclarationByName(CompilationUnit compilationUnit, String className) {
-        List<TypeDeclaration> types = (List<TypeDeclaration>) compilationUnit.types();
-        for (TypeDeclaration type : types) {
-            if (type.getName().getIdentifier().equals(className)) {
-                return type;
-            }
-        }
-        return null;
     }
 
     public static MethodDeclaration getMethodDeclarationFromName(CompilationUnit compilationUnit, String methodName) {

@@ -28,6 +28,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 
 @SuppressWarnings({"GtkPreferredJComboBoxRenderer", "unchecked"})
 public class SmellDialog extends AbstractDialog {
@@ -55,7 +56,7 @@ public class SmellDialog extends AbstractDialog {
 
     private SmellCallback smellCallback;
     private Project project;
-    private ArrayList<ClassSmell> classSmells;
+    private List<ClassSmell> classSmells;
     private ProposalDriver proposalDriver;
     private ClassSmell selectedSmell;
     private Undo undo;
@@ -70,16 +71,16 @@ public class SmellDialog extends AbstractDialog {
     private JButton buttonBack;
     private JButton buttonUndo;
 
-    private SmellDialog(SmellCallback smellCallback, Project project, ArrayList<ClassSmell> classSmells, boolean[] selections, boolean undoExists) {
+    private SmellDialog(SmellCallback smellCallback, Project project, List<ClassSmell> classSmells, boolean[] selections, boolean undoExists) {
         init(smellCallback, project, classSmells, selections, undoExists);
     }
 
-    public static void show(SmellCallback smellCallback, Project project, ArrayList<ClassSmell> smellMethodList, boolean[] selections, boolean undoExists) {
+    public static void show(SmellCallback smellCallback, Project project, List<ClassSmell> smellMethodList, boolean[] selections, boolean undoExists) {
         SmellDialog smellDialog = new SmellDialog(smellCallback, project, smellMethodList, selections, undoExists);
         smellDialog.showInCenter();
     }
 
-    private void init(SmellCallback smellCallback, Project project, ArrayList<ClassSmell> classSmells, boolean[] selections, boolean undoExists) {
+    private void init(SmellCallback smellCallback, Project project, List<ClassSmell> classSmells, boolean[] selections, boolean undoExists) {
         super.init(contentPane, TITLE, buttonApply);
 
         this.smellCallback = smellCallback;
@@ -153,9 +154,10 @@ public class SmellDialog extends AbstractDialog {
 
         // Updates the extended description
         String smellName = selectedSmell.getName();
-        String smellClass = selectedSmell.getClassBean().getLegacyClassBean().getName();
+        String smellClass = selectedSmell.getClassBean().getTypeDeclaration().getName().toString();
         String smellDescription = selectedSmell.getDescription();
-        String smellMethod = selectedSmell.getClassBean().getLegacyClassBean().getName();
+        //TODO High Fix: it does not show where the problem is. But is it necessary?
+        String smellMethod = selectedSmell.getClassBean().getTypeDeclaration().getName().toString();
         String text = String.format(extendedHTML, smellName, smellDescription, smellClass, smellMethod);
         paneDetails.setText(text);
 
@@ -252,7 +254,7 @@ public class SmellDialog extends AbstractDialog {
             }
 
             String smellName = classSmell.getName();
-            String smellClass = classSmell.getClassBean().getLegacyClassBean().getName();
+            String smellClass = classSmell.getClassBean().getTypeDeclaration().getName().toString();
             String text = String.format(baseHTML, smellName, smellClass);
             label.setText(text);
             return label;

@@ -20,7 +20,6 @@ public class MIMAnalyzer extends ClassSmellAnalyzer {
             return null;
         }
         TypeDeclaration typeDecl = classBean.getTypeDeclaration();
-        System.out.println("Analisi classe: " + typeDecl.getName());
 
         MethodDeclaration[] methodDecls = typeDecl.getMethods();
 
@@ -47,9 +46,6 @@ public class MIMAnalyzer extends ClassSmellAnalyzer {
                     }
                 }
             }
-        }
-        for (SimpleName internalVar : internalVars) {
-            System.out.println(internalVar);
         }
 
         for (MethodDeclaration methodDecl : methodDecls) {
