@@ -102,6 +102,9 @@ public class SmellDialog extends AbstractDialog {
         if (selections[4]) {
             classSmellProposers.add(new MIMProposer());
         }
+        if (selections[5]) {
+            classSmellProposers.add(new LTProposer());
+        }
         proposalDriver = new ProposalDriver(classSmellProposers);
         selectedSmell = null;
         undo = null;

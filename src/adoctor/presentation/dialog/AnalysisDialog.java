@@ -55,6 +55,9 @@ public class AnalysisDialog extends AbstractDialog {
         if (selections[4]) {
             classSmellAnalyzers.add(new MIMAnalyzer());
         }
+        if (selections[5]) {
+            classSmellAnalyzers.add(new LTAnalyzer());
+        }
         analysisDriver = new AnalysisDriver(projectFiles, pathEntries, classSmellAnalyzers, targetPackage);
 
         buttonAbort.addActionListener(new ActionListener() {

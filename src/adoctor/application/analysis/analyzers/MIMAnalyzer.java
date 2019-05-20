@@ -11,6 +11,8 @@ import java.util.List;
 
 @SuppressWarnings("unchecked")
 public class MIMAnalyzer extends ClassSmellAnalyzer {
+    private static final String OVERRIDE = "Override";
+
     //private List<SimpleName> internalMethods;
     private List<SimpleName> internalVars;
 
@@ -95,7 +97,7 @@ public class MIMAnalyzer extends ClassSmellAnalyzer {
         for (IExtendedModifier modifier : modifiers) {
             if (modifier.isAnnotation()) {
                 Annotation annotation = (Annotation) modifier;
-                if (annotation.getTypeName().toString().equals("Override")) {
+                if (annotation.getTypeName().toString().equals(OVERRIDE)) {
                     return true;
                 }
             }
@@ -108,8 +110,8 @@ public class MIMAnalyzer extends ClassSmellAnalyzer {
         if (methodInvocations != null) {
             for (MethodInvocation methodInvocation : methodInvocations) {
                 if (methodInvocation.getExpression() == null) {
-                    String methodName = methodInvocation.getName().getIdentifier();
                     //TODO Low Try to use the bindings to enable a finer check: if the called method belongs to a superclass
+                    /*String methodName = methodInvocation.getName().getIdentifier();*/
                     return true;
                 }
             }

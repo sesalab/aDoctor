@@ -236,5 +236,13 @@ public class ASTUtilities {
         }
         return (Block) parent;
     }
+
+    public static TypeDeclaration getParentTypeDeclaration(ASTNode node) {
+        ASTNode parent = node;
+        while (!(parent instanceof TypeDeclaration)) {
+            parent = parent.getParent();
+        }
+        return (TypeDeclaration) parent;
+    }
 }
 
