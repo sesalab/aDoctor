@@ -8,6 +8,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.util.ArrayList;
+import java.util.List;
 
 public class StartDialog extends AbstractDialog {
     public static final String TITLE = "aDoctor";
@@ -104,18 +106,18 @@ public class StartDialog extends AbstractDialog {
     }
 
     private void onStart() {
-        // TODO Medium use a List of Booleans
-        boolean[] selections = new boolean[6];
-        selections[0] = checkBoxDW.isSelected();
-        selections[1] = checkBoxERB.isSelected();
-        selections[2] = checkBoxIDS.isSelected();
-        selections[3] = checkBoxIS.isSelected();
-        selections[4] = checkBoxMIM.isSelected();
-        selections[5] = checkBoxLT.isSelected();
-        if (!selections[0] && !selections[1] && !selections[2] && !selections[3] && !selections[4] && !selections[5]) {
-            JOptionPane.showMessageDialog(this, "Select at least one smell!", "Error", JOptionPane.ERROR_MESSAGE, null);
-        } else {
+        List<Boolean> selections = new ArrayList<>();
+        selections.add(checkBoxDW.isSelected());
+        selections.add(checkBoxERB.isSelected());
+        selections.add(checkBoxIDS.isSelected());
+        selections.add(checkBoxIS.isSelected());
+        selections.add(checkBoxMIM.isSelected());
+        selections.add(checkBoxLT.isSelected());
+        boolean andResult = selections.stream().reduce((a, b) -> a && b).orElse(true);
+        if (andResult) {
             startCallback.startAnalysis(this, selections, labelPackage.getText());
+        } else {
+            JOptionPane.showMessageDialog(this, "Select at least one smell!", "Error", JOptionPane.ERROR_MESSAGE, null);
         }
     }
 
@@ -129,7 +131,7 @@ public class StartDialog extends AbstractDialog {
     }
 
     interface StartCallback {
-        void startAnalysis(StartDialog startDialog, boolean[] selections, String targetPackage);
+        void startAnalysis(StartDialog startDialog, List<Boolean> selections, String targetPackage);
 
         void startAbout(StartDialog startDialog);
 

@@ -24,38 +24,38 @@ public class AnalysisDialog extends AbstractDialog {
     private JPanel contentPane;
     private JButton buttonAbort;
 
-    public static void show(AnalysisCallback analysisCallback, List<File> projectFiles, String[] pathEntries, boolean[] selections, String targetPackage) {
+    private AnalysisDialog(AnalysisCallback analysisCallback, List<File> projectFiles, String[] pathEntries, List<Boolean> selections, String targetPackage) {
+        this.analysisCallback = analysisCallback;
+        init(projectFiles, pathEntries, selections, targetPackage);
+    }
+
+    public static void show(AnalysisCallback analysisCallback, List<File> projectFiles, String[] pathEntries, List<Boolean> selections, String targetPackage) {
         AnalysisDialog analysisDialog = new AnalysisDialog(analysisCallback, projectFiles, pathEntries, selections, targetPackage);
         analysisDialog.startAnalysis();
 
         analysisDialog.showInCenter();
     }
 
-    private AnalysisDialog(AnalysisCallback analysisCallback, List<File> projectFiles, String[] pathEntries, boolean[] selections, String targetPackage) {
-        this.analysisCallback = analysisCallback;
-        init(projectFiles, pathEntries, selections, targetPackage);
-    }
-
-    private void init(List<File> projectFiles, String[] pathEntries, boolean[] selections, String targetPackage) {
+    private void init(List<File> projectFiles, String[] pathEntries, List<Boolean> selections, String targetPackage) {
         super.init(contentPane, TITLE, buttonAbort);
 
         ArrayList<ClassSmellAnalyzer> classSmellAnalyzers = new ArrayList<>();
-        if (selections[0]) {
+        if (selections.get(0)) {
             classSmellAnalyzers.add(new DWAnalyzer());
         }
-        if (selections[1]) {
+        if (selections.get(1)) {
             classSmellAnalyzers.add(new ERBAnalyzer());
         }
-        if (selections[2]) {
+        if (selections.get(2)) {
             classSmellAnalyzers.add(new IDSAnalyzer());
         }
-        if (selections[3]) {
+        if (selections.get(3)) {
             classSmellAnalyzers.add(new ISAnalyzer());
         }
-        if (selections[4]) {
+        if (selections.get(4)) {
             classSmellAnalyzers.add(new MIMAnalyzer());
         }
-        if (selections[5]) {
+        if (selections.get(5)) {
             classSmellAnalyzers.add(new LTAnalyzer());
         }
         analysisDriver = new AnalysisDriver(projectFiles, pathEntries, classSmellAnalyzers, targetPackage);

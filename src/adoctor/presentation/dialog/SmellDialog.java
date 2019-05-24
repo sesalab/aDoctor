@@ -71,38 +71,38 @@ public class SmellDialog extends AbstractDialog {
     private JButton buttonBack;
     private JButton buttonUndo;
 
-    public static void show(SmellCallback smellCallback, Project project, List<ClassSmell> smellMethodList, boolean[] selections, boolean undoExists) {
-        SmellDialog smellDialog = new SmellDialog(smellCallback, project, smellMethodList, selections, undoExists);
-        smellDialog.showInCenter();
-    }
-
-    private SmellDialog(SmellCallback smellCallback, Project project, List<ClassSmell> classSmells, boolean[] selections, boolean undoExists) {
+    private SmellDialog(SmellCallback smellCallback, Project project, List<ClassSmell> classSmells, List<Boolean> selections, boolean undoExists) {
         this.smellCallback = smellCallback;
         this.project = project;
         this.classSmells = classSmells;
         init(selections, undoExists);
     }
 
-    private void init(boolean[] selections, boolean undoExists) {
+    public static void show(SmellCallback smellCallback, Project project, List<ClassSmell> smellMethodList, List<Boolean> selections, boolean undoExists) {
+        SmellDialog smellDialog = new SmellDialog(smellCallback, project, smellMethodList, selections, undoExists);
+        smellDialog.showInCenter();
+    }
+
+    private void init(List<Boolean> selections, boolean undoExists) {
         super.init(contentPane, TITLE, buttonApply);
 
         ArrayList<ClassSmellProposer> classSmellProposers = new ArrayList<>();
-        if (selections[0]) {
+        if (selections.get(0)) {
             classSmellProposers.add(new DWProposer());
         }
-        if (selections[1]) {
+        if (selections.get(1)) {
             classSmellProposers.add(new ERBProposer());
         }
-        if (selections[2]) {
+        if (selections.get(2)) {
             classSmellProposers.add(new IDSProposer());
         }
-        if (selections[3]) {
+        if (selections.get(3)) {
             classSmellProposers.add(new ISProposer());
         }
-        if (selections[4]) {
+        if (selections.get(4)) {
             classSmellProposers.add(new MIMProposer());
         }
-        if (selections[5]) {
+        if (selections.get(5)) {
             classSmellProposers.add(new LTProposer());
         }
         proposalDriver = new ProposalDriver(classSmellProposers);

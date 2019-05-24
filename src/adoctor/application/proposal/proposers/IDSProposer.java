@@ -3,11 +3,11 @@ package adoctor.application.proposal.proposers;
 import adoctor.application.ast.ASTUtilities;
 import adoctor.application.smell.ClassSmell;
 import adoctor.application.smell.IDSSmell;
+import javafx.util.Pair;
 import org.eclipse.jdt.core.dom.*;
 import org.eclipse.jdt.core.dom.rewrite.ASTRewrite;
 import org.eclipse.jdt.core.dom.rewrite.ListRewrite;
 
-import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -46,7 +46,6 @@ public class IDSProposer extends ClassSmellProposer {
     private static final String I = "i";
 
     //TODO Medium Rearrange some independent parts of the code and extract some more methods.
-    //TODO High Change SimpleEntry to Pair
     @Override
     public ASTRewrite computeProposal(ClassSmell classSmell) {
         if (classSmell == null) {
@@ -90,7 +89,8 @@ public class IDSProposer extends ClassSmellProposer {
 
         // Creation of list of statements replacements (mainly MethodInvocations, but not only)
         // and some method additions
-        List<AbstractMap.SimpleEntry<MethodInvocation, Expression>> replacements = new ArrayList<>();
+
+        List<Pair<MethodInvocation, Expression>> replacements = new ArrayList<>();
         List<MethodDeclaration> methodAdditions = new ArrayList<>();
         for (MethodInvocation invocation : involvedInvocations) {
             Expression newExpr = null;
@@ -152,7 +152,7 @@ public class IDSProposer extends ClassSmellProposer {
                 }
                 */
             }
-            replacements.add(new AbstractMap.SimpleEntry<>(invocation, newExpr));
+            replacements.add(new Pair<>(invocation, newExpr));
         }
 
         // Import Proposals
@@ -187,7 +187,7 @@ public class IDSProposer extends ClassSmellProposer {
         // Statement replacements
         ASTRewrite astRewrite = ASTRewrite.create(targetAST);
         astRewrite.replace(smellyVarDecl, newVarDecl, null);
-        for (AbstractMap.SimpleEntry<MethodInvocation, Expression> invocationReplacement : replacements) {
+        for (Pair<MethodInvocation, Expression> invocationReplacement : replacements) {
             astRewrite.replace(invocationReplacement.getKey(), invocationReplacement.getValue(), null);
         }
         // Addition of all new methods

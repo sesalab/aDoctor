@@ -34,7 +34,7 @@ public class CoreDriver implements StartDialog.StartCallback,
     private List<File> projectFiles;
     private String[] pathEntries;
     private Stack<Undo> undoStack;
-    private boolean[] selections;
+    private List<Boolean> selections;
     private String targetPackage;
     private List<ClassSmell> classSmells;
 
@@ -43,6 +43,7 @@ public class CoreDriver implements StartDialog.StartCallback,
         this.undoStack = new Stack<>();
     }
 
+    // TODO Low Maintain the selected smell when back button is used
     public void start() {
         StartDialog.show(this, project);
     }
@@ -74,7 +75,7 @@ public class CoreDriver implements StartDialog.StartCallback,
 
     ////////////////StartDialog///////////////
     @Override
-    public void startAnalysis(StartDialog startDialog, boolean[] selections, String targetPackage) {
+    public void startAnalysis(StartDialog startDialog, List<Boolean> selections, String targetPackage) {
         startDialog.dispose();
         this.selections = selections;
         this.targetPackage = targetPackage;
@@ -189,10 +190,9 @@ public class CoreDriver implements StartDialog.StartCallback,
                 SaveAndSyncHandlerImpl.getInstance().refreshOpenFiles();
             }
         });
-        */
-        // VirtualFileManager.getInstance().refreshWithoutFileWatcher(false);
-        // ProjectManagerEx.getInstanceEx().unblockReloadingProjectOnExternalChanges();
-        /* Useless...
+         VirtualFileManager.getInstance().refreshWithoutFileWatcher(false);
+         ProjectManagerEx.getInstanceEx().unblockReloadingProjectOnExternalChanges();
+
             Document[] documents = FileDocumentManager.getInstance().getUnsavedDocuments();
             System.out.println(documents.length);
             for (Document document : documents) {
