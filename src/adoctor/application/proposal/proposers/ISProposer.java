@@ -2,7 +2,7 @@ package adoctor.application.proposal.proposers;
 
 import adoctor.application.smell.ClassSmell;
 import adoctor.application.smell.ISSmell;
-import javafx.util.Pair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.jdt.core.dom.*;
 import org.eclipse.jdt.core.dom.rewrite.ASTRewrite;
 

@@ -10,7 +10,7 @@ import java.util.List;
 
 @SuppressWarnings("unchecked")
 public class ERBAnalyzer extends ClassSmellAnalyzer {
-    // TODO Medium Review this code: adopt a solution similar to DWAnalyzer. The same for ERBProposer and ERBSmell
+    // TODO High Review this code: adopt a solution similar to DWAnalyzer. The same for ERBProposer and ERBSmell
     // Warning: Source code with method-level compile error and accents might give problems in the methodDeclaration fetch
     @Override
     public ERBSmell analyze(ClassBean classBean) {

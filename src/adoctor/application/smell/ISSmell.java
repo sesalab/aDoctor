@@ -1,6 +1,6 @@
 package adoctor.application.smell;
 
-import javafx.util.Pair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.MethodInvocation;
 

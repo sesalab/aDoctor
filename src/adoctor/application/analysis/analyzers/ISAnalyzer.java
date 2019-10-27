@@ -4,7 +4,8 @@ import adoctor.application.ast.ASTUtilities;
 import adoctor.application.bean.ClassBean;
 import adoctor.application.smell.ClassSmell;
 import adoctor.application.smell.ISSmell;
-import javafx.util.Pair;
+import org.apache.commons.lang3.tuple.MutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.jdt.core.dom.*;
 
 import java.util.ArrayList;
@@ -53,12 +54,13 @@ public class ISAnalyzer extends ClassSmellAnalyzer {
         return null;
     }
 
+    // TODO High Hey don't be hypocrite: this and some other methods has MIM smell!!!
     private List<Pair<Type, String>> getInstanceVariables(TypeDeclaration typeDecl) {
         List<Pair<Type, String>> instanceVars = new ArrayList<>();
         for (FieldDeclaration field : typeDecl.getFields()) {
             List<VariableDeclarationFragment> fragments = (List<VariableDeclarationFragment>) field.fragments();
             for (VariableDeclarationFragment fragment : fragments) {
-                instanceVars.add(new Pair<>(field.getType(), fragment.getName().getIdentifier()));
+                instanceVars.add(new MutablePair<>(field.getType(), fragment.getName().getIdentifier()));
             }
         }
         return instanceVars;
@@ -86,7 +88,7 @@ public class ISAnalyzer extends ClassSmellAnalyzer {
                                 .substring(1))) {
                             // Assignment check
                             if (setterAssignmentCheck(methodDecl, instanceVarName)) {
-                                Pair<MethodDeclaration, String> couple = new Pair<>(methodDecl, instanceVarName);
+                                Pair<MethodDeclaration, String> couple = new MutablePair<>(methodDecl, instanceVarName);
                                 setters.add(couple);
                                 found = true;
                             }

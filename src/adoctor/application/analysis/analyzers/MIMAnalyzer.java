@@ -64,7 +64,7 @@ public class MIMAnalyzer extends ClassSmellAnalyzer {
         // If the method is a constructor, MIM is surely absent
         if (!methodDecl.isConstructor()) {
             // If the method body is empty, we want to ignore it
-            if (methodDecl.getBody().statements().size() > 0) {
+            if (methodDecl.getBody() != null && methodDecl.getBody().statements().size() > 0) {
                 // If the method is static, MIM si surely absent (trivially)
                 if (!Modifier.isStatic(methodDecl.getModifiers())) {
                     // If there is a this expression, MIM is surely absent

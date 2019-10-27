@@ -3,7 +3,8 @@ package adoctor.application.proposal.proposers;
 import adoctor.application.ast.ASTUtilities;
 import adoctor.application.smell.ClassSmell;
 import adoctor.application.smell.IDSSmell;
-import javafx.util.Pair;
+import org.apache.commons.lang3.tuple.MutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.jdt.core.dom.*;
 import org.eclipse.jdt.core.dom.rewrite.ASTRewrite;
 import org.eclipse.jdt.core.dom.rewrite.ListRewrite;
@@ -146,7 +147,7 @@ public class IDSProposer extends ClassSmellProposer {
                 }
                 */
             }
-            replacements.add(new Pair<>(invocation, newExpr));
+            replacements.add(new MutablePair<>(invocation, newExpr));
         }
 
         // Replacements and additions

@@ -112,7 +112,7 @@ public class SmellDialog extends AbstractDialog {
         // The smell list
         boxSmell.setRenderer(new SmellRenderer());
         boxSmell.removeAllItems();
-        //TODO Medium Rearrange in a certain way?
+        // TODO Medium Rearrange in a certain way?
         for (ClassSmell classSmell : classSmells) {
             boxSmell.addItem(classSmell);
         }

@@ -11,7 +11,7 @@ import java.util.List;
 
 @SuppressWarnings("unchecked")
 public class ERBProposer extends ClassSmellProposer {
-    //TODO Medium Review this code according to changes to ERBAnalyzer
+    // TODO High Review this code according to changes to ERBAnalyzer
     @Override
     public ASTRewrite computeProposal(ClassSmell classSmell) {
         if (classSmell == null) {

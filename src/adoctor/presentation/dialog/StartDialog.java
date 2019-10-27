@@ -42,7 +42,7 @@ public class StartDialog extends AbstractDialog {
         init();
     }
 
-    // TODO Medium Change some graphics of the StartDialog: better smell and package selection
+    // TODO High Change some graphics of the StartDialog: better smell (add an "select/uselect all") and package selection
     private void init() {
         super.init(contentPane, TITLE, buttonStart);
 
@@ -113,8 +113,8 @@ public class StartDialog extends AbstractDialog {
         selections.add(checkBoxIS.isSelected());
         selections.add(checkBoxMIM.isSelected());
         selections.add(checkBoxLT.isSelected());
-        boolean andResult = selections.stream().reduce((a, b) -> a && b).orElse(true);
-        if (andResult) {
+        boolean orResult = selections.stream().reduce((a, b) -> a || b).orElse(true);
+        if (orResult) {
             startCallback.startAnalysis(this, selections, labelPackage.getText());
         } else {
             JOptionPane.showMessageDialog(this, "Select at least one smell!", "Error", JOptionPane.ERROR_MESSAGE, null);

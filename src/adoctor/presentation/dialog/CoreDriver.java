@@ -2,7 +2,7 @@ package adoctor.presentation.dialog;
 
 import adoctor.application.proposal.undo.Undo;
 import adoctor.application.smell.ClassSmell;
-import com.intellij.ide.SaveAndSyncHandlerImpl;
+import com.intellij.ide.SaveAndSyncHandler;
 import com.intellij.ide.highlighter.JavaFileType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
@@ -52,7 +52,7 @@ public class CoreDriver implements StartDialog.StartCallback,
         // Save all files in the current project before starting the analysis
         project.save();
         FileDocumentManager.getInstance().saveAllDocuments();
-        SaveAndSyncHandlerImpl.getInstance().refreshOpenFiles();
+        SaveAndSyncHandler.getInstance().refreshOpenFiles();
         //ProjectManagerEx.getInstanceEx().blockReloadingProjectOnExternalChanges();
 
         // Get all path entries
@@ -172,7 +172,7 @@ public class CoreDriver implements StartDialog.StartCallback,
         ApplicationManager.getApplication().invokeLater(new Runnable() {
             @Override
             public void run() {
-                SaveAndSyncHandlerImpl.getInstance().refreshOpenFiles();
+                SaveAndSyncHandler.getInstance().refreshOpenFiles();
             }
         }, ModalityState.NON_MODAL);
 

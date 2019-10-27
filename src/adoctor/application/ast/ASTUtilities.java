@@ -2,7 +2,6 @@ package adoctor.application.ast;
 
 import adoctor.application.ast.visitor.*;
 import org.eclipse.jdt.core.dom.*;
-import parser.MethodVisitor;
 
 import java.io.File;
 import java.io.IOException;
@@ -12,7 +11,8 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
-@SuppressWarnings("Duplicates")
+// TODO High remove every useless methods. This must be made simpler!
+
 public class ASTUtilities {
 
     public static CompilationUnit getCompilationUnit(File sourceFile, String[] pathEntries) throws IOException {
@@ -36,9 +36,10 @@ public class ASTUtilities {
 
     public static MethodDeclaration getMethodDeclarationFromName(CompilationUnit compilationUnit, String methodName) {
         TypeDeclaration typeDeclaration = (TypeDeclaration) compilationUnit.types().get(0);
-        ArrayList<MethodDeclaration> methodDeclarationList = new ArrayList<>();
+        List<MethodDeclaration> methodDeclarationList;
         // Fetch all MethodDeclarations of the class with an AST visitor of aDoctor
-        typeDeclaration.accept(new MethodVisitor(methodDeclarationList));
+        // typeDeclaration.accept(new MethodVisitor(methodDeclarationList));
+        methodDeclarationList = getMethodDeclarations(typeDeclaration);
 
         // Fetch the correct MethodDeclaration through a comparison with the content of the MethodBean parameter
         int i = 0;
