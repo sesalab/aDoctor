@@ -11,7 +11,7 @@ public class SuccessDialog extends AbstractDialog {
 
     private JPanel contentPane;
     private JButton buttonAnalyze;
-    private JButton buttonQuit;
+    private JButton buttonBack;
 
     public static void show(SuccessCallback successCallback) {
         SuccessDialog successDialog = new SuccessDialog(successCallback);
@@ -27,7 +27,7 @@ public class SuccessDialog extends AbstractDialog {
         super.init(contentPane, TITLE, buttonAnalyze);
 
         buttonAnalyze.addActionListener(e -> onAnalyze());
-        buttonQuit.addActionListener(e -> onQuit());
+        buttonBack.addActionListener(e -> onBack());
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
         addWindowListener(new WindowAdapter() {
             public void windowClosing(WindowEvent e) {
@@ -40,13 +40,17 @@ public class SuccessDialog extends AbstractDialog {
         successCallback.successAnalyze(this);
     }
 
+    private void onBack() {
+        successCallback.successBack(this);
+    }
+
     private void onQuit() {
         successCallback.successQuit(this);
     }
 
     interface SuccessCallback {
         void successAnalyze(SuccessDialog successDialog);
-
+        void successBack(SuccessDialog successDialog);
         void successQuit(SuccessDialog successDialog);
     }
 }

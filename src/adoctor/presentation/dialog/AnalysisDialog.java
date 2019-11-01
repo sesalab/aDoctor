@@ -50,10 +50,10 @@ public class AnalysisDialog extends AbstractDialog {
             classSmellAnalyzers.add(new ISAnalyzer());
         }
         if (selections.get(4)) {
-            classSmellAnalyzers.add(new MIMAnalyzer());
+            classSmellAnalyzers.add(new LTAnalyzer());
         }
         if (selections.get(5)) {
-            classSmellAnalyzers.add(new LTAnalyzer());
+            classSmellAnalyzers.add(new MIMAnalyzer());
         }
         analysisDriver = new AnalysisDriver(projectFiles, pathEntries, classSmellAnalyzers, targetPackage);
 
@@ -107,7 +107,6 @@ public class AnalysisDialog extends AbstractDialog {
 
     interface AnalysisCallback {
         void analysisAbort(AnalysisDialog analysisDialog);
-
         void analysisDone(AnalysisDialog analysisDialog, List<ClassSmell> classSmells);
     }
 }

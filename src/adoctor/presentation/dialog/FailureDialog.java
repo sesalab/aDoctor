@@ -11,7 +11,6 @@ public class FailureDialog extends AbstractDialog {
 
     private JPanel contentPane;
     private JButton buttonBack;
-    private JButton buttonQuit;
 
     public static void show(FailureCallback failureCallback) {
         FailureDialog failureDialog = new FailureDialog(failureCallback);
@@ -28,7 +27,6 @@ public class FailureDialog extends AbstractDialog {
         super.init(contentPane, TITLE, buttonBack);
 
         buttonBack.addActionListener(e -> onBack());
-        buttonQuit.addActionListener(e -> onQuit());
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
         addWindowListener(new WindowAdapter() {
             public void windowClosing(WindowEvent e) {
@@ -47,7 +45,6 @@ public class FailureDialog extends AbstractDialog {
 
     interface FailureCallback {
         void failureBack(FailureDialog failureDialog);
-
         void failureQuit(FailureDialog failureDialog);
     }
 }

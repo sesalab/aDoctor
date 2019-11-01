@@ -10,7 +10,7 @@ public class NoSmellDialog extends AbstractDialog {
     private NoSmellCallback noSmellCallback;
 
     private JPanel contentPane;
-    private JButton buttonQuit;
+    private JButton buttonBack;
 
     public static void show(NoSmellCallback noSmellCallback) {
         NoSmellDialog noSmellDialog = new NoSmellDialog(noSmellCallback);
@@ -23,9 +23,9 @@ public class NoSmellDialog extends AbstractDialog {
     }
 
     private void init() {
-        super.init(contentPane, TITLE, buttonQuit);
+        super.init(contentPane, TITLE, buttonBack);
 
-        buttonQuit.addActionListener(e -> onQuit());
+        buttonBack.addActionListener(e -> onBack());
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
         addWindowListener(new WindowAdapter() {
             public void windowClosing(WindowEvent e) {
@@ -34,11 +34,16 @@ public class NoSmellDialog extends AbstractDialog {
         });
     }
 
+    private void onBack() {
+        noSmellCallback.noSmellBack(this);
+    }
+
     private void onQuit() {
         noSmellCallback.noSmellQuit(this);
     }
 
     interface NoSmellCallback {
+        void noSmellBack(NoSmellDialog noSmellDialog);
         void noSmellQuit(NoSmellDialog noSmellDialog);
     }
 }

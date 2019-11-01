@@ -15,7 +15,6 @@ public class AbortedDialog extends AbstractDialog {
 
     public static void show(AbortedCallback abortedCallback) {
         AbortedDialog abortedDialog = new AbortedDialog(abortedCallback);
-
         abortedDialog.showInCenter();
     }
 
@@ -51,9 +50,7 @@ public class AbortedDialog extends AbstractDialog {
 
     interface AbortedCallback {
         void abortedRestart(AbortedDialog abortedDialog);
-
         void abortedBack(AbortedDialog abortedDialog);
-
         void abortedQuit(AbortedDialog abortedDialog);
     }
 }

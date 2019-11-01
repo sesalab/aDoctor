@@ -79,7 +79,6 @@ public class RefactoringDialog extends AbstractDialog {
 
     interface RefactoringCallback {
         void refactoringDone(RefactoringDialog refactoringDialog, Boolean result);
-
         void refactoringQuit(RefactoringDialog refactoringDialog);
     }
 }

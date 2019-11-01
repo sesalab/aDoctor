@@ -97,10 +97,10 @@ public class SmellDialog extends AbstractDialog {
             classSmellProposers.add(new ISProposer());
         }
         if (selections.get(4)) {
-            classSmellProposers.add(new MIMProposer());
+            classSmellProposers.add(new LTProposer());
         }
         if (selections.get(5)) {
-            classSmellProposers.add(new LTProposer());
+            classSmellProposers.add(new MIMProposer());
         }
         proposalDriver = new ProposalDriver(classSmellProposers);
         selectedSmell = null;
@@ -217,11 +217,8 @@ public class SmellDialog extends AbstractDialog {
 
     interface SmellCallback {
         void smellApply(SmellDialog smellDialog, ClassSmell targetSmell, Undo undo);
-
         void smellBack(SmellDialog smellDialog);
-
         void smellQuit(SmellDialog smellDialog);
-
         void smellUndo(SmellDialog smellDialog);
     }
 

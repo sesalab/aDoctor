@@ -4,6 +4,8 @@ import com.intellij.ide.util.PackageChooserDialog;
 import com.intellij.openapi.project.Project;
 
 import javax.swing.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.ArrayList;
@@ -23,21 +25,18 @@ public class StartDialog extends AbstractDialog {
     private JCheckBox checkERB;
     private JCheckBox checkIDS;
     private JCheckBox checkIS;
-    private JCheckBox checkMIM;
     private JCheckBox checkLT;
+    private JCheckBox checkMIM;
 
-    private JButton buttonSelect;
     private JButton buttonStart;
-    private JButton buttonQuit;
     private JButton buttonAbout;
-    private JLabel labelPackage;
+    private JTextField fieldPackage;
 
     private List<JCheckBox> checkBoxes;
 
     private StartDialog(StartCallback startCallback, Project project, List<Boolean> selections) {
         this.startCallback = startCallback;
         this.project = project;
-
         init();
 
         // List of all check boxes
@@ -46,8 +45,8 @@ public class StartDialog extends AbstractDialog {
         checkBoxes.add(checkERB);
         checkBoxes.add(checkIDS);
         checkBoxes.add(checkIS);
-        checkBoxes.add(checkMIM);
         checkBoxes.add(checkLT);
+        checkBoxes.add(checkMIM);
         // There is a pre-saved selections list: initialize check boxes
         if (selections != null) {
             Iterator<Boolean> selectionIter = selections.iterator();
@@ -72,19 +71,21 @@ public class StartDialog extends AbstractDialog {
     private void init() {
         super.init(contentPane, TITLE, buttonStart);
 
-        labelPackage.setText("");
-
         checkAll.addActionListener(e -> onSelectAll());
         checkDW.addActionListener(e -> onCheck());
         checkERB.addActionListener(e -> onCheck());
         checkIDS.addActionListener(e -> onCheck());
         checkIS.addActionListener(e -> onCheck());
-        checkMIM.addActionListener(e -> onCheck());
         checkLT.addActionListener(e -> onCheck());
-        buttonSelect.addActionListener(e -> onSelectModule());
+        checkMIM.addActionListener(e -> onCheck());
         buttonStart.addActionListener(e -> onStart());
-        buttonQuit.addActionListener(e -> onQuit());
         buttonAbout.addActionListener(e -> onAbout());
+        fieldPackage.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent mouseEvent) {
+                onSelectModule();
+            }
+        });
 
         // call onQuit() when cross is clicked
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
@@ -124,12 +125,11 @@ public class StartDialog extends AbstractDialog {
         }
     }
 
-    // TODO High Change some graphics of the StartDialog: boost package selection
     private void onSelectModule() {
         PackageChooserDialog pcd = new PackageChooserDialog("Select target package", project);
         pcd.show();
         if (pcd.getSelectedPackage() != null) {
-            labelPackage.setText(pcd.getSelectedPackage().getQualifiedName());
+            fieldPackage.setText(pcd.getSelectedPackage().getQualifiedName());
         }
     }
 
@@ -138,7 +138,7 @@ public class StartDialog extends AbstractDialog {
         List<Boolean> selections = checkBoxes.stream().map(AbstractButton::isSelected).collect(Collectors.toList());
         boolean orResult = selections.stream().reduce((a, b) -> a || b).orElse(true);
         if (orResult) {
-            startCallback.startAnalysis(this, selections, labelPackage.getText());
+            startCallback.startAnalysis(this, selections, fieldPackage.getText());
         } else {
             JOptionPane.showMessageDialog(this, "Select at least one smell!", "Error", JOptionPane.ERROR_MESSAGE, null);
         }

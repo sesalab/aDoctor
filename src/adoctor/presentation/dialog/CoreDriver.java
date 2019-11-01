@@ -127,7 +127,7 @@ public class CoreDriver implements StartDialog.StartCallback,
     @Override
     public void abortedBack(AbortedDialog abortedDialog) {
         abortedDialog.dispose();
-        StartDialog.show(this, project, selections);
+        start();
     }
 
     @Override
@@ -137,6 +137,11 @@ public class CoreDriver implements StartDialog.StartCallback,
 
 
     //////////////NoSmellDialog/////////////
+    @Override
+    public void noSmellBack(NoSmellDialog noSmellDialog) {
+        start();
+    }
+
     @Override
     public void noSmellQuit(NoSmellDialog noSmellDialog) {
         noSmellDialog.dispose();
@@ -174,12 +179,7 @@ public class CoreDriver implements StartDialog.StartCallback,
         refactoringDialog.dispose();
 
         // Refreshes the Editor in order to reflect the changes to the files
-        ApplicationManager.getApplication().invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                SaveAndSyncHandler.getInstance().refreshOpenFiles();
-            }
-        }, ModalityState.NON_MODAL);
+        ApplicationManager.getApplication().invokeLater(() -> SaveAndSyncHandler.getInstance().refreshOpenFiles(), ModalityState.NON_MODAL);
 
         if (result) {
             SuccessDialog.show(this);
@@ -216,6 +216,12 @@ public class CoreDriver implements StartDialog.StartCallback,
     public void successAnalyze(SuccessDialog successDialog) {
         successDialog.dispose();
         launchAnalysis();
+    }
+
+    @Override
+    public void successBack(SuccessDialog successDialog) {
+        successDialog.dispose();
+        start();
     }
 
     @Override

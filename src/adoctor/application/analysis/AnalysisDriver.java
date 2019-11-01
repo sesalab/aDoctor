@@ -79,11 +79,11 @@ public class AnalysisDriver {
             }
 
             // Analysis phase
-            Pattern pattern;
+            Pattern patternPackage;
             if (targetPackage == null || targetPackage.equals("")) {
-                pattern = Pattern.compile(".*");
+                patternPackage = Pattern.compile(".*");
             } else {
-                pattern = Pattern.compile("^" + targetPackage + "(\\..*)?$");
+                patternPackage = Pattern.compile("^" + targetPackage + "(\\..*)?$");
             }
             for (File projectFile : projectFiles) {
                 checkStop();
@@ -94,7 +94,7 @@ public class AnalysisDriver {
                         List<TypeDeclaration> types = (List<TypeDeclaration>) compilationUnit.types();
                         // Package filtering
                         String packageName = compilationUnit.getPackage().getName().toString();
-                        if (packageName.matches(pattern.pattern())) {
+                        if (packageName.matches(patternPackage.pattern())) {
                             System.out.println("Analyzing file: " + projectFile.getName());
                             for (TypeDeclaration type : types) {
                                 ClassBean classBean = new ClassBean();
