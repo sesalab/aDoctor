@@ -50,7 +50,7 @@ public class LTProposer extends ClassSmellProposer {
         return astRewrite;
     }
 
-    private MethodDeclaration getOnDestroy(ASTNode node) {
+    private static MethodDeclaration getOnDestroy(ASTNode node) {
         List<MethodDeclaration> methodDeclarations = ASTUtilities.getMethodDeclarations(node.getRoot());
         if (methodDeclarations == null) {
             return null;
@@ -67,7 +67,7 @@ public class LTProposer extends ClassSmellProposer {
         return null;
     }
 
-    private MethodDeclaration createOnDestroyMethodDeclaration(ASTRewrite astRewrite) {
+    private static MethodDeclaration createOnDestroyMethodDeclaration(ASTRewrite astRewrite) {
         AST ast = astRewrite.getAST();
         SuperMethodInvocation superOnDestroy = ast.newSuperMethodInvocation();
         superOnDestroy.setName(ast.newSimpleName(ON_DESTROY));

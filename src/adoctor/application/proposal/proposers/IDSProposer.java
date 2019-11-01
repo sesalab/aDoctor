@@ -171,7 +171,7 @@ public class IDSProposer extends ClassSmellProposer {
         return astRewrite;
     }
 
-    private VariableDeclarationStatement buildNewVarDecl(VariableDeclarationStatement smellyVarDecl) {
+    private static VariableDeclarationStatement buildNewVarDecl(VariableDeclarationStatement smellyVarDecl) {
         AST ast = smellyVarDecl.getAST();
         // Changes of Declaration of SparseArray<SecondType> to HashMap<Integer, SecondType>
         ParameterizedType newType = ast.newParameterizedType(ast.newSimpleType(ast.newSimpleName(
@@ -199,7 +199,7 @@ public class IDSProposer extends ClassSmellProposer {
         return newVarDecl;
     }
 
-    private List<MethodInvocation> getInvolvedInvocations(VariableDeclarationStatement smellyVarDecl) {
+    private static List<MethodInvocation> getInvolvedInvocations(VariableDeclarationStatement smellyVarDecl) {
         // List of involved reference variables
         List<SimpleName> identifiers = ASTUtilities.getSimpleNames(smellyVarDecl);
         List<String> variables = new ArrayList<>();
@@ -237,7 +237,7 @@ public class IDSProposer extends ClassSmellProposer {
         return involvedInvocations;
     }
 
-    private MethodInvocation refactorRemove(MethodInvocation invocation) {
+    private static MethodInvocation refactorRemove(MethodInvocation invocation) {
         AST ast = invocation.getAST();
         MethodInvocation newInvocation = (MethodInvocation) ASTNode.copySubtree(ast, invocation);
         MethodInvocation innerInvocation = (MethodInvocation) ASTNode.copySubtree(ast, invocation);
@@ -248,7 +248,7 @@ public class IDSProposer extends ClassSmellProposer {
         return newInvocation;
     }
 
-    private InfixExpression refactorContainsKey(MethodInvocation invocation) {
+    private static InfixExpression refactorContainsKey(MethodInvocation invocation) {
         AST ast = invocation.getAST();
         MethodInvocation innerInvocation = (MethodInvocation) ASTNode.copySubtree(ast, invocation);
         innerInvocation.setName(ast.newSimpleName(INDEX_OF_KEY));
@@ -259,7 +259,7 @@ public class IDSProposer extends ClassSmellProposer {
         return relationalExpr;
     }
 
-    private Expression refactorContainsValue(MethodInvocation invocation) {
+    private static Expression refactorContainsValue(MethodInvocation invocation) {
         AST ast = invocation.getAST();
         MethodInvocation innerInvocation = (MethodInvocation) ASTNode.copySubtree(ast, invocation);
         innerInvocation.setName(ast.newSimpleName(INDEX_OF_VALUE));
@@ -270,7 +270,7 @@ public class IDSProposer extends ClassSmellProposer {
         return relationalExpr;
     }
 
-    private InfixExpression refactorIsEmpty(MethodInvocation invocation) {
+    private static InfixExpression refactorIsEmpty(MethodInvocation invocation) {
         AST ast = invocation.getAST();
         MethodInvocation innerInvocation = (MethodInvocation) ASTNode.copySubtree(ast, invocation);
         innerInvocation.setName(ast.newSimpleName(SIZE));
@@ -281,7 +281,7 @@ public class IDSProposer extends ClassSmellProposer {
         return relationalExpr;
     }
 
-    private MethodInvocation refactorEntrySet(MethodInvocation invocation) {
+    private static MethodInvocation refactorEntrySet(MethodInvocation invocation) {
         AST ast = invocation.getAST();
         MethodInvocation getEntrySetCall = ast.newMethodInvocation();
         getEntrySetCall.setName(ast.newSimpleName(GET_ENTRY_SET));
@@ -290,7 +290,7 @@ public class IDSProposer extends ClassSmellProposer {
     }
 
     // Set<Map.Entry<Integer, Object>> getEntrySet(SparseArray<Object> array)
-    private boolean existsGetEntrySet(List<MethodDeclaration> methodDeclarations) {
+    private static boolean existsGetEntrySet(List<MethodDeclaration> methodDeclarations) {
         if (methodDeclarations != null) {
             for (MethodDeclaration methodDeclaration : methodDeclarations) {
                 // First look for the name: getEntrySet
@@ -345,7 +345,7 @@ public class IDSProposer extends ClassSmellProposer {
         }
     */
     //TODO Low Extract some methods
-    private MethodDeclaration createGetEntrySetMethod(ParameterizedType sparseArrayType) {
+    private static MethodDeclaration createGetEntrySetMethod(ParameterizedType sparseArrayType) {
         // Return type: Set<Map.Entry<Integer, Object>>
         AST ast = sparseArrayType.getAST();
         SimpleType mapType = ast.newSimpleType(ast.newSimpleName(MAP));
@@ -475,7 +475,7 @@ public class IDSProposer extends ClassSmellProposer {
         return newMethod;
     }
 
-    private List<ImportDeclaration> buildImportAdditions(VariableDeclarationStatement smellyVarDecl) {
+    private static List<ImportDeclaration> buildImportAdditions(VariableDeclarationStatement smellyVarDecl) {
         AST ast = smellyVarDecl.getAST();
         List<ImportDeclaration> importProposals = new ArrayList<>();
         // Proposal of import android.util.SparseArray

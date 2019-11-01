@@ -92,7 +92,7 @@ public class MIMAnalyzer extends ClassSmellAnalyzer {
         return false;
     }
 
-    private boolean hasOverrideAnnotation(MethodDeclaration methodDecl) {
+    private static boolean hasOverrideAnnotation(MethodDeclaration methodDecl) {
         List<IExtendedModifier> modifiers = (List<IExtendedModifier>) methodDecl.modifiers();
         for (IExtendedModifier modifier : modifiers) {
             if (modifier.isAnnotation()) {
@@ -105,7 +105,7 @@ public class MIMAnalyzer extends ClassSmellAnalyzer {
         return false;
     }
 
-    private boolean doesInternalCall(MethodDeclaration methodDecl) {
+    private static boolean doesInternalCall(MethodDeclaration methodDecl) {
         List<MethodInvocation> methodInvocations = ASTUtilities.getMethodInvocations(methodDecl);
         if (methodInvocations != null) {
             for (MethodInvocation methodInvocation : methodInvocations) {

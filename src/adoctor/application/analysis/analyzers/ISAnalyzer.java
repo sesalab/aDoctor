@@ -54,8 +54,7 @@ public class ISAnalyzer extends ClassSmellAnalyzer {
         return null;
     }
 
-    // TODO High Hey don't be hypocrite: this and some other methods has MIM smell!!!
-    private List<Pair<Type, String>> getInstanceVariables(TypeDeclaration typeDecl) {
+    private static List<Pair<Type, String>> getInstanceVariables(TypeDeclaration typeDecl) {
         List<Pair<Type, String>> instanceVars = new ArrayList<>();
         for (FieldDeclaration field : typeDecl.getFields()) {
             List<VariableDeclarationFragment> fragments = (List<VariableDeclarationFragment>) field.fragments();
@@ -100,7 +99,7 @@ public class ISAnalyzer extends ClassSmellAnalyzer {
         return setters;
     }
 
-    private boolean setterSignatureCheck(MethodDeclaration methodDecl) {
+    private static boolean setterSignatureCheck(MethodDeclaration methodDecl) {
         Type retType = methodDecl.getReturnType2();
         if (retType != null && retType.isPrimitiveType() && ((PrimitiveType) retType).getPrimitiveTypeCode()
                 .equals(PrimitiveType.VOID)) {
@@ -110,7 +109,7 @@ public class ISAnalyzer extends ClassSmellAnalyzer {
         return false;
     }
 
-    private boolean setterAssignmentCheck(MethodDeclaration methodDecl, String instanceVarName) {
+    private static boolean setterAssignmentCheck(MethodDeclaration methodDecl, String instanceVarName) {
         // Assignment check
         List<Statement> statements = methodDecl.getBody().statements();
         for (Statement statement : statements) {

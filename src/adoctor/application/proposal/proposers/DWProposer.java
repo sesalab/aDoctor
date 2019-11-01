@@ -36,7 +36,7 @@ public class DWProposer extends ClassSmellProposer {
         return astRewrite;
     }
 
-    private ExpressionStatement createReleaseStatement(AST ast, Expression acquireExpr) {
+    private static ExpressionStatement createReleaseStatement(AST ast, Expression acquireExpr) {
         MethodInvocation releaseMethodInvocation = ast.newMethodInvocation();
         releaseMethodInvocation.setExpression((Expression) ASTNode.copySubtree(ast, acquireExpr));
         releaseMethodInvocation.setName(ast.newSimpleName(RELEASE));

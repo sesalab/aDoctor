@@ -51,7 +51,7 @@ public class DWAnalyzer extends ClassSmellAnalyzer {
         return null;
     }
 
-    private boolean hasPowerManagerWakelockType(Expression expression) {
+    private static boolean hasPowerManagerWakelockType(Expression expression) {
         List<FieldDeclaration> fieldDecls = ASTUtilities.getFieldDeclarations(expression.getRoot());
         List<VariableDeclarationStatement> varDecls = ASTUtilities.getVariableDeclarationStatements(expression.getRoot());
 

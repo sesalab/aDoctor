@@ -73,7 +73,7 @@ public class LTAnalyzer extends ClassSmellAnalyzer {
         return null;
     }
 
-    private boolean isStartedButNotStopped(VariableDeclarationFragment threadVar, List<MethodInvocation> methodInvocations) {
+    private static boolean isStartedButNotStopped(VariableDeclarationFragment threadVar, List<MethodInvocation> methodInvocations) {
         List<MethodInvocation> threadInvocations = new ArrayList<>();
         for (MethodInvocation methodInvocation : methodInvocations) {
             Expression invocationExpr = methodInvocation.getExpression();
@@ -90,7 +90,7 @@ public class LTAnalyzer extends ClassSmellAnalyzer {
         return foundStart && !foundStop;
     }
 
-    private boolean isCreated(VariableDeclarationFragment threadVar, List<ClassInstanceCreation> classInstanceCreations) {
+    private static boolean isCreated(VariableDeclarationFragment threadVar, List<ClassInstanceCreation> classInstanceCreations) {
         for (ClassInstanceCreation classInstanceCreation : classInstanceCreations) {
             if (classInstanceCreation.getType().toString().equals(THREAD)) {
                 if (classInstanceCreation.getParent() instanceof Assignment) {
