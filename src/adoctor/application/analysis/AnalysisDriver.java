@@ -13,14 +13,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
-@SuppressWarnings({"SynchronizeOnNonFinalField", "unchecked"})
 public class AnalysisDriver {
 
     private List<File> projectFiles;
     private String[] pathEntries;
     private ArrayList<ClassSmellAnalyzer> classSmellAnalyzers;
     private String targetPackage;
-    private AnalysisThread analysisThread;
+    private final AnalysisThread analysisThread;
 
     public AnalysisDriver(List<File> projectFiles, String[] pathEntries, ArrayList<ClassSmellAnalyzer> classSmellAnalyzers, String targetPackage) {
         this.projectFiles = projectFiles;

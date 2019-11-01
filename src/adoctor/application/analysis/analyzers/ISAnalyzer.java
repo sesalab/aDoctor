@@ -11,7 +11,6 @@ import org.eclipse.jdt.core.dom.*;
 import java.util.ArrayList;
 import java.util.List;
 
-@SuppressWarnings("unchecked")
 public class ISAnalyzer extends ClassSmellAnalyzer {
     @Override
     public ClassSmell analyze(ClassBean classBean) {

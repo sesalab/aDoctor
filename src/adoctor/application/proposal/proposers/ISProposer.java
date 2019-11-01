@@ -6,7 +6,6 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.jdt.core.dom.*;
 import org.eclipse.jdt.core.dom.rewrite.ASTRewrite;
 
-@SuppressWarnings("Duplicates")
 public class ISProposer extends ClassSmellProposer {
     @Override
     public ASTRewrite computeProposal(ClassSmell classSmell) {

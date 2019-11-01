@@ -9,7 +9,6 @@ import org.eclipse.jdt.core.dom.*;
 import java.util.ArrayList;
 import java.util.List;
 
-@SuppressWarnings("unchecked")
 public class MIMAnalyzer extends ClassSmellAnalyzer {
     private static final String OVERRIDE = "Override";
 

@@ -8,7 +8,6 @@ import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.Modifier;
 import org.eclipse.jdt.core.dom.rewrite.ASTRewrite;
 
-@SuppressWarnings({"Duplicates", "unchecked"})
 public class MIMProposer extends ClassSmellProposer {
     @Override
     public ASTRewrite computeProposal(ClassSmell classSmell) {

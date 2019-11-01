@@ -12,7 +12,6 @@ import org.eclipse.jdt.core.dom.rewrite.ListRewrite;
 import java.util.ArrayList;
 import java.util.List;
 
-@SuppressWarnings({"unchecked"})
 public class IDSProposer extends ClassSmellProposer {
     private static final String ABSTRACT_MAP = "AbstractMap";
     private static final String SPARSE_ARRAY = "SparseArray";

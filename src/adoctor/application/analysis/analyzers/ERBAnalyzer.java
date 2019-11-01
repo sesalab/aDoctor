@@ -5,74 +5,96 @@ import adoctor.application.bean.ClassBean;
 import adoctor.application.smell.ERBSmell;
 import org.eclipse.jdt.core.dom.*;
 
-import java.util.ArrayList;
 import java.util.List;
 
-@SuppressWarnings("unchecked")
 public class ERBAnalyzer extends ClassSmellAnalyzer {
-    // TODO High Review this code: adopt a solution similar to DWAnalyzer. The same for ERBProposer and ERBSmell
-    // Warning: Source code with method-level compile error and accents might give problems in the methodDeclaration fetch
-    @Override
-    public ERBSmell analyze(ClassBean classBean) {
-        if (classBean == null) {
-            return null;
-        }
+    private static final String ONCREATE_NAME = "onCreate";
+    private static final String ONCREATE_TYPE = "void";
+    private static final String ONCREATE_ARGUMENT_TYPE = "Bundle";
+    private static final String GPS_REQUEST_METHOD_NAME = "requestLocationUpdates";
+
+    private static MethodDeclaration getOnCreate(ClassBean classBean) {
         MethodDeclaration[] methods = classBean.getTypeDeclaration().getMethods();
         for (MethodDeclaration methodDecl : methods) {
-            // Only for public|protected void onCreate(Bundle)
-            boolean onCreateFound = false;
-            if (methodDecl.getName().toString().equals(ERBSmell.ONCREATE_NAME)) {
+            if (methodDecl.getName().toString().equals(ONCREATE_NAME)) {
                 Type returnType = methodDecl.getReturnType2();
-                if (returnType != null && returnType.toString().equals(ERBSmell.ONCREATE_TYPE)) {
-                    List modifierList = methodDecl.modifiers();
-                    for (int i = 0; i < modifierList.size() && !onCreateFound; i++) {
-                        IExtendedModifier modifier = (IExtendedModifier) modifierList.get(i);
-                        if (modifier.toString().equals(ERBSmell.ONCREATE_SCOPE1) || modifier.toString().equals(ERBSmell.ONCREATE_SCOPE2)) {
-                            List parameters = methodDecl.parameters();
-                            if (parameters != null && parameters.size() > 0) {
-                                SingleVariableDeclaration parameter = (SingleVariableDeclaration) parameters.get(0);
-                                Type parameterType = parameter.getType();
-                                if (parameterType != null && parameterType.toString().equals(ERBSmell.ONCREATE_ARGUMENT_TYPE)) {
-                                    onCreateFound = true;
-                                }
+                if (returnType != null && returnType.toString().equals(ONCREATE_TYPE)) {
+                    if (Modifier.isPublic(methodDecl.getModifiers()) || Modifier.isProtected(methodDecl.getModifiers())) {
+                        List parameters = methodDecl.parameters();
+                        if (parameters != null && parameters.size() > 0) {
+                            SingleVariableDeclaration parameter = (SingleVariableDeclaration) parameters.get(0);
+                            Type parameterType = parameter.getType();
+                            if (parameterType != null && parameterType.toString().equals(ONCREATE_ARGUMENT_TYPE)) {
+                                return methodDecl;
                             }
-                        }
-                    }
-                    if (onCreateFound) {
-                        // Look for the presence of the smell in the onCreate(Bundle)
-                        boolean smellFound = false;
-                        Block requestBlock = null;
-                        Statement requestStatement = null;
-                        ArrayList<Block> methodBlockList = ASTUtilities.getBlocks(methodDecl);
-                        for (int j = 0; j < methodBlockList.size() && !smellFound; j++) {
-                            Block block = methodBlockList.get(j);
-                            List<Statement> statementList = (List<Statement>) block.statements();
-                            for (int k = 0; k < statementList.size() && !smellFound; k++) {
-                                Statement statement = statementList.get(k);
-                                String callerName = ASTUtilities.getCallerName(statement, ERBSmell.GPS_REQUEST_METHOD_NAME);
-                                if (callerName != null) {
-                                    CompilationUnit compilationUnit = (CompilationUnit) methodDecl.getRoot();
-                                    FieldDeclaration fieldDeclaration = ASTUtilities.getFieldDeclarationFromName(compilationUnit, callerName);
-                                    if (fieldDeclaration != null) {
-                                        smellFound = true;
-                                        requestBlock = block;
-                                        requestStatement = statement;
-                                    }
-                                }
-                            }
-                        }
-                        if (smellFound) {
-                            ERBSmell smell = new ERBSmell();
-                            smell.setClassBean(classBean);
-                            smell.setRequestBlock(requestBlock);
-                            smell.setRequestStatement(requestStatement);
-                            smell.setOnCreate(methodDecl);
-                            return smell;
                         }
                     }
                 }
             }
         }
         return null;
+    }
+
+    private static Statement getBindingStatement(MethodDeclaration methodDecl) {
+        List<Block> blocks = ASTUtilities.getBlocks(methodDecl);
+        for (Block block : blocks) {
+            List<Statement> statements = (List<Statement>) block.statements();
+            for (Statement statement : statements) {
+                Expression caller = getCaller(statement);
+                if (caller != null) {
+                    if (hasField(methodDecl, caller.toString())) {
+                        return statement;
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    private static Expression getCaller(Statement statement) {
+        if (statement instanceof ExpressionStatement) {
+            Expression expr = ((ExpressionStatement) statement).getExpression();
+            if (expr instanceof MethodInvocation) {
+                MethodInvocation methodInvocation = (MethodInvocation) expr;
+                // If there is an explicit caller
+                if (methodInvocation.getName().toString().equals(GPS_REQUEST_METHOD_NAME)) {
+                    return methodInvocation.getExpression();
+                }
+            }
+        }
+        return null;
+    }
+
+    private static boolean hasField(MethodDeclaration methodDecl, String callerName) {
+        FieldDeclaration[] fieldDecls = ((TypeDeclaration) methodDecl.getParent()).getFields();
+        for (FieldDeclaration fieldDecl : fieldDecls) {
+            List<VariableDeclarationFragment> varFrags = (List<VariableDeclarationFragment>) fieldDecl.fragments();
+            for (VariableDeclarationFragment varFrag : varFrags) {
+                if (varFrag.getName().toString().equals(callerName)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public ERBSmell analyze(ClassBean classBean) {
+        if (classBean == null) {
+            return null;
+        }
+        MethodDeclaration onCreateDecl = getOnCreate(classBean);
+        if (onCreateDecl == null) {
+            return null;
+        }
+        Statement bindingStatement = getBindingStatement(onCreateDecl);
+        if (bindingStatement == null) {
+            return null;
+        }
+        ERBSmell smell = new ERBSmell();
+        smell.setClassBean(classBean);
+        smell.setRequestStatement(bindingStatement);
+        smell.setOnCreate(onCreateDecl);
+        return smell;
     }
 }

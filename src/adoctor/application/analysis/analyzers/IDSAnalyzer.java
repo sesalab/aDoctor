@@ -8,7 +8,6 @@ import org.eclipse.jdt.core.dom.*;
 
 import java.util.List;
 
-@SuppressWarnings("unchecked")
 public class IDSAnalyzer extends ClassSmellAnalyzer {
     private static final String HASHMAP = "HashMap";
     private static final String INTEGER = "Integer";

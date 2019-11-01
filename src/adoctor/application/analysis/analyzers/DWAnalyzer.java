@@ -27,23 +27,22 @@ public class DWAnalyzer extends ClassSmellAnalyzer {
                 MethodInvocation iMethodInvocation = methodInvocations.get(i);
                 if (iMethodInvocation.getName().getIdentifier().equals(ACQUIRE) && iMethodInvocation.arguments().size() == 0) {
                     // Check if this variable has PowerManager.Wakelock type
-                    if (!hasPowerManagerWakelockType(iMethodInvocation.getExpression())) {
-                        return null;
-                    }
-                    String acquireCaller = iMethodInvocation.getExpression().toString();
-                    boolean found = false;
-                    for (int j = i + 1; j < methodInvocations.size() && !found; j++) {
-                        MethodInvocation jMethodInvocation = methodInvocations.get(j);
-                        if (jMethodInvocation.getName().getIdentifier().equals(RELEASE)
-                                && jMethodInvocation.getExpression().toString().equals(acquireCaller)) {
-                            found = true;
+                    if (hasPowerManagerWakelockType(iMethodInvocation.getExpression())) {
+                        String acquireCaller = iMethodInvocation.getExpression().toString();
+                        boolean found = false;
+                        for (int j = i + 1; j < methodInvocations.size() && !found; j++) {
+                            MethodInvocation jMethodInvocation = methodInvocations.get(j);
+                            if (jMethodInvocation.getName().getIdentifier().equals(RELEASE)
+                                    && jMethodInvocation.getExpression().toString().equals(acquireCaller)) {
+                                found = true;
+                            }
                         }
-                    }
-                    if (!found) {
-                        DWSmell smell = new DWSmell();
-                        smell.setClassBean(classBean);
-                        smell.setAcquireExpression(iMethodInvocation.getExpression());
-                        return smell;
+                        if (!found) {
+                            DWSmell smell = new DWSmell();
+                            smell.setClassBean(classBean);
+                            smell.setAcquireExpression(iMethodInvocation.getExpression());
+                            return smell;
+                        }
                     }
                 }
             }

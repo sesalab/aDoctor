@@ -9,7 +9,6 @@ import org.eclipse.jdt.core.dom.rewrite.ListRewrite;
 
 import java.util.List;
 
-@SuppressWarnings("unchecked")
 public class LTProposer extends ClassSmellProposer {
     private static final String STOP = "stop";
     private static final String ON_DESTROY = "onDestroy";

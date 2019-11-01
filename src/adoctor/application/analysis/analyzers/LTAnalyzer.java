@@ -9,7 +9,6 @@ import org.eclipse.jdt.core.dom.*;
 import java.util.ArrayList;
 import java.util.List;
 
-@SuppressWarnings("unchecked")
 public class LTAnalyzer extends ClassSmellAnalyzer {
     private static final String ACTIVITY = "Activity";
     private static final String APP_COMPACT_ACTIVITY = "AppCompactActivity";
