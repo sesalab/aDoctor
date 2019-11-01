@@ -43,9 +43,8 @@ public class CoreDriver implements StartDialog.StartCallback,
         this.undoStack = new Stack<>();
     }
 
-    // TODO Low Maintain the selected smell when back button is used
     public void start() {
-        StartDialog.show(this, project);
+        StartDialog.show(this, project, selections);
     }
 
     private void launchAnalysis() {
@@ -120,14 +119,20 @@ public class CoreDriver implements StartDialog.StartCallback,
 
     ////////////AbortedDialog/////////////////
     @Override
-    public void abortedQuit(AbortedDialog abortedDialog) {
-        abortedDialog.dispose();
-    }
-
-    @Override
     public void abortedRestart(AbortedDialog abortedDialog) {
         abortedDialog.dispose();
         AnalysisDialog.show(this, projectFiles, pathEntries, selections, targetPackage);
+    }
+
+    @Override
+    public void abortedBack(AbortedDialog abortedDialog) {
+        abortedDialog.dispose();
+        StartDialog.show(this, project, selections);
+    }
+
+    @Override
+    public void abortedQuit(AbortedDialog abortedDialog) {
+        abortedDialog.dispose();
     }
 
 

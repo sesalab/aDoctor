@@ -22,9 +22,7 @@ public class RefactoringDialog extends AbstractDialog {
 
     public static void show(RefactoringCallback refactoringCallback, ClassSmell targetSmell, Document proposedDocument) {
         RefactoringDialog refactoringDialog = new RefactoringDialog(refactoringCallback, targetSmell, proposedDocument);
-
         refactoringDialog.startRefactoring();
-
         refactoringDialog.showInCenter();
     }
 

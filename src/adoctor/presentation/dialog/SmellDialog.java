@@ -23,15 +23,12 @@ import org.eclipse.jface.text.BadLocationException;
 import javax.swing.*;
 import javax.swing.plaf.basic.BasicComboBoxRenderer;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-@SuppressWarnings({"GtkPreferredJComboBoxRenderer", "unchecked"})
 public class SmellDialog extends AbstractDialog {
     private static final String TITLE = "aDoctor - Smell List";
     private static final String baseHTML = "" +
@@ -116,34 +113,14 @@ public class SmellDialog extends AbstractDialog {
         for (ClassSmell classSmell : classSmells) {
             boxSmell.addItem(classSmell);
         }
-        boxSmell.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                onSelectItem();
-            }
-        });
+        boxSmell.addActionListener(e -> onSelectItem());
+        buttonApply.addActionListener(e -> onApply());
+        buttonBack.addActionListener(e -> onBack());
         boxSmell.setSelectedIndex(0); // Select the first smell of the list
-
-        buttonApply.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                onApply();
-            }
-        });
-
-        buttonBack.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                onBack();
-            }
-        });
 
         // The undo button
         buttonUndo.setVisible(undoExists);
-        buttonUndo.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                onUndo();
-            }
-        });
+        buttonUndo.addActionListener(e -> onUndo());
 
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
         addWindowListener(new WindowAdapter() {
@@ -248,7 +225,7 @@ public class SmellDialog extends AbstractDialog {
         void smellUndo(SmellDialog smellDialog);
     }
 
-    private class SmellRenderer extends BasicComboBoxRenderer {
+    private static class SmellRenderer extends BasicComboBoxRenderer {
         @Override
         public Component getListCellRendererComponent(JList list, Object value, int index,
                                                       boolean isSelected, boolean cellHasFocus) {

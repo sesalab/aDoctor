@@ -1,13 +1,11 @@
 package adoctor.presentation.dialog;
 
 import javax.swing.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
 public class NoSmellDialog extends AbstractDialog {
-    public static final String TITLE = "aDoctor - No Smell";
+    private static final String TITLE = "aDoctor - No Smell";
 
     private NoSmellCallback noSmellCallback;
 
@@ -16,7 +14,6 @@ public class NoSmellDialog extends AbstractDialog {
 
     public static void show(NoSmellCallback noSmellCallback) {
         NoSmellDialog noSmellDialog = new NoSmellDialog(noSmellCallback);
-
         noSmellDialog.showInCenter();
     }
 
@@ -28,12 +25,7 @@ public class NoSmellDialog extends AbstractDialog {
     private void init() {
         super.init(contentPane, TITLE, buttonQuit);
 
-        buttonQuit.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                onQuit();
-            }
-        });
-
+        buttonQuit.addActionListener(e -> onQuit());
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
         addWindowListener(new WindowAdapter() {
             public void windowClosing(WindowEvent e) {

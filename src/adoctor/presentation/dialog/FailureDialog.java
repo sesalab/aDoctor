@@ -1,8 +1,6 @@
 package adoctor.presentation.dialog;
 
 import javax.swing.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
@@ -29,18 +27,8 @@ public class FailureDialog extends AbstractDialog {
     private void init() {
         super.init(contentPane, TITLE, buttonBack);
 
-        buttonBack.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                onBack();
-            }
-        });
-
-        buttonQuit.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                onQuit();
-            }
-        });
-
+        buttonBack.addActionListener(e -> onBack());
+        buttonQuit.addActionListener(e -> onQuit());
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
         addWindowListener(new WindowAdapter() {
             public void windowClosing(WindowEvent e) {

@@ -28,12 +28,12 @@
               <text value="Start Analysis"/>
             </properties>
           </component>
-          <component id="88df2" class="javax.swing.JButton" binding="buttonQuit">
+          <component id="88df2" class="javax.swing.JButton" binding="buttonBack">
             <constraints>
               <grid row="0" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
             </constraints>
             <properties>
-              <text value="Quit"/>
+              <text value="Back"/>
             </properties>
           </component>
           <hspacer id="f219b">

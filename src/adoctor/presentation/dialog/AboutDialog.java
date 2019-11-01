@@ -1,8 +1,6 @@
 package adoctor.presentation.dialog;
 
 import javax.swing.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
@@ -24,7 +22,6 @@ public class AboutDialog extends AbstractDialog {
 
     public static void show(AboutCallback aboutCallback) {
         AboutDialog aboutDialog = new AboutDialog(aboutCallback);
-
         aboutDialog.showInCenter();
     }
 
@@ -35,15 +32,9 @@ public class AboutDialog extends AbstractDialog {
 
     private void init() {
         super.init(contentPane, TITLE, buttonBack);
-
         labelAbout.setText(ABOUT);
 
-        buttonBack.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                onBack();
-            }
-        });
-
+        buttonBack.addActionListener(e -> onBack());
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
         addWindowListener(new WindowAdapter() {
             public void windowClosing(WindowEvent e) {

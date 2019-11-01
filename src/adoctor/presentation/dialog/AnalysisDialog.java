@@ -6,8 +6,6 @@ import adoctor.application.analysis.analyzers.*;
 import adoctor.application.smell.ClassSmell;
 
 import javax.swing.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
@@ -32,7 +30,6 @@ public class AnalysisDialog extends AbstractDialog {
     public static void show(AnalysisCallback analysisCallback, List<File> projectFiles, String[] pathEntries, List<Boolean> selections, String targetPackage) {
         AnalysisDialog analysisDialog = new AnalysisDialog(analysisCallback, projectFiles, pathEntries, selections, targetPackage);
         analysisDialog.startAnalysis();
-
         analysisDialog.showInCenter();
     }
 
@@ -60,12 +57,7 @@ public class AnalysisDialog extends AbstractDialog {
         }
         analysisDriver = new AnalysisDriver(projectFiles, pathEntries, classSmellAnalyzers, targetPackage);
 
-        buttonAbort.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                onAbort();
-            }
-        });
-
+        buttonAbort.addActionListener(e -> onAbort());
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
         addWindowListener(new WindowAdapter() {
             public void windowClosing(WindowEvent e) {
