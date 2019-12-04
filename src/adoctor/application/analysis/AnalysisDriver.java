@@ -33,7 +33,9 @@ public class AnalysisDriver {
         analysisThread.start();
         System.out.println("Analysis started");
         synchronized (analysisThread) {
-            analysisThread.wait();
+            while (analysisThread.result == null && analysisThread.stopAnalysisException == null) {
+                analysisThread.wait();
+            }
         }
         if (analysisThread.stopAnalysisException != null) {
             System.out.println("Analysis aborted");
@@ -50,11 +52,13 @@ public class AnalysisDriver {
 
     private class AnalysisThread extends Thread {
         private volatile List<ClassSmell> result;
+        private volatile StopAnalysisException stopAnalysisException;
         private volatile boolean stop;
         private final static String STOP_MESSAGE = "Analysis has been stopped";
-        private volatile StopAnalysisException stopAnalysisException;
 
         private AnalysisThread() {
+            this.result = null;
+            this.stopAnalysisException = null;
             this.stop = false;
         }
 
@@ -64,7 +68,6 @@ public class AnalysisDriver {
                     result = runAnalysis();
                 } catch (StopAnalysisException e) {
                     stopAnalysisException = e;
-                    result = null;
                 }
                 notify();
             }
@@ -86,6 +89,7 @@ public class AnalysisDriver {
                 patternPackage = Pattern.compile("^" + targetPackage + "(\\..*)?$");
             }
             for (File projectFile : projectFiles) {
+                // TODO Size estmate to implement a progress bar
                 checkStop();
                 if (projectFile.isFile()) {
                     CompilationUnit compilationUnit;

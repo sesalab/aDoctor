@@ -86,7 +86,7 @@ public class AnalysisDialog extends AbstractDialog {
             @Override
             protected void done() {
                 try {
-                    if(stopAnalysisException == null) {
+                    if (stopAnalysisException == null) {
                         List<ClassSmell> classSmells = get();
                         analysisCallback.analysisDone(AnalysisDialog.this, classSmells);
                     } else {
@@ -107,6 +107,7 @@ public class AnalysisDialog extends AbstractDialog {
 
     interface AnalysisCallback {
         void analysisAbort(AnalysisDialog analysisDialog);
+
         void analysisDone(AnalysisDialog analysisDialog, List<ClassSmell> classSmells);
     }
 }

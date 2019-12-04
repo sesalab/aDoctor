@@ -44,6 +44,7 @@ public class NoSmellDialog extends AbstractDialog {
 
     interface NoSmellCallback {
         void noSmellBack(NoSmellDialog noSmellDialog);
+
         void noSmellQuit(NoSmellDialog noSmellDialog);
     }
 }

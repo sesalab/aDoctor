@@ -1,15 +1,15 @@
 <idea-plugin>
     <id>it.unisa.plugin.adoctor</id>
     <name>aDoctor</name>
-    <version>0.2</version>
-    <vendor email="emaiannone@hotmail.it">Emanuele Iannone</vendor>
+    <version>0.3</version>
+    <vendor email="e.iannone16@studenti.unisa.it">Emanuele Iannone</vendor>
 
     <description><![CDATA[
-      Plugin for Android energy smell identification and refactoring.
+      Android Studio plugin for code smell detection and refactoring.
     ]]></description>
 
     <change-notes><![CDATA[
-      Sadly, no available data about changes, please, visit https://github.com/emaiannone/aDoctor and check the commits list.
+      Visit https://github.com/emaiannone/aDoctor and check the commits list.
     ]]>
     </change-notes>
 
@@ -28,7 +28,7 @@
 
     <actions>
         <!-- Add your actions here -->
-        <action id="start_action" class="adoctor.presentation.action.StartAction" text="aDoctor"
+        <action id="start_action" class="adoctor.presentation.action.StartAction" text="ADoctor"
                 description="Run the aDoctor plugin">
             <add-to-group group-id="RefactoringMenu" anchor="last"/>
         </action>

@@ -139,6 +139,7 @@ public class CoreDriver implements StartDialog.StartCallback,
     //////////////NoSmellDialog/////////////
     @Override
     public void noSmellBack(NoSmellDialog noSmellDialog) {
+        noSmellDialog.dispose();
         start();
     }
 

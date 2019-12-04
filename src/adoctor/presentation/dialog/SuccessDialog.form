@@ -68,7 +68,7 @@
             </constraints>
             <properties>
               <font size="22" style="1"/>
-              <text value="aDoctor fixed!"/>
+              <text value="aDoctor fixed :)"/>
             </properties>
           </component>
           <component id="5a3" class="javax.swing.JSeparator">

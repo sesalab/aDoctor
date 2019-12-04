@@ -13,7 +13,6 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" name="aDoctorPlugin" level="project" />
     <orderEntry type="library" scope="TEST" name="JUnit Jupiter" level="project" />
     <orderEntry type="library" scope="TEST" name="Mockito" level="project" />
     <orderEntry type="library" name="JDT Core" level="project" />

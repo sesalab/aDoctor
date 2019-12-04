@@ -65,7 +65,7 @@
             </constraints>
             <properties>
               <font size="22" style="1"/>
-              <text value="aDoctor was aborted :("/>
+              <text value="aDoctor aborted :("/>
             </properties>
           </component>
           <component id="18f9c" class="javax.swing.JLabel">

@@ -17,7 +17,7 @@ public class StartAction extends AnAction {
     /**
      * Called when aDoctor is clicked in Refactor menu of the IDE
      *
-     * @param e
+     * @param e Event fired from Plugin framework
      */
     @Override
     public void actionPerformed(AnActionEvent e) {
