@@ -1,7 +1,7 @@
 <idea-plugin>
     <id>it.unisa.plugin.adoctor</id>
     <name>aDoctor</name>
-    <version>0.3</version>
+    <version>0.3.1</version>
     <vendor email="e.iannone16@studenti.unisa.it">Emanuele Iannone</vendor>
 
     <description><![CDATA[
@@ -9,7 +9,8 @@
     ]]></description>
 
     <change-notes><![CDATA[
-      Visit https://github.com/emaiannone/aDoctor and check the commits list.
+        Fix plugin target platform dependencies.
+        For more details on changes visit https://github.com/emaiannone/aDoctor.
     ]]>
     </change-notes>
 
@@ -18,9 +19,7 @@
 
     <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/plugin_compatibility.html
          on how to target different products -->
-    <!-- uncomment to enable plugin in all products
-    <depends>com.intellij.modules.lang</depends>
-    -->
+    <depends>com.intellij.modules.java</depends>
 
     <extensions defaultExtensionNs="com.intellij">
         <!-- Add your extensions here -->
