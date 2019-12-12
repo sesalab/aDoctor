@@ -3,100 +3,19 @@
   <grid id="cbd77" binding="contentPane" layout-manager="GridLayoutManager" row-count="2" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
     <margin top="10" left="10" bottom="10" right="10"/>
     <constraints>
-      <xy x="48" y="54" width="2289" height="297"/>
+      <xy x="48" y="54" width="677" height="402"/>
     </constraints>
-    <properties/>
+    <properties>
+      <maximumSize width="-1" height="-1"/>
+      <minimumSize width="-1" height="-1"/>
+      <preferredSize width="1080" height="1080"/>
+    </properties>
     <border type="none"/>
     <children>
-      <grid id="b7fe1" layout-manager="GridLayoutManager" row-count="1" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
-        <margin top="0" left="0" bottom="0" right="0"/>
-        <constraints>
-          <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
-        </constraints>
-        <properties/>
-        <border type="none"/>
-        <children>
-          <grid id="e9b92" binding="panelList" layout-manager="GridLayoutManager" row-count="3" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
-            <margin top="0" left="0" bottom="0" right="0"/>
-            <constraints>
-              <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="0" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
-            </constraints>
-            <properties>
-              <font/>
-            </properties>
-            <border type="none"/>
-            <children>
-              <component id="2336d" class="javax.swing.JLabel">
-                <constraints>
-                  <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
-                </constraints>
-                <properties>
-                  <font size="24" style="1"/>
-                  <text value="Smell List"/>
-                </properties>
-              </component>
-              <component id="416db" class="javax.swing.JComboBox" binding="boxSmell">
-                <constraints>
-                  <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="2" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
-                </constraints>
-                <properties>
-                  <model>
-                    <item value="&lt;html&gt;&lt;b&gt;Durable Wakelock&lt;/b&gt;&lt;br&gt;Classe1&lt;/html&gt;"/>
-                    <item value="&lt;html&gt;&lt;b&gt;Inefficient Data Structure&lt;/b&gt;&lt;br&gt;Classe2&lt;/html&gt;"/>
-                  </model>
-                </properties>
-              </component>
-              <scrollpane id="ab043">
-                <constraints>
-                  <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="7" hsize-policy="7" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
-                </constraints>
-                <properties/>
-                <border type="none"/>
-                <children>
-                  <component id="fce89" class="javax.swing.JTextPane" binding="paneDetails">
-                    <constraints/>
-                    <properties>
-                      <contentType value="text/html"/>
-                      <editable value="false"/>
-                      <font/>
-                      <maximumSize width="-1" height="-1"/>
-                      <minimumSize width="-1" height="-1"/>
-                      <preferredSize width="-1" height="265"/>
-                      <text value="&lt;html&gt;&#10;  &lt;head&gt;&#10;    &#10;  &lt;/head&gt;&#10;  &lt;body&gt;&#10;    &lt;div style=&quot;margin-left: 4px&quot;&gt;&#10;      &lt;div&gt;&#10;        &lt;b&gt;nomeSmell&lt;/b&gt;&#10;      &lt;/div&gt;&#10;      &lt;div style=&quot;margin-left: 8px&quot;&gt;&#10;        &lt;b&gt;Descrizione&lt;/b&gt;: Descrizione Descrizione Descrizione Descrizione &#10;        Descrizione Descrizione Descrizione Descrizione Descrizione &#10;        Descrizione Descrizione Descrizione Descrizione Descrizione &#10;        Descrizione Descrizione Descrizione Descrizione Descrizione &#10;        Descrizione Descrizione Descrizione Descrizione&#10;      &lt;/div&gt;&#10;      &lt;div style=&quot;margin-left: 8px&quot;&gt;&#10;        &lt;b&gt;Classe&lt;/b&gt;: nomeClasse&#10;      &lt;/div&gt;&#10;      &lt;div style=&quot;margin-left: 8px&quot;&gt;&#10;        &lt;b&gt;Metodo&lt;/b&gt;: nomeMetodo()&#10;      &lt;/div&gt;&#10;    &lt;/div&gt;&#10;  &lt;/body&gt;&#10;&lt;/html&gt;&#10;"/>
-                    </properties>
-                    <clientProperties>
-                      <JEditorPane.honorDisplayProperties class="java.lang.Boolean" value="true"/>
-                      <JEditorPane.w3cLengthUnits class="java.lang.Boolean" value="false"/>
-                    </clientProperties>
-                  </component>
-                </children>
-              </scrollpane>
-            </children>
-          </grid>
-          <grid id="14805" binding="panelMain" layout-manager="BorderLayout" hgap="0" vgap="0">
-            <constraints>
-              <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
-            </constraints>
-            <properties/>
-            <border type="none"/>
-            <children>
-              <component id="45ab6" class="javax.swing.JLabel" binding="labelError">
-                <constraints border-constraint="Center"/>
-                <properties>
-                  <horizontalAlignment value="10"/>
-                  <horizontalTextPosition value="10"/>
-                  <text value="&lt;html&gt;&lt;body&gt;&lt;div style=\&quot;margin-left:4px;font-size:16px\&quot;&gt;&lt;div&gt;Ops, there has been an error in processing this proposal. &lt;/div&gt;&lt;div&gt;aDoctor is so sorry :( &lt;/div&gt;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;"/>
-                  <verticalAlignment value="0"/>
-                </properties>
-              </component>
-            </children>
-          </grid>
-        </children>
-      </grid>
       <grid id="bd531" layout-manager="GridLayoutManager" row-count="1" column-count="4" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
         <margin top="0" left="0" bottom="0" right="0"/>
         <constraints>
-          <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="1" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+          <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="1" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties/>
         <border type="none"/>
@@ -132,6 +51,134 @@
           </component>
         </children>
       </grid>
+      <splitpane id="c481f" binding="splitPane">
+        <constraints>
+          <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <continuousLayout value="true"/>
+          <dividerLocation value="80"/>
+          <dividerSize value="10"/>
+          <enabled value="true"/>
+          <oneTouchExpandable value="false"/>
+          <orientation value="1"/>
+          <resizeWeight value="0.0"/>
+        </properties>
+        <border type="none"/>
+        <children>
+          <grid id="de268" binding="panelMain" layout-manager="GridLayoutManager" row-count="1" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+            <margin top="0" left="0" bottom="0" right="0"/>
+            <constraints>
+              <splitpane position="left"/>
+            </constraints>
+            <properties>
+              <minimumSize width="-1" height="-1"/>
+              <preferredSize width="-1" height="-1"/>
+            </properties>
+            <border type="none"/>
+            <children>
+              <component id="a20fa" class="javax.swing.JLabel" binding="labelError">
+                <constraints>
+                  <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                </constraints>
+                <properties>
+                  <text value="Label"/>
+                </properties>
+              </component>
+            </children>
+          </grid>
+          <grid id="2e401" binding="panelList" layout-manager="GridLayoutManager" row-count="5" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+            <margin top="0" left="0" bottom="0" right="0"/>
+            <constraints>
+              <splitpane position="right"/>
+            </constraints>
+            <properties>
+              <minimumSize width="-1" height="-1"/>
+              <preferredSize width="-1" height="-1"/>
+            </properties>
+            <border type="none"/>
+            <children>
+              <component id="5d48b" class="javax.swing.JLabel">
+                <constraints>
+                  <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="1" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
+                </constraints>
+                <properties>
+                  <font size="18" style="1"/>
+                  <text value="Smell Instances"/>
+                </properties>
+              </component>
+              <grid id="ed5ee" layout-manager="GridLayoutManager" row-count="1" column-count="3" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+                <margin top="0" left="0" bottom="0" right="0"/>
+                <constraints>
+                  <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+                </constraints>
+                <properties/>
+                <border type="none"/>
+                <children>
+                  <component id="1a589" class="javax.swing.JLabel">
+                    <constraints>
+                      <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="1" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                    <properties>
+                      <text value="Instances found:"/>
+                    </properties>
+                  </component>
+                  <component id="56d14" class="javax.swing.JLabel" binding="labelNumber">
+                    <constraints>
+                      <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="1" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                    <properties>
+                      <text value="Label"/>
+                    </properties>
+                  </component>
+                  <hspacer id="6f87b">
+                    <constraints>
+                      <grid row="0" column="2" row-span="1" col-span="1" vsize-policy="1" hsize-policy="7" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                  </hspacer>
+                </children>
+              </grid>
+              <component id="2020" class="javax.swing.JComboBox" binding="boxSmell">
+                <constraints>
+                  <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
+                </constraints>
+                <properties/>
+              </component>
+              <scrollpane id="5770b">
+                <constraints>
+                  <grid row="4" column="0" row-span="1" col-span="1" vsize-policy="7" hsize-policy="7" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+                </constraints>
+                <properties>
+                  <horizontalScrollBarPolicy value="30"/>
+                </properties>
+                <border type="none"/>
+                <children>
+                  <component id="4f1b9" class="javax.swing.JTextPane" binding="paneDetails">
+                    <constraints/>
+                    <properties>
+                      <contentType value="text/html"/>
+                      <editable value="false"/>
+                      <minimumSize width="-1" height="-1"/>
+                      <preferredSize width="-1" height="-1"/>
+                    </properties>
+                    <clientProperties>
+                      <JEditorPane.honorDisplayProperties class="java.lang.Boolean" value="true"/>
+                      <JEditorPane.w3cLengthUnits class="java.lang.Boolean" value="false"/>
+                      <charset class="java.lang.String" value=""/>
+                    </clientProperties>
+                  </component>
+                </children>
+              </scrollpane>
+              <component id="6c956" class="javax.swing.JSeparator">
+                <constraints>
+                  <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="2" hsize-policy="6" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+                </constraints>
+                <properties/>
+              </component>
+            </children>
+          </grid>
+        </children>
+      </splitpane>
     </children>
   </grid>
 </form>

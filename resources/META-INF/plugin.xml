@@ -1,7 +1,7 @@
 <idea-plugin>
     <id>it.unisa.plugin.adoctor</id>
     <name>aDoctor</name>
-    <version>0.3.1</version>
+    <version>0.3.2</version>
     <vendor email="e.iannone16@studenti.unisa.it">Emanuele Iannone</vendor>
 
     <description><![CDATA[
@@ -9,7 +9,7 @@
     ]]></description>
 
     <change-notes><![CDATA[
-        Fix plugin target platform dependencies.
+        Fix uncaught exception when closing the project. Minor Smell UI update.
         For more details on changes visit https://github.com/emaiannone/aDoctor.
     ]]>
     </change-notes>
@@ -28,7 +28,7 @@
     <actions>
         <!-- Add your actions here -->
         <action id="start_action" class="adoctor.presentation.action.StartAction" text="ADoctor"
-                description="Run the aDoctor plugin">
+                description="Run aDoctor">
             <add-to-group group-id="RefactoringMenu" anchor="last"/>
         </action>
     </actions>
