@@ -8,7 +8,6 @@ import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -97,23 +96,25 @@ public class AnalysisDriver {
                         compilationUnit = ASTUtilities.getCompilationUnit(projectFile, pathEntries);
                         List<TypeDeclaration> types = (List<TypeDeclaration>) compilationUnit.types();
                         // Package filtering
-                        String packageName = compilationUnit.getPackage().getName().toString();
-                        if (packageName.matches(patternPackage.pattern())) {
-                            System.out.println("Analyzing file: " + projectFile.getName());
-                            for (TypeDeclaration type : types) {
-                                ClassBean classBean = new ClassBean();
-                                classBean.setTypeDeclaration(type);
-                                classBean.setSourceFile(projectFile);
-                                // Analysis launch
-                                for (ClassSmellAnalyzer analyzer : classSmellAnalyzers) {
-                                    ClassSmell classSmell = analyzer.analyze(classBean);
-                                    if (classSmell != null) {
-                                        classSmells.add(classSmell);
+                        if (compilationUnit.getPackage() != null) {
+                            String packageName = compilationUnit.getPackage().getName().toString();
+                            if (packageName.matches(patternPackage.pattern())) {
+                                System.out.println("Analyzing file: " + projectFile.getName());
+                                for (TypeDeclaration type : types) {
+                                    ClassBean classBean = new ClassBean();
+                                    classBean.setTypeDeclaration(type);
+                                    classBean.setSourceFile(projectFile);
+                                    // Analysis launch
+                                    for (ClassSmellAnalyzer analyzer : classSmellAnalyzers) {
+                                        ClassSmell classSmell = analyzer.analyze(classBean);
+                                        if (classSmell != null) {
+                                            classSmells.add(classSmell);
+                                        }
                                     }
                                 }
                             }
                         }
-                    } catch (IOException e) {
+                    } catch (Exception e) {
                         e.printStackTrace();
                     }
                 }
