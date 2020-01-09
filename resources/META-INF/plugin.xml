@@ -1,7 +1,7 @@
 <idea-plugin>
     <id>it.unisa.plugin.adoctor</id>
     <name>aDoctor</name>
-    <version>0.3.3</version>
+    <version>0.3.4</version>
     <vendor email="e.iannone16@studenti.unisa.it">Emanuele Iannone</vendor>
 
     <description><![CDATA[
@@ -9,7 +9,7 @@
     ]]></description>
 
     <change-notes><![CDATA[
-        Minor bug fix.
+        IntelliJ Plugin Platform SDK update.
         For more details on changes visit https://github.com/emaiannone/aDoctor.
     ]]>
     </change-notes>
