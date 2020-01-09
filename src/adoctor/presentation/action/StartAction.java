@@ -2,7 +2,7 @@ package adoctor.presentation.action;
 
 import adoctor.presentation.dialog.CoreDriver;
 import com.intellij.ide.plugins.IdeaPluginDescriptor;
-import com.intellij.ide.plugins.PluginManager;
+import com.intellij.ide.plugins.PluginManagerCore;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
@@ -26,7 +26,7 @@ public class StartAction extends AnAction {
         Project project = CommonDataKeys.PROJECT.getData(dataContext);
         if (project != null) {
             PluginId pluginId = PluginId.getId("it.unisa.plugin.adoctor");
-            IdeaPluginDescriptor pluginDescriptor = PluginManager.getPlugin(pluginId);
+            IdeaPluginDescriptor pluginDescriptor = PluginManagerCore.getPlugin(pluginId);
             if (!new File(pluginDescriptor.getPath().getAbsolutePath() + "/resources").exists()) {
                 new File(pluginDescriptor.getPath().getAbsolutePath() + "/resources").mkdirs();
             }
