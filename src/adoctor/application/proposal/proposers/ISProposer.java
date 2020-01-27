@@ -23,15 +23,17 @@ public class ISProposer extends ClassSmellProposer {
         }
         AST targetAST = smellyCall.getAST();
 
-        Assignment newAssignment = targetAST.newAssignment();
+        // Prepare the new node (statement with the assignment)
+        Assignment assignment = targetAST.newAssignment();
         FieldAccess fieldAccess = targetAST.newFieldAccess();
         fieldAccess.setExpression(targetAST.newThisExpression());
         fieldAccess.setName(targetAST.newSimpleName(smellySetter.getValue()));
-        newAssignment.setLeftHandSide(fieldAccess);
-        newAssignment.setOperator(Assignment.Operator.ASSIGN);
-        newAssignment.setRightHandSide((Expression) ASTNode.copySubtree(targetAST, (ASTNode) smellyCall.arguments().get(0)));
+        assignment.setLeftHandSide(fieldAccess);
+        assignment.setOperator(Assignment.Operator.ASSIGN);
+        assignment.setRightHandSide((Expression) ASTNode.copySubtree(targetAST, (ASTNode) smellyCall.arguments().get(0)));
+
         ASTRewrite astRewrite = ASTRewrite.create(targetAST);
-        astRewrite.replace(smellyCall, newAssignment, null);
+        astRewrite.replace(smellyCall, assignment, null);
         return astRewrite;
     }
 }
