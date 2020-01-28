@@ -6,16 +6,96 @@ import adoctor.application.smell.ClassSmell;
 import adoctor.application.smell.MIMSmell;
 import org.eclipse.jdt.core.dom.*;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 public class MIMAnalyzer extends ClassSmellAnalyzer {
     private static final String OVERRIDE = "Override";
+    private static final String OBJECT = "Object";
 
-    //private List<SimpleName> internalMethods;
     private List<SimpleName> internalFields;
+    private IVariableBinding[] superFields;
+    private IMethodBinding[] superMethods;
+
+    private static boolean useInternalProperties(MethodDeclaration methodDecl, List<SimpleName> internalFields,
+                                                 IVariableBinding[] superFields, IMethodBinding[] superMethods) {
+        List<SimpleName> localNames = new ArrayList<>();
+        List<SimpleName> names = ASTUtilities.getSimpleNames(methodDecl);
+        if (names != null) {
+            for (SimpleName name : names) {
+                if (name.isDeclaration()) {
+                    localNames.add(name);
+                } else {
+                    String nameId = name.getIdentifier();
+                    // Check if the referenced name IS NOT a local variable
+                    if (localNames.stream().noneMatch(dName -> dName.getIdentifier().equals(nameId))) {
+                        boolean isInternalField = internalFields.stream().anyMatch(iField -> iField.getIdentifier().equals(nameId));
+                        boolean isSuperField = Arrays.stream(superFields).anyMatch(sField -> sField.getName().equals(nameId));
+                        boolean isSuperMethod = Arrays.stream(superMethods).anyMatch(sMethod -> sMethod.getName().equals(nameId));
+                        // Check if the referenced name IS of an internal|inherited field or a call to an inherited method
+                        if (isInternalField || isSuperField || isSuperMethod) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    private static boolean isOverride(MethodDeclaration methodDecl, IMethodBinding[] superMethods) {
+        String methodName = methodDecl.getName().getIdentifier();
+        // Check if the analyzed method IS an overriden method
+        return Arrays.stream(superMethods).anyMatch(sMethod -> sMethod.getName().equals(methodName));
+    }
+
+    private static boolean doesInternalCall(MethodDeclaration methodDecl) {
+        List<MethodInvocation> methodInvocations = ASTUtilities.getMethodInvocations(methodDecl);
+        if (methodInvocations != null) {
+            for (MethodInvocation methodInvocation : methodInvocations) {
+                if (methodInvocation.getExpression() == null) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private static boolean hasOverrideAnnotation(MethodDeclaration methodDecl) {
+        List<IExtendedModifier> modifiers = (List<IExtendedModifier>) methodDecl.modifiers();
+        for (IExtendedModifier modifier : modifiers) {
+            if (modifier.isAnnotation()) {
+                Annotation annotation = (Annotation) modifier;
+                if (annotation.getTypeName().toString().equals(OVERRIDE)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    // Iterative call to get all super fields
+    private static IVariableBinding[] getAllSuperFields(ITypeBinding iTypeBinding) {
+        Set<IVariableBinding> allSuperFields = new HashSet<>();
+        Optional<ITypeBinding> superclass = Optional.ofNullable(iTypeBinding.getSuperclass());
+        while (superclass.isPresent() && !superclass.get().getName().equals(OBJECT)) {
+            allSuperFields.addAll(Arrays.asList(superclass.get().getDeclaredFields()));
+            superclass = Optional.ofNullable(superclass.get().getSuperclass());
+        }
+        return allSuperFields.toArray(new IVariableBinding[0]);
+    }
+
+    // Iterative call to get all super fields
+    private static IMethodBinding[] getAllSuperMethods(ITypeBinding iTypeBinding) {
+        Set<IMethodBinding> allSuperMethods = new HashSet<>();
+        Optional<ITypeBinding> superclass = Optional.ofNullable(iTypeBinding.getSuperclass());
+        while (superclass.isPresent() && !superclass.get().getName().equals(OBJECT)) {
+            allSuperMethods.addAll(Arrays.asList(superclass.get().getDeclaredMethods()));
+            superclass = Optional.ofNullable(superclass.get().getSuperclass());
+        }
+        return allSuperMethods.toArray(new IMethodBinding[0]);
+    }
+
+    //TODO: Change these two methods into a single one because they are basically the same
 
     @Override
     public ClassSmell analyze(ClassBean classBean) {
@@ -50,6 +130,17 @@ public class MIMAnalyzer extends ClassSmellAnalyzer {
             }
         }
 
+        ITypeBinding iTypeBinding = typeDecl.resolveBinding();
+        // Fetch all super fields
+        superFields = getAllSuperFields(iTypeBinding);
+        System.out.println("Tutti i super field");
+        Arrays.stream(superFields).map(IVariableBinding::getName).forEach(System.out::println);
+
+        // Fetch all super methods
+        superMethods = getAllSuperMethods(iTypeBinding);
+        System.out.println("Tutti i super methods");
+        Arrays.stream(superMethods).map(IMethodBinding::getName).forEach(System.out::println);
+
         // For each method declaration inside the target class
         for (MethodDeclaration methodDecl : methodDecls) {
             if (hasMIM(methodDecl)) {
@@ -72,8 +163,10 @@ public class MIMAnalyzer extends ClassSmellAnalyzer {
         boolean doesNotUseThis = thisExpressions == null || thisExpressions.size() == 0;
         boolean doesNotHaveSuperMethodInvocation = superMethodInvocations == null || superMethodInvocations.size() == 0;
         boolean doesNotHaveSuperFieldAccess = superFieldAccess == null || superFieldAccess.size() == 0;
-        boolean doesNotUseInternalFields = !useInternalFields(methodDecl);
+        boolean doesNotUseInternalProperties = !useInternalProperties(methodDecl, this.internalFields,
+                this.superFields, this.superMethods);
         boolean doesNotHaveOverride = !hasOverrideAnnotation(methodDecl);
+        boolean isNotOverride = !isOverride(methodDecl, this.superMethods);
         boolean doesNotDoInternalCalls = !doesInternalCall(methodDecl);
         return isNotConstructor &&
                 hasNonEmptyBody &&
@@ -81,89 +174,9 @@ public class MIMAnalyzer extends ClassSmellAnalyzer {
                 doesNotUseThis &&
                 doesNotHaveSuperMethodInvocation &&
                 doesNotHaveSuperFieldAccess &&
-                doesNotUseInternalFields &&
+                doesNotUseInternalProperties &&
                 doesNotHaveOverride &&
+                isNotOverride &&
                 doesNotDoInternalCalls;
     }
-
-    private static boolean hasOverrideAnnotation(MethodDeclaration methodDecl) {
-        List<IExtendedModifier> modifiers = (List<IExtendedModifier>) methodDecl.modifiers();
-        for (IExtendedModifier modifier : modifiers) {
-            if (modifier.isAnnotation()) {
-                Annotation annotation = (Annotation) modifier;
-                if (annotation.getTypeName().toString().equals(OVERRIDE)) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    private static boolean doesInternalCall(MethodDeclaration methodDecl) {
-        List<MethodInvocation> methodInvocations = ASTUtilities.getMethodInvocations(methodDecl);
-        if (methodInvocations != null) {
-            for (MethodInvocation methodInvocation : methodInvocations) {
-                if (methodInvocation.getExpression() == null) {
-                    /*String methodName = methodInvocation.getName().getIdentifier();*/
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    private boolean useInternalFields(MethodDeclaration methodDecl) {
-        List<SimpleName> localNames = new ArrayList<>();
-        List<SimpleName> names = ASTUtilities.getSimpleNames(methodDecl);
-        if (names != null) {
-            for (SimpleName name : names) {
-                if (name.isDeclaration()) {
-                    localNames.add(name);
-                } else {
-                    String nameId = name.getIdentifier();
-                    // Check if the referenced name IS NOT a local variable
-                    if (localNames.stream().noneMatch(dName -> dName.getIdentifier().equals(nameId))) {
-                        // Check if the referenced name IS of an internal field
-                        if (internalFields.stream().anyMatch(iField -> iField.getIdentifier().equals(nameId))) {
-                            return true;
-                        }
-                        // TODO: Recursively call all superclasses and accumulate superFields and superMethods
-                        Optional<ITypeBinding> superclass = Optional.ofNullable(methodDecl.resolveBinding())
-                                .map(IMethodBinding::getDeclaringClass)
-                                .map(ITypeBinding::getSuperclass);
-                        if (superclass.isPresent()) {
-                            //TODO: Check if it is "Object", that is the base case
-                            IVariableBinding[] superFields = superclass.get().getDeclaredFields();
-                            // Check if the referenced name IS of an inherited field
-                            if (Arrays.stream(superFields).anyMatch(sField -> sField.getName().equals(nameId))) {
-                                System.out.println("Escluso perché usa un campo ereditato");
-                                return true;
-                            }
-                            String methodName = methodDecl.getName().getIdentifier();
-                            IMethodBinding[] superMethods = superclass.get().getDeclaredMethods();
-                            System.out.println("Metodi del padre");
-                            Arrays.stream(superMethods).map(IMethodBinding::getName).forEach(System.out::println);
-                            if (Arrays.stream(superMethods).anyMatch(sMethod -> sMethod.getName().equals(methodName))) {
-                                System.out.println("Escluso perché il metodo è un override");
-                                return true;
-                            }
-                            if (Arrays.stream(superMethods).anyMatch(sMethod -> sMethod.getName().equals(nameId))) {
-                                System.out.println("Escluso perché usa un metodo ereditato");
-                                return true;
-                            }
-                        } else {
-                            System.out.println("Superclass non c'è!");
-                        }
-                    }
-                }
-            }
-        }
-        return false;
-    }
-
-    /*
-    private IVariableBinding[] getAllInheritedFields(MethodDeclaration methodDecl) {
-
-    }
-     */
 }
