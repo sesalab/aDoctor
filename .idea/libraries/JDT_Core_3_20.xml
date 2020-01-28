@@ -1,6 +1,6 @@
 <component name="libraryTable">
-  <library name="JDT Core" type="repository">
-    <properties maven-id="org.eclipse.jdt:org.eclipse.jdt.core:RELEASE" />
+  <library name="JDT Core 3.20" type="repository">
+    <properties maven-id="org.eclipse.jdt:org.eclipse.jdt.core:3.20.0" />
     <CLASSES>
       <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/jdt/org.eclipse.jdt.core/3.20.0/org.eclipse.jdt.core-3.20.0.jar!/" />
       <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/platform/org.eclipse.core.resources/3.13.600/org.eclipse.core.resources-3.13.600.jar!/" />
@@ -33,6 +33,21 @@
       <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/platform/org.eclipse.text/3.10.0/org.eclipse.text-3.10.0-javadoc.jar!/" />
       <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/platform/org.eclipse.core.commands/3.9.600/org.eclipse.core.commands-3.9.600-javadoc.jar!/" />
     </JAVADOC>
-    <SOURCES />
+    <SOURCES>
+      <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/jdt/org.eclipse.jdt.core/3.20.0/org.eclipse.jdt.core-3.20.0-sources.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/platform/org.eclipse.core.resources/3.13.600/org.eclipse.core.resources-3.13.600-sources.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/platform/org.eclipse.core.expressions/3.6.600/org.eclipse.core.expressions-3.6.600-sources.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/platform/org.eclipse.core.runtime/3.17.0/org.eclipse.core.runtime-3.17.0-sources.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/platform/org.eclipse.osgi/3.15.100/org.eclipse.osgi-3.15.100-sources.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/platform/org.eclipse.equinox.common/3.10.600/org.eclipse.equinox.common-3.10.600-sources.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/platform/org.eclipse.core.jobs/3.10.600/org.eclipse.core.jobs-3.10.600-sources.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/platform/org.eclipse.equinox.registry/3.8.600/org.eclipse.equinox.registry-3.8.600-sources.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/platform/org.eclipse.equinox.preferences/3.7.600/org.eclipse.equinox.preferences-3.7.600-sources.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/platform/org.eclipse.core.contenttype/3.7.500/org.eclipse.core.contenttype-3.7.500-sources.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/platform/org.eclipse.equinox.app/1.4.300/org.eclipse.equinox.app-1.4.300-sources.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/platform/org.eclipse.core.filesystem/1.7.600/org.eclipse.core.filesystem-1.7.600-sources.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/platform/org.eclipse.text/3.10.0/org.eclipse.text-3.10.0-sources.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/org/eclipse/platform/org.eclipse.core.commands/3.9.600/org.eclipse.core.commands-3.9.600-sources.jar!/" />
+    </SOURCES>
   </library>
 </component>

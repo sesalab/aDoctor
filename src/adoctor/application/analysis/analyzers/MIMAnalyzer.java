@@ -7,13 +7,15 @@ import adoctor.application.smell.MIMSmell;
 import org.eclipse.jdt.core.dom.*;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 public class MIMAnalyzer extends ClassSmellAnalyzer {
     private static final String OVERRIDE = "Override";
 
     //private List<SimpleName> internalMethods;
-    private List<SimpleName> internalVars;
+    private List<SimpleName> internalFields;
 
     @Override
     public ClassSmell analyze(ClassBean classBean) {
@@ -33,8 +35,8 @@ public class MIMAnalyzer extends ClassSmellAnalyzer {
         }
         */
 
-        // Instance variable names
-        internalVars = new ArrayList<>();
+        // Fetch all instance variable names
+        internalFields = new ArrayList<>();
         FieldDeclaration[] fieldDecls = typeDecl.getFields();
         for (FieldDeclaration fieldDecl : fieldDecls) {
             if (!Modifier.isStatic(fieldDecl.getModifiers())) {
@@ -42,12 +44,13 @@ public class MIMAnalyzer extends ClassSmellAnalyzer {
                 for (VariableDeclarationFragment varFrag : varFrags) {
                     List<SimpleName> varNames = ASTUtilities.getSimpleNames(varFrag);
                     if (varNames != null) {
-                        internalVars.addAll(varNames);
+                        internalFields.addAll(varNames);
                     }
                 }
             }
         }
 
+        // For each method declaration inside the target class
         for (MethodDeclaration methodDecl : methodDecls) {
             if (hasMIM(methodDecl)) {
                 MIMSmell smell = new MIMSmell();
@@ -60,35 +63,27 @@ public class MIMAnalyzer extends ClassSmellAnalyzer {
     }
 
     private boolean hasMIM(MethodDeclaration methodDecl) {
-        // If the method is a constructor, MIM is surely absent
-        if (!methodDecl.isConstructor()) {
-            // If the method body is empty, we want to ignore it
-            if (methodDecl.getBody() != null && methodDecl.getBody().statements().size() > 0) {
-                // If the method is static, MIM si surely absent (trivially)
-                if (!Modifier.isStatic(methodDecl.getModifiers())) {
-                    // If there is a this expression, MIM is surely absent
-                    List<ThisExpression> thisExpressions = ASTUtilities.getThisExpressions(methodDecl);
-                    if (thisExpressions == null || thisExpressions.size() == 0) {
-                        // If there is a super expression, MIM is surely absent
-                        List<SuperMethodInvocation> superMethodInvocations = ASTUtilities.getSuperMethodInvocations(methodDecl);
-                        if (superMethodInvocations == null || superMethodInvocations.size() == 0) {
-                            List<SuperFieldAccess> superFieldAccess = ASTUtilities.getSuperFieldAccess(methodDecl);
-                            if (superFieldAccess == null || superFieldAccess.size() == 0) {
-                                // If it has an override annotation, MIM is surely absent
-                                if (!hasOverrideAnnotation(methodDecl)) {
-                                    // If there is an internal method call, MIM is surely absent
-                                    if (!doesInternalCall(methodDecl)) {
-                                        // If there is a referenced instance variable not shadowed by a local one, MIM is surely absent
-                                        return !useInternalVar(methodDecl);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        return false;
+        List<ThisExpression> thisExpressions = ASTUtilities.getThisExpressions(methodDecl);
+        List<SuperMethodInvocation> superMethodInvocations = ASTUtilities.getSuperMethodInvocations(methodDecl);
+        List<SuperFieldAccess> superFieldAccess = ASTUtilities.getSuperFieldAccess(methodDecl);
+        boolean isNotConstructor = !methodDecl.isConstructor();
+        boolean hasNonEmptyBody = methodDecl.getBody() != null && methodDecl.getBody().statements().size() > 0;
+        boolean isNonStatic = !Modifier.isStatic(methodDecl.getModifiers());
+        boolean doesNotUseThis = thisExpressions == null || thisExpressions.size() == 0;
+        boolean doesNotHaveSuperMethodInvocation = superMethodInvocations == null || superMethodInvocations.size() == 0;
+        boolean doesNotHaveSuperFieldAccess = superFieldAccess == null || superFieldAccess.size() == 0;
+        boolean doesNotUseInternalFields = !useInternalFields(methodDecl);
+        boolean doesNotHaveOverride = !hasOverrideAnnotation(methodDecl);
+        boolean doesNotDoInternalCalls = !doesInternalCall(methodDecl);
+        return isNotConstructor &&
+                hasNonEmptyBody &&
+                isNonStatic &&
+                doesNotUseThis &&
+                doesNotHaveSuperMethodInvocation &&
+                doesNotHaveSuperFieldAccess &&
+                doesNotUseInternalFields &&
+                doesNotHaveOverride &&
+                doesNotDoInternalCalls;
     }
 
     private static boolean hasOverrideAnnotation(MethodDeclaration methodDecl) {
@@ -109,7 +104,6 @@ public class MIMAnalyzer extends ClassSmellAnalyzer {
         if (methodInvocations != null) {
             for (MethodInvocation methodInvocation : methodInvocations) {
                 if (methodInvocation.getExpression() == null) {
-                    //TODO Low Try to use the bindings to enable a finer check: if the called method belongs to a superclass
                     /*String methodName = methodInvocation.getName().getIdentifier();*/
                     return true;
                 }
@@ -118,32 +112,58 @@ public class MIMAnalyzer extends ClassSmellAnalyzer {
         return false;
     }
 
-    private boolean useInternalVar(MethodDeclaration methodDecl) {
-        List<SimpleName> declaredNames = new ArrayList<>();
-        List<SimpleName> totalNames = ASTUtilities.getSimpleNames(methodDecl);
-        if (totalNames != null) {
-            for (SimpleName name : totalNames) {
+    private boolean useInternalFields(MethodDeclaration methodDecl) {
+        List<SimpleName> localNames = new ArrayList<>();
+        List<SimpleName> names = ASTUtilities.getSimpleNames(methodDecl);
+        if (names != null) {
+            for (SimpleName name : names) {
                 if (name.isDeclaration()) {
-                    declaredNames.add(name);
+                    localNames.add(name);
                 } else {
-                    boolean found = false;
-                    for (int i = 0; i < declaredNames.size() && !found; i++) {
-                        SimpleName declaredName = declaredNames.get(i);
-                        found = declaredName.getIdentifier().equals(name.getIdentifier());
-                    }
-                    if (!found) {
-                        for (int i = 0; i < internalVars.size() && !found; i++) {
-                            SimpleName internalVar = internalVars.get(i);
-                            found = internalVar.getIdentifier().equals(name.getIdentifier());
-                        }
-                        if (found) {
+                    String nameId = name.getIdentifier();
+                    // Check if the referenced name IS NOT a local variable
+                    if (localNames.stream().noneMatch(dName -> dName.getIdentifier().equals(nameId))) {
+                        // Check if the referenced name IS of an internal field
+                        if (internalFields.stream().anyMatch(iField -> iField.getIdentifier().equals(nameId))) {
                             return true;
+                        }
+                        // TODO: Recursively call all superclasses and accumulate superFields and superMethods
+                        Optional<ITypeBinding> superclass = Optional.ofNullable(methodDecl.resolveBinding())
+                                .map(IMethodBinding::getDeclaringClass)
+                                .map(ITypeBinding::getSuperclass);
+                        if (superclass.isPresent()) {
+                            //TODO: Check if it is "Object", that is the base case
+                            IVariableBinding[] superFields = superclass.get().getDeclaredFields();
+                            // Check if the referenced name IS of an inherited field
+                            if (Arrays.stream(superFields).anyMatch(sField -> sField.getName().equals(nameId))) {
+                                System.out.println("Escluso perché usa un campo ereditato");
+                                return true;
+                            }
+                            String methodName = methodDecl.getName().getIdentifier();
+                            IMethodBinding[] superMethods = superclass.get().getDeclaredMethods();
+                            System.out.println("Metodi del padre");
+                            Arrays.stream(superMethods).map(IMethodBinding::getName).forEach(System.out::println);
+                            if (Arrays.stream(superMethods).anyMatch(sMethod -> sMethod.getName().equals(methodName))) {
+                                System.out.println("Escluso perché il metodo è un override");
+                                return true;
+                            }
+                            if (Arrays.stream(superMethods).anyMatch(sMethod -> sMethod.getName().equals(nameId))) {
+                                System.out.println("Escluso perché usa un metodo ereditato");
+                                return true;
+                            }
+                        } else {
+                            System.out.println("Superclass non c'è!");
                         }
                     }
                 }
-
             }
         }
         return false;
     }
+
+    /*
+    private IVariableBinding[] getAllInheritedFields(MethodDeclaration methodDecl) {
+
+    }
+     */
 }
