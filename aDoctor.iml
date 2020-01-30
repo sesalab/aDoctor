@@ -16,5 +16,6 @@
     <orderEntry type="library" scope="TEST" name="JUnit Jupiter" level="project" />
     <orderEntry type="library" scope="TEST" name="Mockito" level="project" />
     <orderEntry type="library" name="JDT Core 3.20" level="project" />
+    <orderEntry type="library" name="HttpClient 4.5.11" level="project" />
   </component>
 </module>

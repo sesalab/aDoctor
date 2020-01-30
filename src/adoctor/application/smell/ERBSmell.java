@@ -5,16 +5,15 @@ import org.eclipse.jdt.core.dom.Statement;
 
 public class ERBSmell extends ClassSmell {
     private static final String NAME = "Early Resource Binding";
-    private  static final String DESCRIPTION = "Early Resource Binding is present when an " +
+    private static final String SHORT_NAME = "ERB";
+    private static final String DESCRIPTION = "Early Resource Binding is present when an " +
             "Android system service is used in the onCreate(Bundle) method of an Activity subclass.";
 
     private Statement requestStatement;
     private MethodDeclaration onCreate;
 
     public ERBSmell() {
-        super();
-        setName(NAME);
-        setDescription(DESCRIPTION);
+        super(NAME, SHORT_NAME, DESCRIPTION);
     }
 
     public Statement getRequestStatement() {

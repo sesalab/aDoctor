@@ -133,13 +133,11 @@ public class MIMAnalyzer extends ClassSmellAnalyzer {
         ITypeBinding iTypeBinding = typeDecl.resolveBinding();
         // Fetch all super fields
         superFields = getAllSuperFields(iTypeBinding);
-        System.out.println("Tutti i super field");
-        Arrays.stream(superFields).map(IVariableBinding::getName).forEach(System.out::println);
+        // Arrays.stream(superFields).map(IVariableBinding::getName).forEach(System.out::println);
 
         // Fetch all super methods
         superMethods = getAllSuperMethods(iTypeBinding);
-        System.out.println("Tutti i super methods");
-        Arrays.stream(superMethods).map(IMethodBinding::getName).forEach(System.out::println);
+        // Arrays.stream(superMethods).map(IMethodBinding::getName).forEach(System.out::println);
 
         // For each method declaration inside the target class
         for (MethodDeclaration methodDecl : methodDecls) {

@@ -2,11 +2,19 @@ package adoctor.application.smell;
 
 abstract class Smell {
     private String name;
+    private String shortName;
     private String description;
 
-    Smell() {
-        name = "";
-        description = "";
+    public Smell() {
+        this.name = "";
+        this.shortName = "";
+        this.description = "";
+    }
+
+    public Smell(String name, String shortName, String description) {
+        this.name = name;
+        this.shortName = shortName;
+        this.description = description;
     }
 
     public String getName() {
@@ -23,5 +31,13 @@ abstract class Smell {
 
     void setDescription(String description) {
         this.description = description;
+    }
+
+    public String getShortName() {
+        return shortName;
+    }
+
+    public void setShortName(String shortName) {
+        this.shortName = shortName;
     }
 }

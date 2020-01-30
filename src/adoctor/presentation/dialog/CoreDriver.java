@@ -1,5 +1,6 @@
 package adoctor.presentation.dialog;
 
+import adoctor.application.analytics.MeasurementSender;
 import adoctor.application.proposal.undo.Undo;
 import adoctor.application.smell.ClassSmell;
 import com.intellij.ide.SaveAndSyncHandler;
@@ -15,10 +16,8 @@ import com.intellij.psi.search.GlobalSearchScope;
 import org.eclipse.jface.text.Document;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Stack;
+import java.io.IOException;
+import java.util.*;
 
 public class CoreDriver implements StartDialog.StartCallback,
         AboutDialog.AboutCallback,
@@ -31,6 +30,7 @@ public class CoreDriver implements StartDialog.StartCallback,
         FailureDialog.FailureCallback {
 
     private Project project;
+    private MeasurementSender sender;
     private List<File> projectFiles;
     private String[] pathEntries;
     private Stack<Undo> undoStack;
@@ -40,6 +40,7 @@ public class CoreDriver implements StartDialog.StartCallback,
 
     public CoreDriver(Project project) {
         this.project = project;
+        this.sender = new MeasurementSender(UUID.nameUUIDFromBytes(this.project.getName().getBytes()).toString());
         this.undoStack = new Stack<>();
     }
 
@@ -67,6 +68,15 @@ public class CoreDriver implements StartDialog.StartCallback,
         projectFiles = new ArrayList<>();
         for (VirtualFile virtualFile : virtualFiles) {
             projectFiles.add(new File(virtualFile.getPath()));
+        }
+
+        // Send analysis usage statistics
+        // TODO: Add a checkbox somewhere to disable the collection, maybe in About that will become Settings?
+        try {
+            this.sender.sendAnalysisData(this.selections);
+        } catch (IOException e) {
+            System.out.println("Analysis data has not been sent");
+            e.printStackTrace();
         }
 
         AnalysisDialog.show(this, projectFiles, pathEntries, selections, targetPackage);
@@ -154,6 +164,15 @@ public class CoreDriver implements StartDialog.StartCallback,
         smellDialog.dispose();
         undoStack.push(undo);
         Document proposedDocument = undo.getDocument();
+
+        // Send refactoring usage statistics
+        try {
+            this.sender.sendRefactoringData(targetSmell.getShortName().toLowerCase());
+        } catch (IOException e) {
+            System.out.println("Refactoring data has not been sent");
+            e.printStackTrace();
+        }
+
         RefactoringDialog.show(this, targetSmell, proposedDocument);
     }
 

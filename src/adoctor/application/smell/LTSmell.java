@@ -4,6 +4,7 @@ import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
 
 public class LTSmell extends ClassSmell {
     private static final String NAME = "Leaking Thread";
+    private static final String SHORT_NAME = "LT";
     private static final String DESCRIPTION = "Leaking Thread is present when in an Activity there is an instance level " +
             "thread that is launched and never stopped, so not allowing the GC to remove it even when that activity instance " +
             "has been removed.";
@@ -11,9 +12,7 @@ public class LTSmell extends ClassSmell {
     private VariableDeclarationFragment smellyVariableDeclarationFragment;
 
     public LTSmell() {
-        super();
-        setName(NAME);
-        setDescription(DESCRIPTION);
+        super(NAME, SHORT_NAME, DESCRIPTION);
     }
 
     public VariableDeclarationFragment getSmellyVariableDeclarationFragment() {

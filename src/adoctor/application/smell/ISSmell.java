@@ -6,6 +6,7 @@ import org.eclipse.jdt.core.dom.MethodInvocation;
 
 public class ISSmell extends ClassSmell {
     private static final String NAME = "Internal Setter";
+    private static final String SHORT_NAME = "IS";
     private static final String DESCRIPTION = "Internal Setter is present when non static method calls a setter " +
             "method of an instance variable instead of directly changing its value.";
 
@@ -13,9 +14,7 @@ public class ISSmell extends ClassSmell {
     private Pair<MethodDeclaration, String> smellySetter;
 
     public ISSmell() {
-        super();
-        setName(NAME);
-        setDescription(DESCRIPTION);
+        super(NAME, SHORT_NAME, DESCRIPTION);
     }
 
     public MethodInvocation getSmellyCall() {
