@@ -9,63 +9,23 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.jdt.core.dom.*;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class ISAnalyzer extends ClassSmellAnalyzer {
-    @Override
-    public ClassSmell analyze(ClassBean classBean) {
-        if (classBean == null) {
-            return null;
-        }
-        TypeDeclaration typeDecl = classBean.getTypeDeclaration();
-        // Fetch all instance variables names
-        List<Pair<Type, String>> instanceVars = getInstanceVariables(typeDecl);
-
-        // Fetch all setters
-        List<Pair<MethodDeclaration, String>> setters = getSetters(typeDecl, instanceVars);
-
-        MethodDeclaration[] methods = typeDecl.getMethods();
-        for (MethodDeclaration methodDecl : methods) {
-            if (!Modifier.isStatic(methodDecl.getModifiers())) {
-                // Look for an invocation to a setter
-                List<MethodInvocation> invocations = ASTUtilities.getMethodInvocations(methodDecl);
-                if (invocations == null) {
-                    return null;
-                }
-                for (MethodInvocation invocation : invocations) {
-                    for (Pair<MethodDeclaration, String> setter : setters) {
-                        String setterName = setter.getKey().getName().getIdentifier();
-                        String invocationName = invocation.getName().getIdentifier();
-                        if (setterName.equals(invocationName)) {
-                            List callArgs = invocation.arguments();
-                            if (callArgs != null && callArgs.size() == 1) {
-                                ISSmell isSmell = new ISSmell();
-                                isSmell.setClassBean(classBean);
-                                isSmell.setSmellyCall(invocation);
-                                isSmell.setSmellySetter(setter);
-                                return isSmell;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        return null;
+    private static List<Pair<Type, String>> getInternalFields(TypeDeclaration typeDecl) {
+        FieldDeclaration[] fieldDecls = typeDecl.getFields();
+        return Arrays.stream(fieldDecls)
+                .map(fieldDeclaration -> (List<VariableDeclarationFragment>) fieldDeclaration.fragments())
+                .flatMap(List::stream)
+                .map(field -> new MutablePair<>(((FieldDeclaration) field.getParent()).getType(), field.getName().getIdentifier()))
+                .collect(Collectors.toList());
     }
 
-    private static List<Pair<Type, String>> getInstanceVariables(TypeDeclaration typeDecl) {
-        List<Pair<Type, String>> instanceVars = new ArrayList<>();
-        for (FieldDeclaration field : typeDecl.getFields()) {
-            List<VariableDeclarationFragment> fragments = (List<VariableDeclarationFragment>) field.fragments();
-            for (VariableDeclarationFragment fragment : fragments) {
-                instanceVars.add(new MutablePair<>(field.getType(), fragment.getName().getIdentifier()));
-            }
-        }
-        return instanceVars;
-    }
-
-    private List<Pair<MethodDeclaration, String>> getSetters(TypeDeclaration typeDecl
-            , List<Pair<Type, String>> instanceVars) {
+    // TODO: Use streams for smarter code like getInternalFields
+    private static List<Pair<MethodDeclaration, String>> getSetters(TypeDeclaration typeDecl,
+                                                             List<Pair<Type, String>> instanceVars) {
         MethodDeclaration[] methods = typeDecl.getMethods();
         List<Pair<MethodDeclaration, String>> setters = new ArrayList<>();
         for (MethodDeclaration methodDecl : methods) {
@@ -96,6 +56,50 @@ public class ISAnalyzer extends ClassSmellAnalyzer {
             }
         }
         return setters;
+    }
+
+    @Override
+    public ClassSmell analyze(ClassBean classBean) {
+        if (classBean == null) {
+            return null;
+        }
+        TypeDeclaration typeDecl = classBean.getTypeDeclaration();
+        // Fetch all instance variables names
+        List<Pair<Type, String>> internalFields = getInternalFields(typeDecl);
+
+        // Fetch all setters
+        List<Pair<MethodDeclaration, String>> internalSetters = getSetters(typeDecl, internalFields);
+
+        MethodDeclaration[] methods = typeDecl.getMethods();
+        for (MethodDeclaration methodDecl : methods) {
+            if (!Modifier.isStatic(methodDecl.getModifiers())) {
+                // Look for an invocation to a setter
+                List<MethodInvocation> invocations = ASTUtilities.getMethodInvocations(methodDecl);
+                if (invocations == null) {
+                    return null;
+                }
+                for (MethodInvocation invocation : invocations) {
+                    if (invocation.getExpression() == null || invocation.getExpression().getNodeType() == ASTNode.THIS_EXPRESSION) {
+                        // TODO: Smarter iteration for a better search
+                        for (Pair<MethodDeclaration, String> setter : internalSetters) {
+                            String setterName = setter.getKey().getName().getIdentifier();
+                            String invocationName = invocation.getName().getIdentifier();
+                            if (setterName.equals(invocationName)) {
+                                List callArgs = invocation.arguments();
+                                if (callArgs != null && callArgs.size() == 1) {
+                                    ISSmell isSmell = new ISSmell();
+                                    isSmell.setClassBean(classBean);
+                                    isSmell.setSmellyCall(invocation);
+                                    isSmell.setSmellySetter(setter);
+                                    return isSmell;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return null;
     }
 
     private static boolean setterSignatureCheck(MethodDeclaration methodDecl) {
