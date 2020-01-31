@@ -17,7 +17,11 @@ import org.eclipse.jface.text.Document;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Stack;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 public class CoreDriver implements StartDialog.StartCallback,
         AboutDialog.AboutCallback,
@@ -55,23 +59,21 @@ public class CoreDriver implements StartDialog.StartCallback,
         SaveAndSyncHandler.getInstance().refreshOpenFiles();
         //ProjectManagerEx.getInstanceEx().blockReloadingProjectOnExternalChanges();
 
-        // Get all path entries
-        ProjectRootManager projectRootManager = ProjectRootManager.getInstance(project);
-        VirtualFile[] paths = projectRootManager.getContentSourceRoots();
-        pathEntries = new String[paths.length];
-        for (int i = 0; i < pathEntries.length; i++) {
-            pathEntries[i] = paths[i].getPath();
-        }
-
         // Fetch all project files
-        Collection<VirtualFile> virtualFiles = FileTypeIndex.getFiles(JavaFileType.INSTANCE, GlobalSearchScope.projectScope(project));
-        projectFiles = new ArrayList<>();
-        for (VirtualFile virtualFile : virtualFiles) {
-            projectFiles.add(new File(virtualFile.getPath()));
-        }
+        this.projectFiles = FileTypeIndex.getFiles(JavaFileType.INSTANCE, GlobalSearchScope.projectScope(project))
+                .stream()
+                .map(vf -> new File(vf.getPath()))
+                .filter(File::isFile)
+                .collect(Collectors.toList());
+
+        // Get all path entries
+        this.pathEntries = Arrays.stream(ProjectRootManager.getInstance(project).getContentSourceRoots())
+                .map(VirtualFile::getPath)
+                .toArray(String[]::new);
 
         // Send analysis usage statistics
         // TODO: Add a checkbox somewhere to disable the collection, maybe in About that will become Settings?
+        // TODO: Preferences files maybe it's needed to remember things
         try {
             this.sender.sendAnalysisData(this.selections);
         } catch (IOException e) {

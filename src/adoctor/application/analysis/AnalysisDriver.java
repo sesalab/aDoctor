@@ -9,8 +9,10 @@ import org.eclipse.jdt.core.dom.TypeDeclaration;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class AnalysisDriver {
 
@@ -81,42 +83,42 @@ public class AnalysisDriver {
             }
 
             // Analysis phase
-            Pattern patternPackage;
-            if (targetPackage == null || targetPackage.equals("")) {
-                patternPackage = Pattern.compile(".*");
-            } else {
-                patternPackage = Pattern.compile("^" + targetPackage + "(\\..*)?$");
-            }
+            Pattern patternPackage = targetPackage == null || targetPackage.equals("")
+                    ? Pattern.compile(".*")
+                    : Pattern.compile("^" + targetPackage + "(\\..*)?$");
+
             for (File projectFile : projectFiles) {
                 // TODO Size estmate to implement a progress bar
+                System.out.println("Analyzing file: " + projectFile.getName());
                 checkStop();
-                if (projectFile.isFile()) {
-                    CompilationUnit compilationUnit;
-                    try {
-                        compilationUnit = ASTUtilities.getCompilationUnit(projectFile, pathEntries);
-                        List<TypeDeclaration> types = (List<TypeDeclaration>) compilationUnit.types();
-                        // Package filtering
-                        if (compilationUnit.getPackage() != null) {
-                            String packageName = compilationUnit.getPackage().getName().toString();
-                            if (packageName.matches(patternPackage.pattern())) {
-                                System.out.println("Analyzing file: " + projectFile.getName());
-                                for (TypeDeclaration type : types) {
-                                    ClassBean classBean = new ClassBean();
-                                    classBean.setTypeDeclaration(type);
-                                    classBean.setSourceFile(projectFile);
-                                    // Analysis launch
-                                    for (ClassSmellAnalyzer analyzer : classSmellAnalyzers) {
-                                        ClassSmell classSmell = analyzer.analyze(classBean);
-                                        if (classSmell != null) {
-                                            classSmells.add(classSmell);
-                                        }
-                                    }
+                try {
+                    // Package filtering
+                    CompilationUnit compilationUnit = ASTUtilities.getCompilationUnit(projectFile, pathEntries);
+                    if (compilationUnit.getPackage() != null &&
+                            compilationUnit.getPackage().getName().toString().matches(patternPackage.pattern())) {
+                        List<TypeDeclaration> topTypes = (List<TypeDeclaration>) compilationUnit.types();
+                        // Get up to level 1 inner classes
+                        List<TypeDeclaration> innerTypes = topTypes.stream()
+                                .flatMap(type -> Arrays.stream(type.getTypes()))
+                                .collect(Collectors.toList());
+                        List<TypeDeclaration> types = new ArrayList<>(topTypes);
+                        types.addAll(innerTypes);
+                        for (TypeDeclaration type : types) {
+                            System.out.println("\tClass: " + type.getName().getIdentifier());
+                            ClassBean classBean = new ClassBean();
+                            classBean.setTypeDeclaration(type);
+                            classBean.setSourceFile(projectFile);
+                            // Analysis launch
+                            for (ClassSmellAnalyzer analyzer : classSmellAnalyzers) {
+                                ClassSmell classSmell = analyzer.analyze(classBean);
+                                if (classSmell != null) {
+                                    classSmells.add(classSmell);
                                 }
                             }
                         }
-                    } catch (Exception e) {
-                        e.printStackTrace();
                     }
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
             }
             return classSmells;

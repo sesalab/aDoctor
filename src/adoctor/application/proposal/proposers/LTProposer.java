@@ -7,11 +7,23 @@ import org.eclipse.jdt.core.dom.*;
 import org.eclipse.jdt.core.dom.rewrite.ASTRewrite;
 import org.eclipse.jdt.core.dom.rewrite.ListRewrite;
 
-import java.util.List;
-
 public class LTProposer extends ClassSmellProposer {
     private static final String INTERRUPT = "interrupt";
     private static final String ON_DESTROY = "onDestroy";
+
+    private static MethodDeclaration getOnDestroy(TypeDeclaration type) {
+        MethodDeclaration[] methodDeclarations = type.getMethods();
+        for (MethodDeclaration methodDeclaration : methodDeclarations) {
+            if (methodDeclaration.getName().getIdentifier().equals(ON_DESTROY)) {
+                if (Modifier.isPublic(methodDeclaration.getModifiers()) || Modifier.isProtected(methodDeclaration.getModifiers())) {
+                    if (methodDeclaration.parameters().size() == 0) {
+                        return methodDeclaration;
+                    }
+                }
+            }
+        }
+        return null;
+    }
 
     @Override
     public ASTRewrite computeProposal(ClassSmell classSmell) {
@@ -31,7 +43,7 @@ public class LTProposer extends ClassSmellProposer {
 
         ASTRewrite astRewrite = ASTRewrite.create(targetAST);
         // Look for onDestroy method
-        MethodDeclaration onDestroyDecl = getOnDestroy(smellyVar.getRoot());
+        MethodDeclaration onDestroyDecl = getOnDestroy(classSmell.getClassBean().getTypeDeclaration());
         // If it does not exist, create it and add it into the class
         if (onDestroyDecl == null) {
             onDestroyDecl = createOnDestroyMethodDeclaration(astRewrite);
@@ -50,23 +62,6 @@ public class LTProposer extends ClassSmellProposer {
         astRewrite.getListRewrite(onDestroyDecl.getBody(), Block.STATEMENTS_PROPERTY)
                 .insertLast(interruptStat, null);
         return astRewrite;
-    }
-
-    private static MethodDeclaration getOnDestroy(ASTNode node) {
-        List<MethodDeclaration> methodDeclarations = ASTUtilities.getMethodDeclarations(node.getRoot());
-        if (methodDeclarations == null) {
-            return null;
-        }
-        for (MethodDeclaration methodDeclaration : methodDeclarations) {
-            if (methodDeclaration.getName().getIdentifier().equals(ON_DESTROY)) {
-                if (Modifier.isPublic(methodDeclaration.getModifiers()) || Modifier.isProtected(methodDeclaration.getModifiers())) {
-                    if (methodDeclaration.parameters().size() == 0) {
-                        return methodDeclaration;
-                    }
-                }
-            }
-        }
-        return null;
     }
 
     private static MethodDeclaration createOnDestroyMethodDeclaration(ASTRewrite astRewrite) {
