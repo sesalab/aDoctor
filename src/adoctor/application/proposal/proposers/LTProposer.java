@@ -10,7 +10,7 @@ import org.eclipse.jdt.core.dom.rewrite.ListRewrite;
 import java.util.List;
 
 public class LTProposer extends ClassSmellProposer {
-    private static final String STOP = "stop";
+    private static final String INTERRUPT = "interrupt";
     private static final String ON_DESTROY = "onDestroy";
 
     @Override
@@ -35,17 +35,20 @@ public class LTProposer extends ClassSmellProposer {
         // If it does not exist, create it and add it into the class
         if (onDestroyDecl == null) {
             onDestroyDecl = createOnDestroyMethodDeclaration(astRewrite);
-            ListRewrite classDeclsListRewrite = astRewrite.getListRewrite(ASTUtilities.getParentTypeDeclaration(smellyVar)
-                    , TypeDeclaration.BODY_DECLARATIONS_PROPERTY);
-            classDeclsListRewrite.insertLast(onDestroyDecl, null);
+            astRewrite.getListRewrite(ASTUtilities
+                    .getParentTypeDeclaration(smellyVar), TypeDeclaration.BODY_DECLARATIONS_PROPERTY)
+                    .insertLast(onDestroyDecl, null);
         }
-        // In any case, create and add the stop() call
-        MethodInvocation stopCall = targetAST.newMethodInvocation();
-        stopCall.setName(targetAST.newSimpleName(STOP));
-        stopCall.setExpression(targetAST.newSimpleName(smellyVar.getName().getIdentifier()));
-        ExpressionStatement stopStat = targetAST.newExpressionStatement(stopCall);
-        ListRewrite onDestroyStatementsListRewrite = astRewrite.getListRewrite(onDestroyDecl.getBody(), Block.STATEMENTS_PROPERTY);
-        onDestroyStatementsListRewrite.insertLast(stopStat, null);
+        // In any case, create and add the interrupt() call
+        MethodInvocation interruptCall = targetAST.newMethodInvocation();
+        interruptCall.setName(targetAST.newSimpleName(INTERRUPT));
+        FieldAccess fieldAccess = targetAST.newFieldAccess();
+        fieldAccess.setExpression(targetAST.newThisExpression());
+        fieldAccess.setName(targetAST.newSimpleName(smellyVar.getName().getIdentifier()));
+        interruptCall.setExpression(fieldAccess);
+        ExpressionStatement interruptStat = targetAST.newExpressionStatement(interruptCall);
+        astRewrite.getListRewrite(onDestroyDecl.getBody(), Block.STATEMENTS_PROPERTY)
+                .insertLast(interruptStat, null);
         return astRewrite;
     }
 

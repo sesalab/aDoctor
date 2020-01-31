@@ -8,13 +8,57 @@ import org.eclipse.jdt.core.dom.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class LTAnalyzer extends ClassSmellAnalyzer {
     private static final String ACTIVITY = "Activity";
     private static final String APP_COMPACT_ACTIVITY = "AppCompactActivity";
     private static final String THREAD = "Thread";
     private static final String START = "start";
-    private static final String STOP = "stop";
+    private static final String INTERRUPT = "interrupt";
+
+    private static boolean isStartedButNotInterrupted(TypeDeclaration typeDecl, VariableDeclarationFragment threadVar) {
+        List<MethodInvocation> methodInvocations = ASTUtilities.getMethodInvocations(typeDecl);
+        // TODO: Throw an exception, not this
+        if (methodInvocations == null) {
+            return false;
+        }
+        List<MethodInvocation> threadInvocations = methodInvocations
+                .stream()
+                .filter(methodInv -> methodInv.getExpression() != null)
+                .filter(methodInv -> methodInv.getExpression().toString().equals(threadVar.getName().getIdentifier())
+                        || (methodInv.getExpression().getNodeType() == ASTNode.FIELD_ACCESS
+                        && ((FieldAccess) methodInv.getExpression()).getName().getIdentifier().equals(threadVar.getName().getIdentifier())))
+                .collect(Collectors.toList());
+        boolean foundStart = threadInvocations.stream().anyMatch(threadInv -> threadInv.getName().getIdentifier().equals(START));
+        boolean foundInterrupt = threadInvocations.stream().anyMatch(threadInv -> threadInv.getName().getIdentifier().equals(INTERRUPT));
+        return foundStart && !foundInterrupt;
+    }
+
+    private static boolean isCreated(TypeDeclaration typeDecl, VariableDeclarationFragment threadVar) {
+        List<ClassInstanceCreation> classInstanceCreations = ASTUtilities.getClassInstanceCreations(typeDecl);
+        // TODO: Throw an exception, not this
+        if (classInstanceCreations == null) {
+            return false;
+        }
+        for (ClassInstanceCreation classInstanceCreation : classInstanceCreations) {
+            if (classInstanceCreation.getType().toString().equals(THREAD)) {
+                if (classInstanceCreation.getParent().getNodeType() == ASTNode.ASSIGNMENT) {
+                    Assignment assignment = (Assignment) classInstanceCreation.getParent();
+                    String fieldName;
+                    if (assignment.getLeftHandSide().getNodeType() == ASTNode.FIELD_ACCESS) {
+                        fieldName = ((FieldAccess) assignment.getLeftHandSide()).getName().getIdentifier();
+                    } else {
+                        fieldName = assignment.getLeftHandSide().toString();
+                    }
+                    if (fieldName.equals(threadVar.toString())) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
 
     @Override
     public ClassSmell analyze(ClassBean classBean) {
@@ -37,30 +81,20 @@ public class LTAnalyzer extends ClassSmellAnalyzer {
 
             // Only Thread instance variables
             List<VariableDeclarationFragment> threadInstanceVars = new ArrayList<>();
-            for (FieldDeclaration fieldDecl : fieldDecls) {
-                if (fieldDecl.getType().toString().equals(THREAD)) {
-                    threadInstanceVars.addAll(fieldDecl.fragments());
-                }
-            }
+            fieldDecls
+                    .stream()
+                    .filter(fieldDecl -> fieldDecl.getType().toString().equals(THREAD))
+                    .map(FieldDeclaration::fragments)
+                    .forEach(threadInstanceVars::addAll);
             if (threadInstanceVars.size() == 0) {
-                return null;
-            }
-
-            // We need Class Instance Creations and all method invocations
-            List<ClassInstanceCreation> classInstanceCreations = ASTUtilities.getClassInstanceCreations(typeDecl);
-            if (classInstanceCreations == null) {
-                return null;
-            }
-            List<MethodInvocation> methodInvocations = ASTUtilities.getMethodInvocations(typeDecl);
-            if (methodInvocations == null) {
                 return null;
             }
 
             for (VariableDeclarationFragment threadInstanceVar : threadInstanceVars) {
                 // Check if there is a ClassInstanceCreation of that Thread
-                if (isCreated(threadInstanceVar, classInstanceCreations)) {
-                    // Not so fine grained, but it's a start: check the presence of start() and the absence of stop()
-                    if (isStartedButNotStopped(threadInstanceVar, methodInvocations)) {
+                if (isCreated(typeDecl, threadInstanceVar)) {
+                    // Not so fine grained, but it's a start: check the presence of start() and the absence of interrupt()
+                    if (isStartedButNotInterrupted(typeDecl, threadInstanceVar)) {
                         LTSmell ltSmell = new LTSmell();
                         ltSmell.setClassBean(classBean);
                         ltSmell.setSmellyVariableDeclarationFragment(threadInstanceVar);
@@ -70,36 +104,5 @@ public class LTAnalyzer extends ClassSmellAnalyzer {
             }
         }
         return null;
-    }
-
-    private static boolean isStartedButNotStopped(VariableDeclarationFragment threadVar, List<MethodInvocation> methodInvocations) {
-        List<MethodInvocation> threadInvocations = new ArrayList<>();
-        for (MethodInvocation methodInvocation : methodInvocations) {
-            Expression invocationExpr = methodInvocation.getExpression();
-            if (invocationExpr != null && invocationExpr.toString().equals(threadVar.toString())) {
-                threadInvocations.add(methodInvocation);
-            }
-        }
-        boolean foundStart = false, foundStop = false;
-        for (MethodInvocation threadInvocation : threadInvocations) {
-            SimpleName invocationName = threadInvocation.getName();
-            foundStart = foundStart || invocationName.getIdentifier().equals(START);
-            foundStop = foundStop || invocationName.getIdentifier().equals(STOP);
-        }
-        return foundStart && !foundStop;
-    }
-
-    private static boolean isCreated(VariableDeclarationFragment threadVar, List<ClassInstanceCreation> classInstanceCreations) {
-        for (ClassInstanceCreation classInstanceCreation : classInstanceCreations) {
-            if (classInstanceCreation.getType().toString().equals(THREAD)) {
-                if (classInstanceCreation.getParent() instanceof Assignment) {
-                    Assignment assignment = (Assignment) classInstanceCreation.getParent();
-                    if (assignment.getLeftHandSide().toString().equals(threadVar.toString())) {
-                        return true;
-                    }
-                }
-            }
-        }
-        return false;
     }
 }
