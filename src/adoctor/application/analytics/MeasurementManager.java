@@ -20,8 +20,8 @@ public class MeasurementManager {
     private static final String COLLECT_URL = "https://www.google-analytics.com/collect";
     private static final String BATCH_URL = "https://www.google-analytics.com/batch";
     private static final String BASE_PAYLOAD = "v=%s&t=%s&tid=%s&cid=%s";
-    private static final String ANALYSIS_PAYLOAD = "&ec=analysis&ea=select&el=%s&ev=%s\n";
-    private static final String REFACTORING_PAYLOAD = "&ec=refactoring&ea=apply&el=%s&ev=%s\n";
+    private static final String ANALYSIS_PAYLOAD = "&ec=p_analysis&ea=select&el=%s&ev=%s\n";
+    private static final String REFACTORING_PAYLOAD = "&ec=p_refactoring&ea=apply&el=%s&ev=%s\n";
     private static final String TRUE = "1";
     private static final String FALSE = "0";
 
