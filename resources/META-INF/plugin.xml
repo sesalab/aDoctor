@@ -1,7 +1,7 @@
 <idea-plugin>
     <id>it.unisa.plugin.adoctor</id>
     <name>aDoctor</name>
-    <version>0.4.0</version>
+    <version>0.4.1</version>
     <vendor email="e.iannone16@studenti.unisa.it">Emanuele Iannone</vendor>
 
     <description><![CDATA[
