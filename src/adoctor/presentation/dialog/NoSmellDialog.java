@@ -42,7 +42,7 @@ public class NoSmellDialog extends AbstractDialog {
         noSmellCallback.noSmellQuit(this);
     }
 
-    interface NoSmellCallback {
+    public interface NoSmellCallback {
         void noSmellBack(NoSmellDialog noSmellDialog);
 
         void noSmellQuit(NoSmellDialog noSmellDialog);

@@ -11,7 +11,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MeasurementSender {
+public class MeasurementManager {
     public static final String DEFAULT_USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.88 Safari/537.36";
     public static final String DEFAULT_V = "1";
     public static final String DEFAULT_T = "event";
@@ -28,12 +28,12 @@ public class MeasurementSender {
     private String initialPayload;
     private ResponseHandler<Integer> responseHandler;
 
-    public MeasurementSender(String v, String t, String tid, String cid) {
+    public MeasurementManager(String v, String t, String tid, String cid) {
         this.responseHandler = response -> response.getStatusLine().getStatusCode();
         this.initialPayload = String.format(BASE_PAYLOAD, v, t, tid, cid);
     }
 
-    public MeasurementSender(String cid) {
+    public MeasurementManager(String cid) {
         this(DEFAULT_V, DEFAULT_T, DEFAULT_TID, cid);
     }
 

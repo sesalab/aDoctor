@@ -43,8 +43,9 @@ public class FailureDialog extends AbstractDialog {
         failureCallback.failureQuit(this);
     }
 
-    interface FailureCallback {
+    public interface FailureCallback {
         void failureBack(FailureDialog failureDialog);
+
         void failureQuit(FailureDialog failureDialog);
     }
 }

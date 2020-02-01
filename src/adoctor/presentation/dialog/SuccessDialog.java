@@ -48,9 +48,11 @@ public class SuccessDialog extends AbstractDialog {
         successCallback.successQuit(this);
     }
 
-    interface SuccessCallback {
+    public interface SuccessCallback {
         void successAnalyze(SuccessDialog successDialog);
+
         void successBack(SuccessDialog successDialog);
+
         void successQuit(SuccessDialog successDialog);
     }
 }

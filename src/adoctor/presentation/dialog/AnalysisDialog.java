@@ -105,7 +105,7 @@ public class AnalysisDialog extends AbstractDialog {
         analysisDriver.abortAnalysis();
     }
 
-    interface AnalysisCallback {
+    public interface AnalysisCallback {
         void analysisAbort(AnalysisDialog analysisDialog);
 
         void analysisDone(AnalysisDialog analysisDialog, List<ClassSmell> classSmells);

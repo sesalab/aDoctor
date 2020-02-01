@@ -1,16 +1,18 @@
 <idea-plugin>
     <id>it.unisa.plugin.adoctor</id>
     <name>aDoctor</name>
-    <version>0.3.4</version>
+    <version>0.4.0</version>
     <vendor email="e.iannone16@studenti.unisa.it">Emanuele Iannone</vendor>
 
     <description><![CDATA[
-      Android Studio plugin for code smell detection and refactoring.
+      Android Studio plugin for Android-specific energy smell detection and refactoring.
     ]]></description>
 
     <change-notes><![CDATA[
-        IntelliJ Plugin Platform SDK update.
-        For more details on changes visit https://github.com/emaiannone/aDoctor.
+        Fix MIM, IS and LT detection and refactoring logic.
+        Add simple usage statistics collection logic.
+        Add saved preferences for selected smell and usage statistics collection.
+        For more details on changes visit https://github.com/emaiannone/aDoctor
     ]]>
     </change-notes>
 

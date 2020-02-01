@@ -28,13 +28,13 @@ public class StartDialog extends AbstractDialog {
     private JCheckBox checkLT;
     private JCheckBox checkMIM;
 
-    private JButton buttonStart;
+    private JButton buttonRun;
     private JButton buttonAbout;
     private JTextField fieldPackage;
 
     private List<JCheckBox> checkBoxes;
 
-    private StartDialog(StartCallback startCallback, Project project, List<Boolean> selections) {
+    private StartDialog(StartCallback startCallback, Project project, List<Boolean> selectedSmells) {
         this.startCallback = startCallback;
         this.project = project;
         init();
@@ -48,14 +48,14 @@ public class StartDialog extends AbstractDialog {
         checkBoxes.add(checkLT);
         checkBoxes.add(checkMIM);
         // There is a pre-saved selections list: initialize check boxes
-        if (selections != null) {
-            Iterator<Boolean> selectionIter = selections.iterator();
+        if (selectedSmells != null) {
+            Iterator<Boolean> selectionIter = selectedSmells.iterator();
             Iterator<JCheckBox> checkBoxIter = checkBoxes.iterator();
             while (selectionIter.hasNext() && checkBoxIter.hasNext()) {
                 checkBoxIter.next().setSelected(selectionIter.next());
             }
             // adjust the select all check box
-            boolean andResult = selections.stream().reduce((a, b) -> a && b).orElse(false);
+            boolean andResult = selectedSmells.stream().reduce((a, b) -> a && b).orElse(false);
             checkAll.setSelected(andResult);
         } else { // pre-saved selections list does not exists: check all as default
             checkAll.setSelected(false);
@@ -63,13 +63,13 @@ public class StartDialog extends AbstractDialog {
         }
     }
 
-    public static void show(StartCallback startCallback, Project project, List<Boolean> selections) {
-        StartDialog startDialog = new StartDialog(startCallback, project, selections);
+    public static void show(StartCallback startCallback, Project project, List<Boolean> selectedSmells) {
+        StartDialog startDialog = new StartDialog(startCallback, project, selectedSmells);
         startDialog.showInCenter();
     }
 
     private void init() {
-        super.init(contentPane, TITLE, buttonStart);
+        super.init(contentPane, TITLE, buttonRun);
 
         checkAll.addActionListener(e -> onSelectAll());
         checkDW.addActionListener(e -> onCheck());
@@ -78,7 +78,7 @@ public class StartDialog extends AbstractDialog {
         checkIS.addActionListener(e -> onCheck());
         checkLT.addActionListener(e -> onCheck());
         checkMIM.addActionListener(e -> onCheck());
-        buttonStart.addActionListener(e -> onStart());
+        buttonRun.addActionListener(e -> onRun());
         buttonAbout.addActionListener(e -> onAbout());
         fieldPackage.addMouseListener(new MouseAdapter() {
             @Override
@@ -118,11 +118,7 @@ public class StartDialog extends AbstractDialog {
         // All are selected: check checkAll. Not all are selected: uncheck checkAll
         List<Boolean> selections = checkBoxes.stream().map(AbstractButton::isSelected).collect(Collectors.toList());
         boolean andResult = selections.stream().reduce((a, b) -> a && b).orElse(false);
-        if (andResult) {
-            checkAll.setSelected(true);
-        } else {
-            checkAll.setSelected(false);
-        }
+        checkAll.setSelected(andResult);
     }
 
     private void onSelectModule() {
@@ -133,29 +129,29 @@ public class StartDialog extends AbstractDialog {
         }
     }
 
-    private void onStart() {
+    private void onRun() {
         // Nothing is selected: "select at least one" pop-up
         List<Boolean> selections = checkBoxes.stream().map(AbstractButton::isSelected).collect(Collectors.toList());
         boolean orResult = selections.stream().reduce((a, b) -> a || b).orElse(true);
         if (orResult) {
-            startCallback.startAnalysis(this, selections, fieldPackage.getText());
+            startCallback.runAnalysis(this, selections, fieldPackage.getText());
         } else {
             JOptionPane.showMessageDialog(this, "Select at least one smell!", "Error", JOptionPane.ERROR_MESSAGE, null);
         }
     }
 
     private void onAbout() {
-        startCallback.startAbout(this);
+        startCallback.startSettings(this);
     }
 
     private void onQuit() {
         startCallback.startQuit(this);
     }
 
-    interface StartCallback {
-        void startAnalysis(StartDialog startDialog, List<Boolean> selections, String targetPackage);
+    public interface StartCallback {
+        void runAnalysis(StartDialog startDialog, List<Boolean> selectedSmells, String targetPackage);
 
-        void startAbout(StartDialog startDialog);
+        void startSettings(StartDialog startDialog);
 
         void startQuit(StartDialog startDialog);
     }

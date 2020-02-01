@@ -1,6 +1,6 @@
 package adoctor.presentation.action;
 
-import adoctor.presentation.dialog.CoreDriver;
+import adoctor.presentation.CoreDriver;
 import com.intellij.ide.plugins.IdeaPluginDescriptor;
 import com.intellij.ide.plugins.PluginManagerCore;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -37,7 +37,7 @@ public class StartAction extends AnAction {
             Editor editor = FileEditorManager.getInstance(project).getSelectedTextEditor();
             */
 
-            CoreDriver coreDriver = new CoreDriver(project);
+            CoreDriver coreDriver = new CoreDriver(project, pluginId.getIdString());
             coreDriver.start();
         }
     }

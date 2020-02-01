@@ -120,7 +120,8 @@ public class SmellDialog extends AbstractDialog {
         boxSmell.setSelectedIndex(0); // Select the first smell of the list
 
         // The undo button
-        buttonUndo.setVisible(undoExists);
+        buttonUndo.setVisible(false);
+        //Uncomment when the feature will be implemented: buttonUndo.setVisible(undoExists);
         buttonUndo.addActionListener(e -> onUndo());
 
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
@@ -223,16 +224,6 @@ public class SmellDialog extends AbstractDialog {
         }
     }
 
-    interface SmellCallback {
-        void smellApply(SmellDialog smellDialog, ClassSmell targetSmell, Undo undo);
-
-        void smellBack(SmellDialog smellDialog);
-
-        void smellQuit(SmellDialog smellDialog);
-
-        void smellUndo(SmellDialog smellDialog);
-    }
-
     private static class SmellRenderer extends BasicComboBoxRenderer {
         private static final String baseHTML = "" +
                 "<html>" +
@@ -267,5 +258,15 @@ public class SmellDialog extends AbstractDialog {
             label.setText(text);
             return label;
         }
+    }
+
+    public interface SmellCallback {
+        void smellApply(SmellDialog smellDialog, ClassSmell targetSmell, Undo undo);
+
+        void smellBack(SmellDialog smellDialog);
+
+        void smellQuit(SmellDialog smellDialog);
+
+        void smellUndo(SmellDialog smellDialog);
     }
 }

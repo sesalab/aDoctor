@@ -48,9 +48,11 @@ public class AbortedDialog extends AbstractDialog {
         abortedCallback.abortedQuit(this);
     }
 
-    interface AbortedCallback {
+    public interface AbortedCallback {
         void abortedRestart(AbortedDialog abortedDialog);
+
         void abortedBack(AbortedDialog abortedDialog);
+
         void abortedQuit(AbortedDialog abortedDialog);
     }
 }

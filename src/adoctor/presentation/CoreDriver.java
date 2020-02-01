@@ -1,8 +1,10 @@
-package adoctor.presentation.dialog;
+package adoctor.presentation;
 
-import adoctor.application.analytics.MeasurementSender;
+import adoctor.application.analytics.MeasurementManager;
 import adoctor.application.proposal.undo.Undo;
 import adoctor.application.smell.ClassSmell;
+import adoctor.presentation.dialog.*;
+import adoctor.presentation.pref.PreferenceManager;
 import com.intellij.ide.SaveAndSyncHandler;
 import com.intellij.ide.highlighter.JavaFileType;
 import com.intellij.openapi.application.ApplicationManager;
@@ -24,7 +26,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 public class CoreDriver implements StartDialog.StartCallback,
-        AboutDialog.AboutCallback,
+        SettingsDialog.SettingsCallback,
         AnalysisDialog.AnalysisCallback,
         AbortedDialog.AbortedCallback,
         NoSmellDialog.NoSmellCallback,
@@ -34,69 +36,41 @@ public class CoreDriver implements StartDialog.StartCallback,
         FailureDialog.FailureCallback {
 
     private Project project;
-    private MeasurementSender sender;
-    private List<File> projectFiles;
-    private String[] pathEntries;
+    private MeasurementManager measurementManager;
+    private PreferenceManager preferenceManager;
     private Stack<Undo> undoStack;
-    private List<Boolean> selections;
+    // TODO: Convert to a Map
+    private List<Boolean> selectedSmells;
+
     private String targetPackage;
-    private List<ClassSmell> classSmells;
 
-    public CoreDriver(Project project) {
+    private List<ClassSmell> smellInstances;
+
+    public CoreDriver(Project project, String pluginId) {
         this.project = project;
-        this.sender = new MeasurementSender(UUID.nameUUIDFromBytes(this.project.getName().getBytes()).toString());
+        this.measurementManager = new MeasurementManager(UUID.nameUUIDFromBytes(project.getName().getBytes()).toString());
+        this.preferenceManager = new PreferenceManager(pluginId);
         this.undoStack = new Stack<>();
+        this.selectedSmells = preferenceManager.getSavedSelectedSmells();
     }
 
-    public void start() {
-        StartDialog.show(this, project, selections);
-    }
-
-    private void launchAnalysis() {
-        // Save all files in the current project before starting the analysis
+    private static void save(Project project) {
+        System.out.print("Saving all files...");
         project.save();
         FileDocumentManager.getInstance().saveAllDocuments();
         SaveAndSyncHandler.getInstance().refreshOpenFiles();
         //ProjectManagerEx.getInstanceEx().blockReloadingProjectOnExternalChanges();
-
-        // Fetch all project files
-        this.projectFiles = FileTypeIndex.getFiles(JavaFileType.INSTANCE, GlobalSearchScope.projectScope(project))
-                .stream()
-                .map(vf -> new File(vf.getPath()))
-                .filter(File::isFile)
-                .collect(Collectors.toList());
-
-        // Get all path entries
-        this.pathEntries = Arrays.stream(ProjectRootManager.getInstance(project).getContentSourceRoots())
-                .map(VirtualFile::getPath)
-                .toArray(String[]::new);
-
-        // Send analysis usage statistics
-        // TODO: Add a checkbox somewhere to disable the collection, maybe in About that will become Settings?
-        // TODO: Preferences files maybe it's needed to remember things
-        try {
-            this.sender.sendAnalysisData(this.selections);
-        } catch (IOException e) {
-            System.out.println("Analysis data has not been sent");
-            e.printStackTrace();
-        }
-
-        AnalysisDialog.show(this, projectFiles, pathEntries, selections, targetPackage);
+        System.out.println("saved!");
     }
 
     ////////////////StartDialog///////////////
     @Override
-    public void startAnalysis(StartDialog startDialog, List<Boolean> selections, String targetPackage) {
+    public void runAnalysis(StartDialog startDialog, List<Boolean> selectedSmells, String targetPackage) {
         startDialog.dispose();
-        this.selections = selections;
+        this.selectedSmells = selectedSmells;
         this.targetPackage = targetPackage;
-        launchAnalysis();
-    }
-
-    @Override
-    public void startAbout(StartDialog startDialog) {
-        startDialog.dispose();
-        AboutDialog.show(this);
+        preferenceManager.setSavedSelectedSmells(selectedSmells);
+        runAnalysis();
     }
 
     @Override
@@ -104,10 +78,16 @@ public class CoreDriver implements StartDialog.StartCallback,
         startDialog.dispose();
     }
 
-    /////////////////AboutDialog///////////////
     @Override
-    public void aboutBack(AboutDialog aboutDialog) {
-        aboutDialog.dispose();
+    public void startSettings(StartDialog startDialog) {
+        startDialog.dispose();
+        SettingsDialog.show(this, preferenceManager.isSavedStats());
+    }
+
+    /////////////////SettingsDialog///////////////
+    @Override
+    public void settingsBack(SettingsDialog settingsDialog) {
+        settingsDialog.dispose();
         start();
     }
 
@@ -119,21 +99,21 @@ public class CoreDriver implements StartDialog.StartCallback,
     }
 
     @Override
+    public void settingsSave(SettingsDialog settingsDialog, boolean statsChecked) {
+        settingsDialog.dispose();
+        preferenceManager.setSavedStats(statsChecked);
+        start();
+    }
+
+    @Override
     public void analysisDone(AnalysisDialog analysisDialog, List<ClassSmell> classSmells) {
-        this.classSmells = classSmells;
+        this.smellInstances = classSmells;
         analysisDialog.dispose();
         if (classSmells == null || classSmells.size() == 0) {
             NoSmellDialog.show(this);
         } else {
-            SmellDialog.show(this, project, classSmells, selections, !undoStack.isEmpty());
+            SmellDialog.show(this, project, classSmells, selectedSmells, !undoStack.isEmpty());
         }
-    }
-
-    ////////////AbortedDialog/////////////////
-    @Override
-    public void abortedRestart(AbortedDialog abortedDialog) {
-        abortedDialog.dispose();
-        AnalysisDialog.show(this, projectFiles, pathEntries, selections, targetPackage);
     }
 
     @Override
@@ -147,7 +127,6 @@ public class CoreDriver implements StartDialog.StartCallback,
         abortedDialog.dispose();
     }
 
-
     //////////////NoSmellDialog/////////////
     @Override
     public void noSmellBack(NoSmellDialog noSmellDialog) {
@@ -160,22 +139,12 @@ public class CoreDriver implements StartDialog.StartCallback,
         noSmellDialog.dispose();
     }
 
-    /////////////SmellDialog//////////////
+    ////////////AbortedDialog/////////////////
     @Override
-    public void smellApply(SmellDialog smellDialog, ClassSmell targetSmell, Undo undo) {
-        smellDialog.dispose();
-        undoStack.push(undo);
-        Document proposedDocument = undo.getDocument();
-
-        // Send refactoring usage statistics
-        try {
-            this.sender.sendRefactoringData(targetSmell.getShortName().toLowerCase());
-        } catch (IOException e) {
-            System.out.println("Refactoring data has not been sent");
-            e.printStackTrace();
-        }
-
-        RefactoringDialog.show(this, targetSmell, proposedDocument);
+    public void abortedRestart(AbortedDialog abortedDialog) {
+        abortedDialog.dispose();
+        runAnalysis();
+        //AnalysisDialog.show(this, projectFiles, pathEntries, selectedSmells, targetPackage);
     }
 
     @Override
@@ -233,11 +202,26 @@ public class CoreDriver implements StartDialog.StartCallback,
         refactoringDialog.dispose();
     }
 
-    /////////////SuccessDialog//////////////
+    /////////////SmellDialog//////////////
     @Override
-    public void successAnalyze(SuccessDialog successDialog) {
-        successDialog.dispose();
-        launchAnalysis();
+    public void smellApply(SmellDialog smellDialog, ClassSmell targetSmell, Undo undo) {
+        smellDialog.dispose();
+        undoStack.push(undo);
+        Document proposedDocument = undo.getDocument();
+
+        // Send refactoring usage statistics
+        if (preferenceManager.isSavedStats()) {
+            try {
+                this.measurementManager.sendRefactoringData(targetSmell.getShortName().toLowerCase());
+            } catch (IOException e) {
+                System.out.println("Refactoring data has not been sent");
+                e.printStackTrace();
+            }
+        } else {
+            System.out.println("Cannot send any data");
+        }
+
+        RefactoringDialog.show(this, targetSmell, proposedDocument);
     }
 
     @Override
@@ -251,14 +235,57 @@ public class CoreDriver implements StartDialog.StartCallback,
         successDialog.dispose();
     }
 
+    /////////////SuccessDialog//////////////
     @Override
-    public void failureBack(FailureDialog failureDialog) {
-        failureDialog.dispose();
-        SmellDialog.show(this, project, classSmells, selections, !undoStack.isEmpty());
+    public void successAnalyze(SuccessDialog successDialog) {
+        successDialog.dispose();
+        runAnalysis();
     }
 
     @Override
     public void failureQuit(FailureDialog failureDialog) {
         failureDialog.dispose();
+    }
+
+    @Override
+    public void failureBack(FailureDialog failureDialog) {
+        failureDialog.dispose();
+        SmellDialog.show(this, project, smellInstances, selectedSmells, !undoStack.isEmpty());
+    }
+
+    ///////////////////////Helper methods///////////////////////
+    public void start() {
+        StartDialog.show(this, project, selectedSmells);
+    }
+
+    private void runAnalysis() {
+        // Save all files in the current project before starting the analysis
+        save(this.project);
+
+        // Fetch all project files
+        List<File> projectFiles = FileTypeIndex.getFiles(JavaFileType.INSTANCE, GlobalSearchScope.projectScope(project))
+                .stream()
+                .map(vf -> new File(vf.getPath()))
+                .filter(File::isFile)
+                .collect(Collectors.toList());
+
+        // Get all path entries
+        String[] pathEntries = Arrays.stream(ProjectRootManager.getInstance(project).getContentSourceRoots())
+                .map(VirtualFile::getPath)
+                .toArray(String[]::new);
+
+        // Send analysis usage statistics
+        if (preferenceManager.isSavedStats()) {
+            try {
+                this.measurementManager.sendAnalysisData(this.selectedSmells);
+                System.out.println("Data successfully sent!");
+            } catch (IOException e) {
+                System.out.println("Analysis data has not been sent");
+                e.printStackTrace();
+            }
+        } else {
+            System.out.println("Cannot send any data");
+        }
+        AnalysisDialog.show(this, projectFiles, pathEntries, selectedSmells, targetPackage);
     }
 }
